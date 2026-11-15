@@ -1,37 +1,38 @@
 'use client';
 
-import { Cloud, Code2, Link2Off, Mail } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { Callout } from '@/components/ui/callout';
+import { IconTile } from '@/components/ui/icon-tile';
+import { MODULE } from '@/lib/modules';
 import { useState } from 'react';
 import { SeverityBadge } from '@/components/ui/badge';
 import { Card, Eyebrow } from '@/components/ui/card';
-import { sevName, SEV_VAR, type Dict } from '@/lib/i18n';
+import { sevName, type Dict } from '@/lib/i18n';
 import type { EmailSecurity, ExposureDTO, ExposureKind, Lang } from '@/lib/types';
 
-const ICON: Record<ExposureKind, React.ComponentType<{ className?: string }>> = { takeover: Link2Off, bucket: Cloud, code_leak: Code2, email: Mail };
 const ORDER: ExposureKind[] = ['takeover', 'bucket', 'code_leak', 'email'];
 
 function ExposureRow({ e, lang, t }: { e: ExposureDTO; lang: Lang; t: Dict }) {
   const [open, setOpen] = useState(e.severity === 'Critical');
   return (
-    <li className="border-b border-line py-3.5 last:border-b-0" style={{ boxShadow: `inset 3px 0 0 ${SEV_VAR[e.severity]}` }}>
-      <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-start gap-3 pl-4 pr-1 text-left">
+    <li className="border-b border-line last:border-b-0">
+      <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-start gap-3 px-5 py-3.5 text-left hover:bg-panel2">
         <SeverityBadge severity={e.severity} label={sevName(e.severity, lang)} className="mt-px" />
         <span className="min-w-0 flex-1">
           <span className="block font-medium leading-5">{e.title[lang]}</span>
-          <span className="mt-0.5 block break-all font-mono text-xs leading-4 text-muted">{e.target}</span>
+          <span className="mt-0.5 block [overflow-wrap:anywhere] font-mono text-xs leading-4 text-muted">{e.target}</span>
         </span>
-        <span className="shrink-0 pt-0.5 text-xs text-accent">{t.showDetails}</span>
+        <ChevronDown className={`mt-0.5 size-4 shrink-0 text-muted transition-transform ${open ? 'rotate-180' : ''}`} aria-label={t.showDetails} />
       </button>
       {open && (
-        <div className="mt-3 flex flex-col gap-3 pl-4 pr-1 text-[13px] leading-5">
+        <div className="flex flex-col gap-3 px-5 pb-4 text-[13px] leading-5">
           <p>{e.reasoning[lang]}</p>
-          <div className="rounded-md border border-line bg-bg p-3" style={{ boxShadow: 'inset 3px 0 0 var(--color-low)' }}>
-            <Eyebrow>{t.fix}</Eyebrow>
+          <Callout tone="fix" title={t.fix}>
             <p>{e.remediation[lang]}</p>
-          </div>
+          </Callout>
           <div>
             <Eyebrow>{t.evidenceLabel}</Eyebrow>
-            <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded-md border border-line bg-bg p-3 font-mono text-xs leading-5 text-muted">{e.evidence}</pre>
+            <pre className="max-h-48 overflow-auto whitespace-pre-wrap [overflow-wrap:anywhere] rounded-md border border-line bg-bg p-3 font-mono text-xs leading-5 text-muted">{e.evidence}</pre>
           </div>
         </div>
       )}
@@ -43,17 +44,16 @@ export function Exposures({ exposures, email, lang, t }: { exposures: ExposureDT
   return (
     <div className="flex flex-col gap-5">
       <p className="max-w-[80ch] text-muted">{t.exposuresIntro}</p>
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid items-start gap-5 xl:grid-cols-2">
         {ORDER.map((kind) => {
-          const Icon = ICON[kind];
           const items = exposures.filter((e) => e.kind === kind && e.severity !== 'Info');
           const privateBuckets = kind === 'bucket' ? exposures.filter((e) => e.kind === 'bucket' && e.severity === 'Info').length : 0;
           return (
             <Card key={kind} className="flex flex-col p-0">
-              <header className="flex items-center gap-2.5 px-5 pb-3 pt-5">
-                <Icon className="size-4 text-muted" aria-hidden />
+              <header className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 pb-4 pt-5">
+                <IconTile icon={MODULE[kind].icon} tone={MODULE[kind].tone} />
                 <h2 className="text-sm font-semibold">{t.kindTitle[kind]}</h2>
-                <span className="tabular text-muted">{items.length}</span>
+                <span className="tabular rounded-sm bg-panel2 px-1.5 text-xs font-medium text-muted">{items.length}</span>
                 {kind === 'email' && email && (
                   <span className="ml-auto flex gap-3 text-xs text-muted">
                     <span>
@@ -83,31 +83,3 @@ export function Exposures({ exposures, email, lang, t }: { exposures: ExposureDT
   );
 }
 
-/** Compact counts for the overview tab. */
-export function ExposureStrip({ exposures, email, lang, t, onOpen }: { exposures: ExposureDTO[]; email: EmailSecurity | null; lang: Lang; t: Dict; onOpen: () => void }) {
-  return (
-    <Card className="p-4">
-      <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-        <h2 className="text-sm font-semibold">{t.exposureStrip}</h2>
-        {ORDER.map((kind) => {
-          const Icon = ICON[kind];
-          const items = exposures.filter((e) => e.kind === kind && e.severity !== 'Info');
-          const worst = items[0]?.severity;
-          return (
-            <button key={kind} onClick={onOpen} className="flex items-center gap-2 text-[13px] hover:text-accent">
-              <Icon className="size-4 text-muted" aria-hidden />
-              {t.kindTitle[kind]}
-              <b className="tabular font-semibold" style={{ color: worst ? SEV_VAR[worst] : 'var(--color-muted)' }}>
-                {kind === 'email' && email && !items.length ? '✓' : items.length}
-              </b>
-            </button>
-          );
-        })}
-        <button onClick={onOpen} className="ml-auto text-[13px] text-accent hover:underline">
-          {t.viewAll}
-        </button>
-      </div>
-      <span className="sr-only">{lang}</span>
-    </Card>
-  );
-}

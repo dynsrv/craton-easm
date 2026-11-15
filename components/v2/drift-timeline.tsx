@@ -1,6 +1,7 @@
 'use client';
 
-import { BellRing } from 'lucide-react';
+import { BellRing, History } from 'lucide-react';
+import { SeverityDot } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { sevName, SEV_VAR, type Dict } from '@/lib/i18n';
 import type { DriftEventDTO, Lang } from '@/lib/types';
@@ -20,23 +21,34 @@ export function DriftTimeline({ events, baselineScanId, lang, t }: { events: Dri
 
       {groups.size > 0 && (
         <Card>
-          <ol className="relative flex flex-col gap-7 border-l border-line pl-6">
+          <ol className="relative ml-3 flex flex-col gap-8 border-l border-line pl-7">
             {[...groups.entries()].map(([scanId, list]) => (
               <li key={scanId} className="relative">
-                <span className="absolute -left-[31px] top-1 size-3 rounded-full border-2 border-panel bg-primary" aria-hidden />
+                <span className="absolute -left-[41px] -top-0.5 grid size-6 place-items-center rounded-full border border-line bg-panel" aria-hidden>
+                  <History className="size-3.5" style={{ color: 'var(--color-tone-teal)' }} />
+                </span>
                 <p className="text-[13px] font-semibold leading-5">{fmt(list[0].createdAt)}</p>
                 <p className="text-xs text-muted">
                   {list.length} {lang === 'id' ? 'perubahan' : list.length === 1 ? 'change' : 'changes'} · {t.comparedWith.toLowerCase()}
                 </p>
                 <ul className="mt-3 flex flex-col gap-2">
                   {list.map((e) => (
-                    <li key={e.id} className="flex items-start gap-3 rounded-md border border-line bg-bg px-3 py-2.5" style={{ boxShadow: `inset 3px 0 0 ${SEV_VAR[e.severity]}` }}>
-                      <span className="mt-px w-[64px] shrink-0 text-xs font-medium" style={{ color: SEV_VAR[e.severity] }}>
-                        {sevName(e.severity, lang)}
+                    <li key={e.id} className="flex flex-col gap-1.5 rounded-md border border-line bg-bg px-4 py-3 sm:flex-row sm:items-start sm:gap-3">
+                      <span className="flex shrink-0 items-center justify-between gap-2 sm:w-[84px]">
+                        <span className="flex items-center gap-2 text-xs font-medium" style={{ color: SEV_VAR[e.severity] }}>
+                          <SeverityDot severity={e.severity} />
+                          {sevName(e.severity, lang)}
+                        </span>
+                        {e.notifiedAt && (
+                          <span className="flex items-center gap-1 text-xs text-muted sm:hidden" title={fmt(e.notifiedAt)}>
+                            <BellRing className="size-3.5" aria-hidden />
+                            {t.alerted}
+                          </span>
+                        )}
                       </span>
-                      <span className="min-w-0 flex-1 text-[13px] leading-5">{e.detail[lang]}</span>
+                      <span className="min-w-0 flex-1 text-[13px] leading-5 [overflow-wrap:anywhere]">{e.detail[lang]}</span>
                       {e.notifiedAt && (
-                        <span className="flex shrink-0 items-center gap-1 text-xs text-muted" title={fmt(e.notifiedAt)}>
+                        <span className="hidden shrink-0 items-center gap-1 text-xs text-muted sm:flex" title={fmt(e.notifiedAt)}>
                           <BellRing className="size-3.5" aria-hidden />
                           {t.alerted}
                         </span>

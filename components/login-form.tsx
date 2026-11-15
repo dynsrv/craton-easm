@@ -4,6 +4,8 @@ import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Wordmark } from '@/components/brand';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { IconTile } from '@/components/ui/icon-tile';
+import { MODULE } from '@/lib/modules';
 import { Button } from '@/components/ui/button';
 
 export function LoginForm({ problems }: { problems: string[] }) {
@@ -59,6 +61,14 @@ export function LoginForm({ problems }: { problems: string[] }) {
           Sign in
         </Button>
       </form>
+      <div className="flex flex-col gap-3">
+        <p className="text-xs font-medium text-muted">Discovery · takeover · visual triage · leaks · attack paths · drift</p>
+        <div className="flex gap-2">
+          {(['discovery', 'takeover', 'visual', 'code_leak', 'bucket', 'paths', 'drift'] as const).map((k) => (
+            <IconTile key={k} icon={MODULE[k].icon} tone={MODULE[k].tone} />
+          ))}
+        </div>
+      </div>
       <p className="hint">Access is limited to authorised operators. Scans are logged per account.</p>
     </main>
   );

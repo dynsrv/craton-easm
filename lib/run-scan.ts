@@ -300,12 +300,17 @@ export async function loadScanDTO(id: string): Promise<ScanDTO | null> {
     include: { assets: { select: ASSET_SELECT, orderBy: { hostname: 'asc' } }, exposures: true },
   });
   if (!scan) return null;
-  const [drift, monitor] = await Promise.all([
+  const [drift, monitor, withShot] = await Promise.all([
     // drift detected by this scan and every earlier scan of the domain
     prisma.driftEvent.findMany({ where: { domain: scan.domain, scan: { createdAt: { lte: scan.createdAt } } }, orderBy: { createdAt: 'desc' }, take: 100 }),
     prisma.monitor.findUnique({ where: { domain: scan.domain } }),
+    // whether an image is really stored (older scans have theirs pruned)
+    prisma.asset.findMany({ where: { scanId: id, screenshot: { not: null } }, select: { id: true } }),
   ]);
-  return toScanDTO({ ...scan, assets: scan.assets as unknown as Asset[] }, drift, monitor?.enabled ?? false);
+  const stored = new Set(withShot.map((a) => a.id));
+  const dto = toScanDTO({ ...scan, assets: scan.assets as unknown as Asset[] }, drift, monitor?.enabled ?? false);
+  dto.assets = dto.assets.map((a) => ({ ...a, hasScreenshot: stored.has(a.id) }));
+  return dto;
 }
 
 export function toScanDTO(scan: Scan & { assets: Asset[]; exposures?: Exposure[] }, drift: DriftEvent[] = [], monitored = false): ScanDTO {

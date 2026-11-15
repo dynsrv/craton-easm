@@ -22,3 +22,8 @@ export function PortChip({ port, risky }: { port: number; risky: boolean }) {
     <span className={cn('tabular inline-flex h-5 items-center rounded-sm border px-1.5 font-mono text-xs', risky ? 'border-crit text-crit' : 'border-line text-muted')}>{port}</span>
   );
 }
+
+/** Small filled dot in the severity colour, for compact lists. */
+export function SeverityDot({ severity, className }: { severity: Severity; className?: string }) {
+  return <span className={cn('inline-block size-2 shrink-0 rounded-full', className)} style={{ background: SEV_VAR[severity] }} aria-hidden />;
+}

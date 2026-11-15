@@ -133,7 +133,7 @@ export function ReportView({ scan }: { scan: ScanDTO }) {
             )}
           </div>
 
-          <div className="border-l-[3px] border-[#2d72d2] bg-[#f6f7f9] px-[4mm] py-[3mm] text-[9.5pt]">{t.rCta}</div>
+          <div className="rounded-[2mm] bg-[#eef4fc] px-[4mm] py-[3mm] text-[9.5pt]">{t.rCta}</div>
 
           <div className="mt-auto border-t border-[#d3d8de] pt-[3mm] text-[8.5pt] text-[#5f6b7c]">
             <b>{t.rMethod}.</b> {t.rMethodTxt}

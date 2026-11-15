@@ -1,11 +1,13 @@
 'use client';
 
-import { Check, ClipboardCopy, X } from 'lucide-react';
+import { Check, ClipboardCopy, ScanEye, X } from 'lucide-react';
+import { Callout } from '@/components/ui/callout';
+import { Shot } from '@/components/ui/shot';
 import { useEffect, useRef, useState } from 'react';
 import { PortChip, SeverityBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eyebrow } from '@/components/ui/card';
-import { catName, sevName, SEV_VAR, tlsLabel, TONE_CLASS, visName, type Dict } from '@/lib/i18n';
+import { catName, sevName, tlsLabel, TONE_CLASS, visName, type Dict } from '@/lib/i18n';
 import { SENSITIVE_PORTS } from '@/lib/ports';
 import type { AssetDTO, Lang } from '@/lib/types';
 
@@ -65,11 +67,10 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
         aria-modal="true"
         aria-label={a.hostname}
         className="fixed inset-y-0 right-0 z-40 flex w-full max-w-[540px] flex-col gap-6 overflow-auto border-l border-line bg-panel p-6 shadow-2xl"
-        style={{ boxShadow: a.severity ? `inset 0 4px 0 ${SEV_VAR[a.severity]}` : undefined }}
       >
         <header className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="break-all font-mono text-lg font-semibold leading-6">{a.hostname}</h3>
+            <h3 className="[overflow-wrap:anywhere] font-mono text-lg font-semibold leading-6">{a.hostname}</h3>
             <div className="mt-2.5 flex flex-wrap items-center gap-2.5 text-[13px]">
               {a.severity && <SeverityBadge severity={a.severity} label={sevName(a.severity, lang)} />}
               {a.category && <span className="text-muted">{catName(a.category, lang)}</span>}
@@ -82,11 +83,12 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
 
         {(a.hasScreenshot || a.visualClass) && (
           <section className="flex flex-col gap-2.5">
-            {a.hasScreenshot && (
-              <a href={`/api/assets/${a.id}/screenshot`} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-md border border-line bg-panel2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`/api/assets/${a.id}/screenshot`} alt={`${t.screenshot}: ${a.hostname}`} width={1280} height={800} className="aspect-[16/10] w-full object-cover object-top" />
+            {a.hasScreenshot ? (
+              <a href={`/api/assets/${a.id}/screenshot`} target="_blank" rel="noreferrer" className="block" aria-label={`${t.screenshot}: ${a.hostname}`}>
+                <Shot assetId={a.id} available label={t.noPreview} className="aspect-[16/10] w-full" large />
               </a>
+            ) : (
+              <Shot assetId={a.id} available={false} label={t.noPreview} className="aspect-[16/10] w-full" large />
             )}
             {a.visualClass && (
               <p className="text-[13px]">
@@ -96,13 +98,13 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
               </p>
             )}
             {a.visualAnomalies.length > 0 && (
-              <ul className="flex flex-col gap-1.5">
-                {a.visualAnomalies.map((x, i) => (
-                  <li key={i} className="rounded-md border border-line bg-bg px-3 py-2 text-[13px] leading-5" style={{ boxShadow: 'inset 3px 0 0 var(--color-high)' }}>
-                    {x[lang]}
-                  </li>
-                ))}
-              </ul>
+              <Callout tone="warn" icon={ScanEye}>
+                <ul className="flex flex-col gap-1">
+                  {a.visualAnomalies.map((x, i) => (
+                    <li key={i}>{x[lang]}</li>
+                  ))}
+                </ul>
+              </Callout>
             )}
           </section>
         )}
@@ -112,10 +114,9 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
           <p className="max-w-[65ch] leading-[1.55]">{a.reasoning?.[lang] ?? t.pending}</p>
         </section>
 
-        <section className="rounded-md border border-line bg-bg p-4" style={{ boxShadow: 'inset 3px 0 0 var(--color-low)' }}>
-          <Eyebrow>{t.fix}</Eyebrow>
-          <p className="max-w-[65ch] leading-[1.55]">{a.remediation?.[lang] ?? t.pending}</p>
-        </section>
+        <Callout tone="fix" title={t.fix}>
+          <p className="max-w-[65ch]">{a.remediation?.[lang] ?? t.pending}</p>
+        </Callout>
 
         <section>
           <Eyebrow>{t.evidence}</Eyebrow>
@@ -123,7 +124,7 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
             {rows.map(([k, v]) => (
               <div key={k} className="col-span-2 grid grid-cols-subgrid gap-x-4 border-b border-line py-2 last:border-b-0">
                 <dt className="text-muted">{k}</dt>
-                <dd className="flex flex-wrap gap-1 break-all font-mono text-[12.5px] leading-5">{v}</dd>
+                <dd className="flex flex-wrap gap-1 [overflow-wrap:anywhere] font-mono text-[12.5px] leading-5">{v}</dd>
               </div>
             ))}
           </dl>

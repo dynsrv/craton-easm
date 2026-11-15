@@ -1,6 +1,7 @@
 'use client';
 
-import { BellRing, Check, Copy, Loader2, Plug, Trash2, UserPlus } from 'lucide-react';
+import { BellRing, Bot, Check, Copy, GitBranch, KeyRound, Loader2, Plug, Radar, ServerCog, Sparkles, Trash2, UserPlus, Users as UsersIcon, Webhook, type LucideIcon } from 'lucide-react';
+import { IconTile } from '@/components/ui/icon-tile';
 import { useCallback, useEffect, useState } from 'react';
 import { PasswordForm } from '@/components/password-form';
 import { TopBar } from '@/components/top-bar';
@@ -24,6 +25,14 @@ interface UserRow {
 }
 
 const SOURCE_LABEL = { database: 'Saved here', env: 'From environment variable', none: 'Not set' } as const;
+const SERVICE_ICON: Record<string, { icon: LucideIcon; tone: string }> = {
+  OPENAI_API_KEY: { icon: Bot, tone: 'var(--color-tone-teal)' },
+  ANTHROPIC_API_KEY: { icon: Sparkles, tone: 'var(--color-tone-amber)' },
+  SHODAN_API_KEY: { icon: Radar, tone: 'var(--color-tone-rose)' },
+  GITHUB_TOKEN: { icon: GitBranch, tone: 'var(--color-tone-violet)' },
+  ALERT_WEBHOOK_URL: { icon: Webhook, tone: 'var(--color-tone-sky)' },
+};
+
 const SECRETS = [
   { key: 'OPENAI_API_KEY', label: 'OpenAI API key', help: 'Primary model for triage and the executive brief.' },
   { key: 'ANTHROPIC_API_KEY', label: 'Anthropic API key', help: 'Used when no OpenAI key is set, or when the provider is Anthropic.' },
@@ -51,7 +60,7 @@ export function AdminPanel({ email }: { email: string }) {
         <ServiceSettings />
         <Users />
         <Card>
-          <CardTitle>Your password</CardTitle>
+          <CardTitle icon={KeyRound} tone="var(--color-tone-amber)">Your password</CardTitle>
           <PasswordForm />
         </Card>
       </main>
@@ -133,7 +142,7 @@ function ServiceSettings() {
 
   return (
     <Card>
-      <CardTitle>AI, data and alert services</CardTitle>
+      <CardTitle icon={ServerCog} tone="var(--color-accent)">AI, data and alert services</CardTitle>
       {!settings ? (
         <p className="py-4 text-muted">{note ? note.text : 'Loading…'}</p>
       ) : (
@@ -165,9 +174,12 @@ function ServiceSettings() {
               const s = bySecret(key);
               return (
                 <div key={key} className="grid items-start gap-x-5 gap-y-2 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto]">
-                  <div>
-                    <label htmlFor={key} className="block text-[13px] font-medium leading-5">{label}</label>
-                    <p className="hint mt-0.5">{help}</p>
+                  <div className="flex gap-3">
+                    <IconTile icon={SERVICE_ICON[key].icon} tone={SERVICE_ICON[key].tone} />
+                    <div>
+                      <label htmlFor={key} className="block text-[13px] font-medium leading-5">{label}</label>
+                      <p className="hint mt-0.5">{help}</p>
+                    </div>
                   </div>
                   <div>
                     <input
@@ -176,7 +188,7 @@ function ServiceSettings() {
                       autoComplete="off"
                       value={keys[key] ?? ''}
                       onChange={(e) => setKeys({ ...keys, [key]: e.target.value })}
-                      placeholder={s?.display ? `${s.display}  (enter a new key to replace)` : 'Paste key'}
+                      placeholder={s?.display ? `${s.display}  (enter a new value to replace)` : key === 'ALERT_WEBHOOK_URL' ? 'https://hooks.slack.com/services/…' : 'Paste key'}
                       spellCheck={false}
                       className="field font-mono"
                     />
@@ -274,7 +286,7 @@ function Users() {
 
   return (
     <Card>
-      <CardTitle>Administrators · {users.length}</CardTitle>
+      <CardTitle icon={UsersIcon} tone="var(--color-tone-teal)">Administrators · {users.length}</CardTitle>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[560px] border-collapse">
           <thead>

@@ -52,6 +52,27 @@ export const sevName = (s: Severity, lang: Lang) => (lang === 'id' ? SEV_ID[s] :
 export const catName = (c: Category, lang: Lang) => (lang === 'id' ? CAT_ID[c] : CAT_EN[c]);
 
 const en = {
+  modulesTitle: 'Security modules',
+  mod: { takeover: 'Subdomain takeover', visual: 'Visual triage', code_leak: 'Public code', bucket: 'Cloud storage', email: 'Email security', paths: 'Attack paths', drift: 'Drift' } as Record<string, string>,
+  modSub: {
+    takeover: (n: number) => (n ? `dangling DNS record${n === 1 ? '' : 's'}` : 'no dangling records'),
+    visual: (n: number, risky: number) => (n ? `${n} screenshots · ${risky} exposed console${risky === 1 ? '' : 's'} or API docs` : 'no screenshots taken'),
+    code_leak: (n: number) => (n ? `file${n === 1 ? '' : 's'} on GitHub mention you` : 'nothing found, or no GitHub token'),
+    bucket: (n: number) => (n ? `publicly listable bucket${n === 1 ? '' : 's'}` : 'no public buckets'),
+    email: (spf: string, dmarc: string) => `SPF ${spf} · DMARC ${dmarc}`,
+    paths: (n: number) => (n ? `breach chain${n === 1 ? '' : 's'} to break` : 'no credible chains'),
+    drift: (n: number, baseline: boolean) => (baseline ? (n ? `change${n === 1 ? '' : 's'} since the last scan` : 'no changes since the last scan') : 'first scan: baseline saved'),
+  },
+  modDesc: {
+    discovery: 'Certificate logs and DNS find every subdomain, including forgotten ones.',
+    takeover: 'Flags DNS records that still point at deleted cloud resources.',
+    visual: 'Screenshots key hosts and spots admin panels and open API docs.',
+    code_leak: 'Searches public GitHub code for your domain and leaked secrets.',
+    bucket: 'Checks S3, Google Cloud and Alibaba OSS for public buckets.',
+    email: 'Reads SPF and DMARC to see whether your domain can be spoofed.',
+    paths: 'Chains findings into realistic breach paths and the fix that stops each.',
+    drift: 'Compares every scan with the last and alerts on risky changes.',
+  } as Record<string, string>,
   tabOverview: 'Overview',
   tabPaths: 'Attack paths',
   tabAssets: 'Assets',
@@ -78,6 +99,7 @@ const en = {
   alerted: 'Alert sent',
   comparedWith: 'Compared with the previous scan',
   screenshot: 'Screenshot',
+  noPreview: 'No preview',
   looksLike: 'Looks like',
   takeoverBadge: 'Takeover risk',
   exposureStrip: 'Beyond individual hosts',
@@ -164,6 +186,27 @@ const en = {
 };
 
 const id: typeof en = {
+  modulesTitle: 'Modul keamanan',
+  mod: { takeover: 'Pengambilalihan subdomain', visual: 'Triage visual', code_leak: 'Kode publik', bucket: 'Penyimpanan cloud', email: 'Keamanan email', paths: 'Jalur serangan', drift: 'Perubahan' },
+  modSub: {
+    takeover: (n: number) => (n ? 'record DNS menggantung' : 'tidak ada record menggantung'),
+    visual: (n: number, risky: number) => (n ? `${n} tangkapan layar · ${risky} konsol atau dokumentasi API terbuka` : 'tidak ada tangkapan layar'),
+    code_leak: (n: number) => (n ? 'file di GitHub menyebut Anda' : 'tidak ditemukan, atau belum ada token GitHub'),
+    bucket: (n: number) => (n ? 'bucket dapat dilihat publik' : 'tidak ada bucket publik'),
+    email: (spf: string, dmarc: string) => `SPF ${spf} · DMARC ${dmarc}`,
+    paths: (n: number) => (n ? 'rantai pembobolan untuk diputus' : 'tidak ada rantai yang kredibel'),
+    drift: (n: number, baseline: boolean) => (baseline ? (n ? 'perubahan sejak scan terakhir' : 'tidak ada perubahan sejak scan terakhir') : 'scan pertama: baseline disimpan'),
+  },
+  modDesc: {
+    discovery: 'Log sertifikat dan DNS menemukan setiap subdomain, termasuk yang terlupakan.',
+    takeover: 'Menandai record DNS yang masih mengarah ke resource cloud yang sudah dihapus.',
+    visual: 'Mengambil tangkapan layar host penting dan menemukan panel admin serta dokumentasi API terbuka.',
+    code_leak: 'Mencari kode GitHub publik yang memuat domain dan secret Anda.',
+    bucket: 'Memeriksa S3, Google Cloud dan Alibaba OSS untuk bucket publik.',
+    email: 'Membaca SPF dan DMARC untuk melihat apakah domain Anda bisa dipalsukan.',
+    paths: 'Merangkai temuan menjadi jalur pembobolan dan perbaikan yang menghentikannya.',
+    drift: 'Membandingkan setiap scan dengan sebelumnya dan memberi peringatan untuk perubahan berisiko.',
+  },
   tabOverview: 'Ringkasan',
   tabPaths: 'Jalur serangan',
   tabAssets: 'Aset',
@@ -190,6 +233,7 @@ const id: typeof en = {
   alerted: 'Peringatan terkirim',
   comparedWith: 'Dibandingkan dengan scan sebelumnya',
   screenshot: 'Tangkapan layar',
+  noPreview: 'Tanpa pratinjau',
   looksLike: 'Tampak seperti',
   takeoverBadge: 'Risiko takeover',
   exposureStrip: 'Di luar host individual',

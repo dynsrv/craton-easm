@@ -1,15 +1,19 @@
 'use client';
 
-import { BellRing, FileText, ImageOff, Link2Off, Loader2, Lock, Radar } from 'lucide-react';
+import { BellRing, CircleCheck, FileText, Link2Off, Loader2, Lock, Radar, ShieldAlert, Wrench } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AssetDrawer } from '@/components/asset-drawer';
 import { AttackPaths } from '@/components/v2/attack-paths';
 import { DriftTimeline } from '@/components/v2/drift-timeline';
-import { Exposures, ExposureStrip } from '@/components/v2/exposures';
+import { Exposures } from '@/components/v2/exposures';
+import { ModuleOverview, ModuleShowcase } from '@/components/v2/module-overview';
+import { Callout } from '@/components/ui/callout';
+import { Shot } from '@/components/ui/shot';
+import { MODULE, PHASE_ICONS } from '@/lib/modules';
 import { ScoreGauge } from '@/components/score-gauge';
 import { TopBar } from '@/components/top-bar';
-import { PortChip, SeverityBadge } from '@/components/ui/badge';
+import { PortChip, SeverityBadge, SeverityDot } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle, Eyebrow } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
@@ -250,18 +254,21 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
         {error && <div role="alert" className="rounded-md border border-crit px-4 py-2.5 text-crit">{error}</div>}
 
         {!scan && (
-          <Card className="px-6 py-16 text-center">
-            <Radar className="mx-auto mb-4 size-8 text-accent" aria-hidden />
-            <h1 className="text-lg font-semibold">{t.emptyTitle}</h1>
-            <p className="mx-auto mt-1.5 max-w-[52ch] text-muted">{t.emptyBody}</p>
-          </Card>
+          <div className="flex flex-col gap-5">
+            <Card className="px-6 py-12 text-center">
+              <Radar className="mx-auto mb-4 size-8 text-accent" aria-hidden />
+              <h1 className="text-lg font-semibold">{t.emptyTitle}</h1>
+              <p className="mx-auto mt-1.5 max-w-[56ch] text-muted">{t.emptyBody}</p>
+            </Card>
+            <ModuleShowcase t={t} />
+          </div>
         )}
 
         {scan && (
           <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 pt-1">
             <div className="min-w-0">
               <p className="text-[13px] text-muted">{t.tagline}</p>
-              <h1 className="break-all text-2xl font-semibold leading-8 tracking-tight">{scan.domain}</h1>
+              <h1 className="[overflow-wrap:anywhere] text-2xl font-semibold leading-8 tracking-tight">{scan.domain}</h1>
               <p className="mt-0.5 text-[13px] text-muted">
                 {t.scanned} {dateFmt(scan.finishedAt ?? scan.createdAt)} · {assets.length} {t.live}
               </p>
@@ -315,12 +322,17 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
 
         {scan && running && (
           <Card>
-            <CardTitle>{t.progress}</CardTitle>
+            <CardTitle icon={Radar} tone="var(--color-accent)">{t.progress}</CardTitle>
             <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
               <ul className="flex flex-col gap-2.5">
                 {t.phases.map((p, i) => (
                   <li key={p} className={cn('flex items-center gap-3 text-muted', i < scan.phase && 'text-ink', i === scan.phase && 'font-medium text-accent')}>
-                    <span className={cn('size-2.5 shrink-0 rounded-full border-2 border-current', i < scan.phase && 'border-low bg-low', i === scan.phase && 'animate-pulse')} />
+                    {(() => {
+                      if (i < scan.phase) return <CircleCheck className="size-4 shrink-0 text-low" aria-hidden />;
+                      if (i === scan.phase) return <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />;
+                      const Icon = PHASE_ICONS[i];
+                      return <Icon className="size-4 shrink-0 opacity-60" aria-hidden />;
+                    })()}
                     {p}
                   </li>
                 ))}
@@ -336,10 +348,10 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
         )}
 
         {scan && done && (scan.source === 'dns-fallback' || scan.triagedBy !== 'llm') && (
-          <div className="flex flex-col gap-1.5 rounded-md border border-line bg-panel px-4 py-3 text-[13px] text-muted">
-            {scan.source === 'dns-fallback' && <span>{t.fallbackNote}</span>}
-            {scan.triagedBy !== 'llm' && <span>{t.heuristicNote}</span>}
-          </div>
+          <Callout tone="info">
+            {scan.source === 'dns-fallback' && <p>{t.fallbackNote}</p>}
+            {scan.triagedBy !== 'llm' && <p>{t.heuristicNote}</p>}
+          </Callout>
         )}
 
         {scan && (
@@ -357,6 +369,10 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                   tab === id ? 'border-primary font-medium text-ink' : 'border-transparent',
                 )}
               >
+                {(() => {
+                  const Icon = MODULE[id].icon;
+                  return <Icon className="size-4" aria-hidden style={{ color: tab === id ? MODULE[id].tone : undefined }} />;
+                })()}
                 {tabLabel[id]}
                 {tabCount[id] != null && tabCount[id]! > 0 && <span className="tabular rounded-sm bg-panel2 px-1.5 text-xs font-medium text-muted">{tabCount[id]}</span>}
               </button>
@@ -384,14 +400,29 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
           <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" className="flex flex-col gap-5">
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-[280px_minmax(0,1fr)_minmax(0,1.15fr)]">
               <Card className="flex flex-col">
-                <CardTitle>{t.score}</CardTitle>
-                <div className="flex flex-1 items-center justify-center">
+                <CardTitle icon={MODULE.score.icon} tone={MODULE.score.tone}>{t.score}</CardTitle>
+                <div className="flex flex-1 items-center justify-center py-2">
                   {scan.score != null ? <ScoreGauge score={scan.score} t={t} /> : <p className="py-8 text-muted">{t.pending}…</p>}
                 </div>
+                <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-line pt-4">
+                  {(
+                    [
+                      [scan.namesFound, t.names],
+                      [assets.length, t.live],
+                      [assets.filter((a) => a.hasLoginForm).length, t.logins],
+                      [assets.filter((a) => a.tlsDaysLeft != null && a.tlsDaysLeft < 30).length, t.certs],
+                    ] as const
+                  ).map(([n, label]) => (
+                    <div key={label}>
+                      <dd className="tabular text-lg font-semibold leading-7">{n}</dd>
+                      <dt className="text-xs leading-4 text-muted">{label}</dt>
+                    </div>
+                  ))}
+                </dl>
               </Card>
 
               <Card className="flex flex-col">
-                <CardTitle>{t.bySev}</CardTitle>
+                <CardTitle icon={ShieldAlert} tone="var(--color-tone-rose)">{t.bySev}</CardTitle>
                 <div className="mb-4 flex h-2 gap-0.5 overflow-hidden rounded-full bg-panel2" aria-hidden>
                   {SEVERITIES.map((s) => counts[s] > 0 && <i key={s} className="block min-w-1" style={{ background: SEV_VAR[s], flex: counts[s] }} />)}
                 </div>
@@ -401,17 +432,22 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                       key={s}
                       aria-pressed={sev === s}
                       onClick={() => filterAssets({ sev: s })}
-                      className={cn('rounded-md border border-line bg-bg px-1 pb-2 pt-2.5 text-center hover:bg-panel2', sev === s && 'bg-panel2')}
-                      style={{ boxShadow: `inset 0 3px 0 ${SEV_VAR[s]}`, borderColor: sev === s ? SEV_VAR[s] : undefined }}
+                      className={cn('rounded-md border border-line bg-bg px-1 pb-2.5 pt-2 text-center hover:bg-panel2', sev === s && 'bg-panel2')}
+                      style={{ borderColor: sev === s ? SEV_VAR[s] : undefined }}
                     >
-                      <b className="tabular block text-2xl font-semibold leading-7">{counts[s]}</b>
-                      <span className="block truncate text-[11px] text-muted sm:text-xs">{sevName(s, lang)}</span>
+                      <b className="tabular block text-2xl font-semibold leading-8" style={{ color: counts[s] ? SEV_VAR[s] : 'var(--color-muted)' }}>
+                        {counts[s]}
+                      </b>
+                      <span className="flex items-center justify-center gap-1.5 truncate text-[11px] text-muted sm:text-xs">
+                        <SeverityDot severity={s} className="hidden sm:inline-block" />
+                        <span className="truncate">{sevName(s, lang)}</span>
+                      </span>
                     </button>
                   ))}
                 </div>
-                <div className="mb-5 border-t border-line pt-4">
-                  <Eyebrow className="mb-2.5">{t.byCat}</Eyebrow>
-                  <ul className="flex flex-col gap-2">
+                <div className="border-t border-line pt-4">
+                  <Eyebrow className="mb-3">{t.byCat}</Eyebrow>
+                  <ul className="flex flex-col gap-2.5">
                     {CATEGORIES.map((c) => {
                       const n = assets.filter((a) => a.category === c).length;
                       return (
@@ -428,25 +464,10 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                     })}
                   </ul>
                 </div>
-                <div className="mt-auto grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-4 sm:grid-cols-4" style={{ marginTop: 'auto' }}>
-                  {(
-                    [
-                      [scan.namesFound, t.names],
-                      [assets.length, t.live],
-                      [assets.filter((a) => a.hasLoginForm).length, t.logins],
-                      [assets.filter((a) => a.tlsDaysLeft != null && a.tlsDaysLeft < 30).length, t.certs],
-                    ] as const
-                  ).map(([n, label]) => (
-                    <div key={label}>
-                      <div className="tabular text-lg font-semibold leading-7">{n}</div>
-                      <div className="text-xs leading-4 text-muted">{label}</div>
-                    </div>
-                  ))}
-                </div>
               </Card>
 
               <Card className="md:col-span-2 xl:col-span-1">
-                <CardTitle>{t.fixes}</CardTitle>
+                <CardTitle icon={Wrench} tone="var(--color-low)">{t.fixes}</CardTitle>
                 {scan.brief?.topFixes.length ? (
                   <ol className="flex flex-col gap-4">
                     {scan.brief.topFixes.map((f, i) => (
@@ -455,7 +476,13 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                         <div>
                           <strong className="block font-semibold leading-5">{f.title[lang]}</strong>
                           <p className="mt-0.5 text-[13px] leading-5 text-muted">{f.detail[lang]}</p>
-                          <p className="mt-1 break-all font-mono text-xs leading-5 text-muted">{f.hostnames.join(' · ')}</p>
+                          <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-xs leading-5 text-muted">
+                            {f.hostnames.map((hn) => (
+                              <span key={hn} className="whitespace-nowrap">
+                                {hn}
+                              </span>
+                            ))}
+                          </p>
                         </div>
                       </li>
                     ))}
@@ -465,7 +492,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                 )}
               </Card>
             </div>
-            {done && <ExposureStrip exposures={actionableExposures} email={scan.emailSecurity} lang={lang} t={t} onOpen={() => setTab('exposures')} />}
+            {done && <ModuleOverview scan={scan} t={t} onOpen={setTab} />}
           </section>
         )}
 
@@ -473,7 +500,8 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
           <section role="tabpanel" id="panel-assets" aria-labelledby="tab-assets">
             <Card className="p-0">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 pb-4 pt-5">
-                <h2 className="mr-auto text-sm font-semibold leading-5">
+                <h2 className="mr-auto flex items-center gap-2 text-sm font-semibold leading-5">
+                  <MODULE.assets.icon className="size-4 text-muted" aria-hidden />
                   {t.assets} <span className="tabular ml-1 font-normal text-muted">{rows.length === assets.length ? assets.length : `${rows.length} / ${assets.length}`}</span>
                 </h2>
                 <div className="flex flex-wrap gap-1.5" role="group" aria-label={t.cSev}>
@@ -529,18 +557,10 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                           onClick={() => setSelected(a)}
                           onKeyDown={(e) => e.key === 'Enter' && setSelected(a)}
                           className="cursor-pointer align-top hover:bg-panel2 focus-visible:bg-panel2 focus-visible:outline-offset-[-2px] [&:last-child>td]:border-b-0 [&>td]:border-b [&>td]:border-line [&>td]:px-3 [&>td]:py-3"
-                          style={{ boxShadow: a.severity ? `inset 3px 0 0 ${SEV_VAR[a.severity]}` : undefined }}
                         >
                           <td className="!pl-5">{a.severity ? <SeverityBadge severity={a.severity} label={sevName(a.severity, lang)} /> : <span className="text-muted">{t.pending}</span>}</td>
                           <td>
-                            {a.hasScreenshot ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img src={`/api/assets/${a.id}/screenshot`} alt="" loading="lazy" width={80} height={50} className="h-[50px] w-20 rounded-sm border border-line bg-panel2 object-cover object-top" />
-                            ) : (
-                              <span className="grid h-[50px] w-20 place-items-center rounded-sm border border-dashed border-line text-muted" aria-hidden>
-                                <ImageOff className="size-4" />
-                              </span>
-                            )}
+                            <Shot assetId={a.id} available={a.hasScreenshot} label={t.noPreview} className="h-[50px] w-20" />
                           </td>
                           <td>
                             <div className="flex flex-wrap items-center gap-2 font-mono text-[13px] font-medium leading-5">
