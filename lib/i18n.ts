@@ -81,6 +81,7 @@ const en = {
     paths: (n: number) => (n ? `breach chain${n === 1 ? '' : 's'} to break` : 'no credible chains'),
     drift: (n: number, baseline: boolean) => (baseline ? (n ? `change${n === 1 ? '' : 's'} since the last scan` : 'no changes since the last scan') : 'first scan: baseline saved'),
   },
+  emailGrade: { strong: 'Protected', partial: 'Partial', weak: 'Spoofable', unknown: 'Unknown' },
   modDesc: {
     discovery: 'Certificate logs and DNS find every subdomain, including forgotten ones.',
     takeover: 'Flags DNS records that still point at deleted cloud resources.',
@@ -233,6 +234,7 @@ const id: typeof en = {
     paths: (n: number) => (n ? 'rantai pembobolan untuk diputus' : 'tidak ada rantai yang kredibel'),
     drift: (n: number, baseline: boolean) => (baseline ? (n ? 'perubahan sejak scan terakhir' : 'tidak ada perubahan sejak scan terakhir') : 'scan pertama: baseline disimpan'),
   },
+  emailGrade: { strong: 'Terlindungi', partial: 'Sebagian', weak: 'Rentan', unknown: 'Tidak jelas' },
   modDesc: {
     discovery: 'Log sertifikat dan DNS menemukan setiap subdomain, termasuk yang terlupakan.',
     takeover: 'Menandai record DNS yang masih mengarah ke resource cloud yang sudah dihapus.',

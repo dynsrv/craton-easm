@@ -5,7 +5,15 @@ import { Card, CardTitle } from '@/components/ui/card';
 import { IconTile } from '@/components/ui/icon-tile';
 import { SEV_VAR, type Dict } from '@/lib/i18n';
 import { MODULE } from '@/lib/modules';
-import type { ScanDTO, Severity } from '@/lib/types';
+import type { EmailSecurity, ScanDTO, Severity } from '@/lib/types';
+
+/** Can someone send mail that looks like it came from this domain? */
+function emailGrade(e: EmailSecurity | null): 'strong' | 'partial' | 'weak' | 'unknown' {
+  if (!e) return 'unknown';
+  if (e.dmarc.policy === 'none' || e.dmarc.policy === 'monitor') return 'weak';
+  if (e.dmarc.policy === 'reject' && (e.spf.policy === 'fail' || e.spf.policy === 'softfail')) return 'strong';
+  return 'partial';
+}
 
 type Tab = 'overview' | 'paths' | 'assets' | 'exposures' | 'drift';
 
@@ -18,7 +26,10 @@ export function ModuleOverview({ scan, t, onOpen }: { scan: ScanDTO; t: Dict; on
   const risky = scan.assets.filter((a) => a.visualClass === 'Exposed Admin / DevOps Panel' || a.visualClass === 'Unauthenticated API Docs').length;
   const driftNow = scan.driftEvents.filter((e) => e.scanId === scan.id);
 
-  const tiles: { key: string; tab: Tab; value: string | number; sub: string; sev?: Severity }[] = [
+    const grade = emailGrade(scan.emailSecurity);
+  const gradeColor = grade === 'strong' ? 'var(--color-low)' : grade === 'weak' ? SEV_VAR[worst(of('email')) === 'Critical' || worst(of('email')) === 'High' ? worst(of('email'))! : 'Medium'] : undefined;
+
+  const tiles: { key: string; tab: Tab; value: string | number; sub: string; sev?: Severity; color?: string }[] = [
     { key: 'takeover', tab: 'exposures', value: of('takeover').length, sub: t.modSub.takeover(of('takeover').length), sev: worst(of('takeover')) },
     { key: 'visual', tab: 'assets', value: shots, sub: t.modSub.visual(shots, risky), sev: risky ? 'High' : undefined },
     { key: 'code_leak', tab: 'exposures', value: of('code_leak').length, sub: t.modSub.code_leak(of('code_leak').length), sev: worst(of('code_leak')) },
@@ -26,9 +37,9 @@ export function ModuleOverview({ scan, t, onOpen }: { scan: ScanDTO; t: Dict; on
     {
       key: 'email',
       tab: 'exposures',
-      value: of('email').length ? of('email').length : '✓',
+      value: t.emailGrade[grade],
       sub: scan.emailSecurity ? t.modSub.email(scan.emailSecurity.spf.policy, scan.emailSecurity.dmarc.policy) : '—',
-      sev: worst(of('email')),
+      color: gradeColor,
     },
     { key: 'paths', tab: 'paths', value: scan.attackPaths.length, sub: t.modSub.paths(scan.attackPaths.length), sev: scan.attackPaths.length ? scan.attackPaths[0].impact : undefined },
     { key: 'drift', tab: 'drift', value: driftNow.length, sub: t.modSub.drift(driftNow.length, Boolean(scan.baselineScanId)), sev: worst([...driftNow].sort((a, b) => ['Critical', 'High', 'Medium', 'Low', 'Info'].indexOf(a.severity) - ['Critical', 'High', 'Medium', 'Low', 'Info'].indexOf(b.severity))) },
@@ -52,7 +63,10 @@ export function ModuleOverview({ scan, t, onOpen }: { scan: ScanDTO; t: Dict; on
               </span>
               <span>
                 <span className="block text-[13px] font-medium leading-5">{t.mod[m.key]}</span>
-                <span className="tabular mt-1 block text-2xl font-semibold leading-7" style={{ color: m.sev && m.sev !== 'Info' ? SEV_VAR[m.sev] : undefined }}>
+                <span
+                  className={typeof m.value === 'number' ? 'tabular mt-1 block text-2xl font-semibold leading-7' : 'mt-1 block truncate text-xl font-semibold leading-7'}
+                  style={{ color: m.color ?? (m.sev && m.sev !== 'Info' ? SEV_VAR[m.sev] : undefined) }}
+                >
                   {m.value}
                 </span>
                 <span className="mt-0.5 block text-xs leading-4 text-muted">{m.sub}</span>
