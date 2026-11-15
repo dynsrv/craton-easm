@@ -9,8 +9,8 @@ export function SeverityBadge({ severity, label, className }: { severity: Severi
   const solid = severity === 'Critical';
   return (
     <span
-      className={cn('inline-block whitespace-nowrap rounded-sm border px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em]', className)}
-      style={{ borderColor: color, color: solid ? '#111418' : color, background: solid ? color : 'transparent' }}
+      className={cn('inline-flex h-[22px] items-center whitespace-nowrap rounded-sm border px-2 text-xs font-medium', className)}
+      style={{ borderColor: color, color: solid ? 'var(--color-inverse)' : color, background: solid ? color : 'transparent' }}
     >
       {label}
     </span>
@@ -19,6 +19,6 @@ export function SeverityBadge({ severity, label, className }: { severity: Severi
 
 export function PortChip({ port, risky }: { port: number; risky: boolean }) {
   return (
-    <span className={cn('mb-1 mr-1 inline-block rounded border px-1.5 font-mono text-xs', risky ? 'border-crit text-crit' : 'border-line')}>{port}</span>
+    <span className={cn('tabular inline-flex h-5 items-center rounded-sm border px-1.5 font-mono text-xs', risky ? 'border-crit text-crit' : 'border-line text-muted')}>{port}</span>
   );
 }

@@ -40,10 +40,10 @@ export function AdminPanel({ email }: { email: string }) {
   return (
     <div>
       <TopBar active="admin" email={email} />
-      <main className="mx-auto flex max-w-[980px] flex-col gap-3 px-4 pb-16 pt-4">
+      <main className="mx-auto flex max-w-[920px] flex-col gap-5 px-4 pb-20 pt-6 sm:px-6">
         <div>
-          <h1 className="text-lg font-semibold">Administration</h1>
-          <p className="text-muted">Backend services, operator accounts and your own password.</p>
+          <h1 className="text-2xl font-semibold leading-8 tracking-tight">Administration</h1>
+          <p className="mt-0.5 text-muted">Backend services, operator accounts and your own password.</p>
         </div>
         <ServiceSettings />
         <Users />
@@ -121,8 +121,8 @@ function ServiceSettings() {
       {!settings ? (
         <p className="py-4 text-muted">{note ? note.text : 'Loading…'}</p>
       ) : (
-        <form onSubmit={submit} className="flex flex-col gap-4">
-          <div className="grid gap-3 sm:grid-cols-2">
+        <form onSubmit={submit} className="flex flex-col gap-5">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="provider" className="label">AI provider</label>
               <select id="provider" value={provider} onChange={(e) => setProvider(e.target.value)} className="field">
@@ -141,10 +141,10 @@ function ServiceSettings() {
             {SECRETS.map(({ key, label, help }) => {
               const s = bySecret(key);
               return (
-                <div key={key} className="grid items-start gap-x-4 gap-y-1.5 py-3 sm:grid-cols-[1fr_1.2fr_auto]">
+                <div key={key} className="grid items-start gap-x-5 gap-y-2 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto]">
                   <div>
-                    <label htmlFor={key} className="block text-[13px] font-medium">{label}</label>
-                    <p className="text-xs text-muted">{help}</p>
+                    <label htmlFor={key} className="block text-[13px] font-medium leading-5">{label}</label>
+                    <p className="hint mt-0.5">{help}</p>
                   </div>
                   <div>
                     <input
@@ -157,12 +157,12 @@ function ServiceSettings() {
                       spellCheck={false}
                       className="field font-mono"
                     />
-                    <p className="mt-1 text-xs text-muted">
-                      <span className={s?.source === 'none' ? '' : 'text-low'}>● </span>
+                    <p className="hint mt-1.5 flex items-center gap-1.5">
+                      <span className={`size-1.5 rounded-full ${s?.source === 'none' ? 'bg-line' : 'bg-low'}`} />
                       {SOURCE_LABEL[s?.source ?? 'none']}
                     </p>
                   </div>
-                  <Button type="button" variant="outline" size="sm" disabled={s?.source !== 'database' || busy !== null} onClick={() => save({ [key]: null }, `${label} removed.`)}>
+                  <Button type="button" variant="outline" disabled={s?.source !== 'database' || busy !== null} onClick={() => save({ [key]: null }, `${label} removed.`)}>
                     <Trash2 />
                     Remove
                   </Button>
@@ -182,7 +182,7 @@ function ServiceSettings() {
             </Button>
             {note && <span role="status" className={note.ok ? 'text-low' : 'text-crit'}>{note.text}</span>}
           </div>
-          <p className="text-xs text-muted">Keys are encrypted before they are stored and are never sent back to the browser. A key saved here overrides the matching environment variable.</p>
+          <p className="hint max-w-[70ch]">Keys are encrypted before they are stored and are never sent back to the browser. A key saved here overrides the matching environment variable.</p>
         </form>
       )}
     </Card>
@@ -253,13 +253,13 @@ function Users() {
           <thead>
             <tr>
               {['Email', 'Status', 'Last sign-in', ''].map((h) => (
-                <th key={h} className="border-b border-line px-2.5 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">{h}</th>
+                <th key={h} className="border-b border-line px-3 py-2.5 text-left text-xs font-medium text-muted first:pl-0">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="[&>td]:border-b [&>td]:border-line [&>td]:px-2.5 [&>td]:py-2">
+              <tr key={u.id} className="[&>td]:border-b [&>td]:border-line [&>td]:px-3 [&>td]:py-2.5 [&>td:first-child]:pl-0 [&>td:last-child]:pr-0">
                 <td className="font-mono text-[13px]">{u.email}{u.id === me && <span className="ml-2 font-sans text-xs text-muted">(you)</span>}</td>
                 <td className={u.mustChangePassword ? 'text-med' : 'text-low'}>{u.mustChangePassword ? 'One-time password pending' : 'Active'}</td>
                 <td className="tabular text-muted">{date(u.lastLoginAt)}</td>
@@ -277,7 +277,7 @@ function Users() {
         </table>
       </div>
 
-      <form onSubmit={add} className="mt-3.5 flex flex-wrap items-end gap-2.5">
+      <form onSubmit={add} className="mt-5 flex flex-wrap items-end gap-2.5">
         <div className="min-w-[240px] flex-1">
           <label htmlFor="new-user" className="label">Add administrator</label>
           <input id="new-user" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.co.id" className="field" />
@@ -289,12 +289,12 @@ function Users() {
       </form>
       {error && <p role="alert" className="mt-2 text-[12.5px] text-crit">{error}</p>}
       {created && (
-        <div role="status" className="mt-3 rounded-sm border border-low bg-bg p-3">
+        <div role="status" className="mt-3 rounded-md border border-low bg-bg p-3">
           <p className="text-[13px]">
             One-time password for <b>{created.email}</b>. It is shown only now; pass it on through a private channel. They must change it at first sign-in.
           </p>
           <div className="mt-2 flex items-center gap-2">
-            <code className="rounded-sm border border-line bg-panel px-2 py-1 font-mono text-[13px]">{created.password}</code>
+            <code className="rounded-md border border-line bg-panel px-2 py-1 font-mono text-[13px]">{created.password}</code>
             <Button variant="outline" size="sm" onClick={copy}>
               {copied ? <Check /> : <Copy />}
               {copied ? 'Copied' : 'Copy'}

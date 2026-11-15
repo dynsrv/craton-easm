@@ -4,6 +4,7 @@ import { Check, ClipboardCopy, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { PortChip, SeverityBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Eyebrow } from '@/components/ui/card';
 import { catName, sevName, SEV_VAR, tlsLabel, TONE_CLASS, type Dict } from '@/lib/i18n';
 import { SENSITIVE_PORTS } from '@/lib/ports';
 import type { AssetDTO, Lang } from '@/lib/types';
@@ -58,18 +59,18 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
 
   return (
     <>
-      <div className="fixed inset-0 z-30 bg-black/60" onClick={onClose} />
+      <div className="fixed inset-0 z-30" style={{ background: 'var(--scrim)' }} onClick={onClose} />
       <aside
         role="dialog"
         aria-modal="true"
         aria-label={a.hostname}
-        className="fixed inset-y-0 right-0 z-40 flex w-full max-w-[520px] flex-col gap-4 overflow-auto border-l border-line bg-panel p-5"
+        className="fixed inset-y-0 right-0 z-40 flex w-full max-w-[540px] flex-col gap-6 overflow-auto border-l border-line bg-panel p-6 shadow-2xl"
         style={{ boxShadow: a.severity ? `inset 0 4px 0 ${SEV_VAR[a.severity]}` : undefined }}
       >
         <header className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="break-all font-mono text-[17px] font-semibold">{a.hostname}</h3>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <h3 className="break-all font-mono text-lg font-semibold leading-6">{a.hostname}</h3>
+            <div className="mt-2.5 flex flex-wrap items-center gap-2.5 text-[13px]">
               {a.severity && <SeverityBadge severity={a.severity} label={sevName(a.severity, lang)} />}
               {a.category && <span className="text-muted">{catName(a.category, lang)}</span>}
             </div>
@@ -80,22 +81,22 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
         </header>
 
         <section>
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{t.why}</h4>
-          <p className="max-w-[65ch]">{a.reasoning?.[lang] ?? t.pending}</p>
+          <Eyebrow>{t.why}</Eyebrow>
+          <p className="max-w-[65ch] leading-[1.55]">{a.reasoning?.[lang] ?? t.pending}</p>
         </section>
 
-        <section className="rounded-md border border-l-[3px] border-line border-l-low bg-bg p-3">
-          <h4 className="mb-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{t.fix}</h4>
-          <p className="max-w-[65ch]">{a.remediation?.[lang] ?? t.pending}</p>
+        <section className="rounded-md border border-line bg-bg p-4" style={{ boxShadow: 'inset 3px 0 0 var(--color-low)' }}>
+          <Eyebrow>{t.fix}</Eyebrow>
+          <p className="max-w-[65ch] leading-[1.55]">{a.remediation?.[lang] ?? t.pending}</p>
         </section>
 
         <section>
-          <h4 className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">{t.evidence}</h4>
-          <dl className="grid grid-cols-[130px_1fr] gap-x-3 gap-y-1.5 text-[13px]">
+          <Eyebrow>{t.evidence}</Eyebrow>
+          <dl className="grid grid-cols-[132px_minmax(0,1fr)] text-[13px]">
             {rows.map(([k, v]) => (
-              <div key={k} className="contents">
+              <div key={k} className="col-span-2 grid grid-cols-subgrid gap-x-4 border-b border-line py-2 last:border-b-0">
                 <dt className="text-muted">{k}</dt>
-                <dd className="break-words font-mono text-[12.5px]">{v}</dd>
+                <dd className="flex flex-wrap gap-1 break-all font-mono text-[12.5px] leading-5">{v}</dd>
               </div>
             ))}
           </dl>

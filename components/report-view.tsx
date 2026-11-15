@@ -3,6 +3,7 @@
 import { ArrowLeft, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { LangToggle, useLang } from '@/components/dashboard';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { sevName, SEV_PRINT, T } from '@/lib/i18n';
 import { grade, SEVERITY_RANK } from '@/lib/score';
@@ -25,14 +26,15 @@ export function ReportView({ scan }: { scan: ScanDTO }) {
   const date = new Date(scan.finishedAt ?? scan.createdAt).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <div className="mx-auto flex max-w-[230mm] flex-col gap-3 px-4 py-4 print:max-w-none print:p-0">
+    <div className="mx-auto flex max-w-[230mm] flex-col gap-5 px-4 py-6 print:max-w-none print:p-0">
       <div className="no-print flex flex-wrap items-center justify-between gap-2.5">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-muted hover:text-ink">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-[13px] text-muted hover:text-ink">
           <ArrowLeft className="size-4" />
           {t.back}
         </Link>
         <div className="flex items-center gap-2.5">
           <LangToggle lang={lang} setLang={setLang} />
+          <ThemeToggle />
           <Button onClick={() => window.print()}>
             <Printer />
             {t.exportPdf}
@@ -45,7 +47,7 @@ export function ReportView({ scan }: { scan: ScanDTO }) {
           <div className="flex items-start justify-between gap-[8mm] border-b-2 border-[#111418] pb-[4mm]">
             <div>
               <div className="text-[8.5pt] font-semibold tracking-[0.16em] text-[#2d72d2]">CRATON EASM</div>
-              <h1 className="text-[19pt] font-bold leading-tight">{t.rTitle}</h1>
+              <h1 className="mt-[1mm] text-[20pt] font-semibold leading-tight tracking-tight">{t.rTitle}</h1>
             </div>
             <div className="text-right font-mono text-[9pt] text-[#5f6b7c]">
               {t.rFor}: <b className="text-[#111418]">{scan.domain}</b>
@@ -58,7 +60,7 @@ export function ReportView({ scan }: { scan: ScanDTO }) {
 
           <div className="grid grid-cols-[44mm_1fr] items-center gap-[8mm]">
             <div>
-              <div className="tabular text-[40pt] font-bold leading-none" style={{ color }}>
+              <div className="tabular text-[40pt] font-semibold leading-none tracking-tight" style={{ color }}>
                 {score}
                 <span className="text-[13pt] text-[#5f6b7c]"> /100</span>
               </div>
@@ -107,8 +109,8 @@ export function ReportView({ scan }: { scan: ScanDTO }) {
                 <tbody>
                   {findings.map((a) => (
                     <tr key={a.id}>
-                      <td className="whitespace-nowrap font-mono text-[8pt] font-semibold" style={{ color: SEV_PRINT[a.severity!] }}>
-                        {sevName(a.severity!, lang).toUpperCase()}
+                      <td className="whitespace-nowrap text-[8.5pt] font-semibold" style={{ color: SEV_PRINT[a.severity!] }}>
+                        {sevName(a.severity!, lang)}
                       </td>
                       <td className="font-mono">{a.hostname}</td>
                       <td>{a.remediation?.[lang]}</td>

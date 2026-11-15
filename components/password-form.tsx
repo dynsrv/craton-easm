@@ -39,7 +39,7 @@ export function PasswordForm({ onDone, currentLabel = 'Current password' }: { on
   };
 
   return (
-    <form onSubmit={submit} className="flex max-w-[380px] flex-col gap-3">
+    <form onSubmit={submit} className="flex max-w-[380px] flex-col gap-4">
       <div>
         <label htmlFor="pw-current" className="label">{currentLabel}</label>
         <input id="pw-current" type="password" autoComplete="current-password" required value={current} onChange={(e) => setCurrent(e.target.value)} className="field" />
@@ -52,8 +52,8 @@ export function PasswordForm({ onDone, currentLabel = 'Current password' }: { on
         <label htmlFor="pw-confirm" className="label">Repeat new password</label>
         <input id="pw-confirm" type="password" autoComplete="new-password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} className="field" />
       </div>
-      {error && <p role="alert" className="text-[12.5px] text-crit">{error}</p>}
-      {saved && <p role="status" className="text-[12.5px] text-low">Password changed.</p>}
+      {error && <p role="alert" className="text-[13px] text-crit">{error}</p>}
+      {saved && <p role="status" className="text-[13px] text-low">Password changed.</p>}
       <div>
         <Button type="submit" disabled={busy}>
           {busy && <Loader2 className="animate-spin" />}

@@ -8,7 +8,7 @@ import { ScoreGauge } from '@/components/score-gauge';
 import { TopBar } from '@/components/top-bar';
 import { PortChip, SeverityBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardTitle } from '@/components/ui/card';
+import { Card, CardTitle, Eyebrow } from '@/components/ui/card';
 import { catName, sevName, SEV_VAR, T, tlsLabel, TONE_CLASS } from '@/lib/i18n';
 import { SENSITIVE_PORTS } from '@/lib/ports';
 import { SEVERITY_RANK } from '@/lib/score';
@@ -27,13 +27,13 @@ const POLL_MS = 1500;
 
 export function LangToggle({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
   return (
-    <div className="inline-flex overflow-hidden rounded-sm border border-line" role="group" aria-label="Language">
+    <div className="inline-flex h-8 overflow-hidden rounded-md border border-line" role="group" aria-label="Language">
       {(['en', 'id'] as const).map((l) => (
         <button
           key={l}
           aria-pressed={lang === l}
           onClick={() => setLang(l)}
-          className={cn('px-2.5 py-1 text-xs font-medium uppercase text-muted', lang === l && 'bg-panel2 text-ink shadow-[inset_0_-2px_0_var(--color-accent)]')}
+          className={cn('px-2.5 text-xs font-medium uppercase text-muted hover:text-ink', lang === l && 'bg-panel2 text-ink')}
         >
           {l}
         </button>
@@ -154,132 +154,165 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
   );
   const done = scan?.status === 'completed';
 
+  const dateFmt = (iso: string) => new Date(iso).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const th = 'border-b border-line px-3 py-2.5 text-left text-xs font-medium text-muted';
+
   return (
     <div>
       <TopBar active="dashboard" email={userEmail}>
         <LangToggle lang={lang} setLang={setLang} />
       </TopBar>
 
-      <div className="flex flex-wrap items-start gap-x-4 gap-y-2.5 border-b border-line bg-panel2 px-4 py-2.5">
-        <form onSubmit={startScan} className="flex min-w-[280px] max-w-[620px] flex-1 flex-col gap-1.5">
-          <div className="flex gap-2">
-            <input
-              id="domain"
-              aria-label="Root domain"
-              value={domain}
-              onChange={(e) => setDomain(e.target.value)}
-              placeholder="company.co.id"
-              spellCheck={false}
-              autoComplete="off"
-              required
-              className="field min-w-0 flex-1 font-mono"
-            />
-            <Button type="submit" disabled={submitting || running || !authorized}>
-              {submitting || running ? <Loader2 className="animate-spin" /> : <Radar />}
-              {running ? t.scanning : t.run}
-            </Button>
-          </div>
-          <label htmlFor="authorized" className="flex items-center gap-2 text-xs text-muted">
-            <input id="authorized" type="checkbox" checked={authorized} onChange={(e) => setAuthorized(e.target.checked)} className="accent-[var(--color-primary)]" />
-            {t.authorize}
-          </label>
-        </form>
+      <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-20 pt-6 sm:px-6">
+        <Card className="p-4">
+          <form onSubmit={startScan} className="flex flex-col gap-x-5 gap-y-3 lg:flex-row lg:items-center">
+            <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row">
+              <input
+                id="domain"
+                aria-label={t.domainLabel}
+                value={domain}
+                onChange={(e) => setDomain(e.target.value)}
+                placeholder="company.co.id"
+                spellCheck={false}
+                autoComplete="off"
+                required
+                className="field min-w-0 font-mono sm:max-w-[420px] sm:flex-1"
+              />
+              <Button type="submit" disabled={submitting || running || !authorized}>
+                {submitting || running ? <Loader2 className="animate-spin" /> : <Radar />}
+                {running ? t.scanning : t.run}
+              </Button>
+            </div>
+            <label htmlFor="authorized" className="flex items-center gap-2 text-[13px] text-muted">
+              <input id="authorized" type="checkbox" checked={authorized} onChange={(e) => setAuthorized(e.target.checked)} className="size-4 accent-[var(--color-primary)]" />
+              {t.authorize}
+            </label>
+          </form>
+        </Card>
 
-        <div className="ml-auto flex flex-wrap items-center gap-2.5">
-          {recent.length > 1 && (
-            <select id="recent" aria-label={t.recent} value={scan?.id ?? ''} onChange={(e) => loadScan(e.target.value)} className="field w-auto max-w-[240px]">
-              {recent.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.domain} · {new Date(r.createdAt).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB')}
-                </option>
-              ))}
-            </select>
-          )}
-          {done && scan && (
-            <Link href={`/report/${scan.id}`} className="inline-flex h-[30px] items-center gap-2 rounded-sm border border-line bg-panel px-3 text-[13px] font-medium hover:border-accent">
-              <FileText className="size-4" />
-              {t.report}
-            </Link>
-          )}
-        </div>
-      </div>
-
-      <main className="mx-auto flex max-w-[1400px] flex-col gap-3 px-4 pb-16 pt-3">
-        {error && <div role="alert" className="rounded-md border border-crit px-3 py-2 text-crit">{error}</div>}
+        {error && <div role="alert" className="rounded-md border border-crit px-4 py-2.5 text-crit">{error}</div>}
 
         {!scan && (
-          <Card className="py-14 text-center">
-            <Radar className="mx-auto mb-3 size-8 text-accent" aria-hidden />
-            <h2 className="text-lg font-semibold">{t.emptyTitle}</h2>
-            <p className="mx-auto mt-1 max-w-[52ch] text-muted">{t.emptyBody}</p>
+          <Card className="px-6 py-16 text-center">
+            <Radar className="mx-auto mb-4 size-8 text-accent" aria-hidden />
+            <h1 className="text-lg font-semibold">{t.emptyTitle}</h1>
+            <p className="mx-auto mt-1.5 max-w-[52ch] text-muted">{t.emptyBody}</p>
           </Card>
         )}
 
+        {scan && (
+          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 pt-1">
+            <div className="min-w-0">
+              <p className="text-[13px] text-muted">{t.tagline}</p>
+              <h1 className="break-all text-2xl font-semibold leading-8 tracking-tight">{scan.domain}</h1>
+              <p className="mt-0.5 text-[13px] text-muted">
+                {t.scanned} {dateFmt(scan.finishedAt ?? scan.createdAt)} · {assets.length} {t.live}
+              </p>
+            </div>
+            <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
+              {recent.length > 1 && (
+                <select id="recent" aria-label={t.recent} value={scan.id} onChange={(e) => loadScan(e.target.value)} className="field min-w-0 flex-1 sm:w-[240px] sm:flex-none">
+                  {recent.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.domain} · {dateFmt(r.createdAt)}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {done && (
+                <Link href={`/report/${scan.id}`} className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-line bg-panel px-3.5 text-[13px] font-medium hover:bg-panel2">
+                  <FileText className="size-4" />
+                  {t.report}
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
+
         {scan?.status === 'failed' && (
-          <div role="alert" className="rounded-md border border-crit px-3 py-2">
-            <b className="text-crit">{t.failed}:</b> {scan.error}
+          <div role="alert" className="rounded-md border border-crit px-4 py-2.5">
+            <b className="font-semibold text-crit">{t.failed}:</b> {scan.error}
           </div>
         )}
 
         {scan && running && (
           <Card>
-            <CardTitle>
-              {t.progress} · {scan.domain}
-            </CardTitle>
-            <div className="grid gap-4 md:grid-cols-[1fr_1.2fr]">
-              <ul className="flex flex-col gap-2">
+            <CardTitle>{t.progress}</CardTitle>
+            <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+              <ul className="flex flex-col gap-2.5">
                 {t.phases.map((p, i) => (
-                  <li key={p} className={cn('flex items-center gap-2.5 text-muted', i < scan.phase && 'text-ink', i === scan.phase && 'text-accent')}>
+                  <li key={p} className={cn('flex items-center gap-3 text-muted', i < scan.phase && 'text-ink', i === scan.phase && 'font-medium text-accent')}>
                     <span className={cn('size-2.5 shrink-0 rounded-full border-2 border-current', i < scan.phase && 'border-low bg-low', i === scan.phase && 'animate-pulse')} />
                     {p}
                   </li>
                 ))}
               </ul>
-              <pre ref={logRef} aria-live="polite" className="h-[170px] overflow-auto whitespace-pre-wrap rounded-md border border-line bg-bg px-3 py-2.5 font-mono text-xs leading-relaxed text-muted">
+              <pre ref={logRef} aria-live="polite" className="h-[190px] overflow-auto whitespace-pre-wrap rounded-md border border-line bg-bg px-3.5 py-3 font-mono text-xs leading-relaxed text-muted">
                 {scan.log.join('\n')}
               </pre>
             </div>
-            <div className="mt-3 h-1 overflow-hidden rounded bg-bg">
-              <div className="h-full bg-accent transition-[width]" style={{ width: `${Math.round((scan.phase / 6) * 100)}%` }} />
+            <div className="mt-4 h-1 overflow-hidden rounded-full bg-panel2">
+              <div className="h-full bg-primary transition-[width]" style={{ width: `${Math.round((scan.phase / 6) * 100)}%` }} />
             </div>
           </Card>
         )}
 
         {scan && done && (scan.source === 'dns-fallback' || scan.triagedBy !== 'llm') && (
-          <div className="flex flex-col gap-1 text-[12.5px] text-muted">
-            {scan.source === 'dns-fallback' && <span>⚠ {t.fallbackNote}</span>}
-            {scan.triagedBy !== 'llm' && <span>ⓘ {t.heuristicNote}</span>}
+          <div className="flex flex-col gap-1.5 rounded-md border border-line bg-panel px-4 py-3 text-[13px] text-muted">
+            {scan.source === 'dns-fallback' && <span>{t.fallbackNote}</span>}
+            {scan.triagedBy !== 'llm' && <span>{t.heuristicNote}</span>}
           </div>
         )}
 
         {scan && (
           <>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[260px_1fr_1.1fr]">
-              <Card>
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-[280px_minmax(0,1fr)_minmax(0,1.15fr)]">
+              <Card className="flex flex-col">
                 <CardTitle>{t.score}</CardTitle>
-                {scan.score != null ? <ScoreGauge score={scan.score} t={t} /> : <p className="py-7 text-center text-muted">{t.pending}…</p>}
+                <div className="flex flex-1 items-center justify-center">
+                  {scan.score != null ? <ScoreGauge score={scan.score} t={t} /> : <p className="py-8 text-muted">{t.pending}…</p>}
+                </div>
               </Card>
 
-              <Card>
+              <Card className="flex flex-col">
                 <CardTitle>{t.bySev}</CardTitle>
-                <div className="mb-3 flex h-3 gap-0.5 overflow-hidden rounded-sm" aria-hidden>
+                <div className="mb-4 flex h-2 gap-0.5 overflow-hidden rounded-full bg-panel2" aria-hidden>
                   {SEVERITIES.map((s) => counts[s] > 0 && <i key={s} className="block min-w-1" style={{ background: SEV_VAR[s], flex: counts[s] }} />)}
                 </div>
-                <div className="grid grid-cols-5 gap-1.5">
+                <div className="mb-5 grid grid-cols-5 gap-1.5 sm:gap-2">
                   {SEVERITIES.map((s) => (
                     <button
                       key={s}
                       aria-pressed={sev === s}
                       onClick={() => setSev(sev === s ? 'All' : s)}
-                      className={cn('rounded-md border border-t-[3px] border-line bg-bg px-1 py-2 text-center', sev === s && 'bg-panel2')}
-                      style={{ borderTopColor: SEV_VAR[s] }}
+                      className={cn('rounded-md border border-line bg-bg px-1 pb-2 pt-2.5 text-center hover:bg-panel2', sev === s && 'bg-panel2')}
+                      style={{ boxShadow: `inset 0 3px 0 ${SEV_VAR[s]}`, borderColor: sev === s ? SEV_VAR[s] : undefined }}
                     >
-                      <b className="tabular block text-[22px] font-bold leading-tight">{counts[s]}</b>
-                      <span className="text-[11px] text-muted">{sevName(s, lang)}</span>
+                      <b className="tabular block text-2xl font-semibold leading-7">{counts[s]}</b>
+                      <span className="block truncate text-[11px] text-muted sm:text-xs">{sevName(s, lang)}</span>
                     </button>
                   ))}
                 </div>
-                <div className="mt-3.5 grid grid-cols-4 gap-2 border-t border-line pt-3.5">
+                <div className="mb-5 border-t border-line pt-4">
+                  <Eyebrow className="mb-2.5">{t.byCat}</Eyebrow>
+                  <ul className="flex flex-col gap-2">
+                    {CATEGORIES.map((c) => {
+                      const n = assets.filter((a) => a.category === c).length;
+                      return (
+                        <li key={c} className="grid grid-cols-[minmax(0,1fr)_72px_20px] items-center gap-3 text-[13px] leading-5">
+                          <button onClick={() => setCat(cat === c ? 'All' : c)} aria-pressed={cat === c} className={cn('truncate text-left hover:text-accent', cat === c ? 'font-medium text-accent' : n === 0 && 'text-muted')}>
+                            {catName(c, lang)}
+                          </button>
+                          <span className="h-1.5 overflow-hidden rounded-full bg-panel2" aria-hidden>
+                            <i className="block h-full rounded-full bg-primary" style={{ width: `${assets.length ? (n / assets.length) * 100 : 0}%` }} />
+                          </span>
+                          <span className="tabular text-right text-muted">{n}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+                <div className="mt-auto grid grid-cols-2 gap-x-4 gap-y-3 border-t border-line pt-4 sm:grid-cols-4" style={{ marginTop: 'auto' }}>
                   {(
                     [
                       [scan.namesFound, t.names],
@@ -289,8 +322,8 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                     ] as const
                   ).map(([n, label]) => (
                     <div key={label}>
-                      <b className="tabular block font-mono text-lg font-semibold">{n}</b>
-                      <span className="block text-[11.5px] leading-tight text-muted">{label}</span>
+                      <div className="tabular text-lg font-semibold leading-7">{n}</div>
+                      <div className="text-xs leading-4 text-muted">{label}</div>
                     </div>
                   ))}
                 </div>
@@ -299,37 +332,37 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
               <Card className="md:col-span-2 xl:col-span-1">
                 <CardTitle>{t.fixes}</CardTitle>
                 {scan.brief?.topFixes.length ? (
-                  <ol className="flex flex-col gap-2.5">
+                  <ol className="flex flex-col gap-4">
                     {scan.brief.topFixes.map((f, i) => (
-                      <li key={i} className="grid grid-cols-[26px_1fr] gap-2.5">
-                        <span className="grid size-[26px] place-items-center rounded-full border border-line bg-panel2 font-mono text-sm font-bold text-accent">{i + 1}</span>
+                      <li key={i} className="grid grid-cols-[24px_minmax(0,1fr)] gap-3">
+                        <span className="tabular mt-px grid size-6 place-items-center rounded-full bg-panel2 text-xs font-semibold text-accent">{i + 1}</span>
                         <div>
-                          <strong className="block font-semibold">{f.title[lang]}</strong>
-                          <span className="text-muted">{f.detail[lang]}</span>
-                          <div className="break-all font-mono text-xs text-muted">{f.hostnames.join(' · ')}</div>
+                          <strong className="block font-semibold leading-5">{f.title[lang]}</strong>
+                          <p className="mt-0.5 text-[13px] leading-5 text-muted">{f.detail[lang]}</p>
+                          <p className="mt-1 break-all font-mono text-xs leading-5 text-muted">{f.hostnames.join(' · ')}</p>
                         </div>
                       </li>
                     ))}
                   </ol>
                 ) : (
-                  <p className="py-7 text-center text-muted">{done ? '—' : `${t.pending}…`}</p>
+                  <p className="py-8 text-center text-muted">{done ? '—' : `${t.pending}…`}</p>
                 )}
               </Card>
             </div>
 
-            <Card>
-              <CardTitle>
-                {t.assets} · {rows.length}/{assets.length}
-              </CardTitle>
-              <div className="mb-3 flex flex-wrap items-center gap-2.5">
+            <Card className="p-0">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 pb-4 pt-5">
+                <h2 className="mr-auto text-sm font-semibold leading-5">
+                  {t.assets} <span className="tabular ml-1 font-normal text-muted">{rows.length === assets.length ? assets.length : `${rows.length} / ${assets.length}`}</span>
+                </h2>
                 <div className="flex flex-wrap gap-1.5" role="group" aria-label={t.cSev}>
                   {(['All', ...SEVERITIES] as const).map((s) => (
                     <button
                       key={s}
                       aria-pressed={sev === s}
                       onClick={() => setSev(s)}
-                      className={cn('rounded-sm border border-line px-2.5 py-1 text-[12.5px] text-muted', sev === s && 'bg-panel2 text-ink')}
-                      style={sev === s ? { borderColor: s === 'All' ? 'var(--color-accent)' : SEV_VAR[s] } : undefined}
+                      className={cn('h-8 rounded-md border border-line px-3 text-[13px] text-muted hover:bg-panel2', sev === s && 'bg-panel2 font-medium text-ink')}
+                      style={sev === s ? { borderColor: s === 'All' ? 'var(--color-primary)' : SEV_VAR[s] } : undefined}
                     >
                       {s === 'All' ? t.all : sevName(s, lang)}
                     </button>
@@ -343,18 +376,20 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                     </option>
                   ))}
                 </select>
-                <input id="q" type="search" aria-label={t.search} placeholder={t.search} value={q} onChange={(e) => setQ(e.target.value)} className="field min-w-[140px] flex-1" />
+                <input id="q" type="search" aria-label={t.search} placeholder={t.search} value={q} onChange={(e) => setQ(e.target.value)} className="field sm:w-[220px]" />
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[820px] border-collapse">
+              <div className="overflow-x-auto border-t border-line">
+                <table className="w-full min-w-[880px] border-collapse">
                   <thead>
                     <tr>
-                      {[t.cSev, t.cHost, t.cCat, t.cHttp, t.cProv, t.cTls, t.cPorts].map((h) => (
-                        <th key={h} className="border-b border-line px-2.5 py-2 text-left text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
-                          {h}
-                        </th>
-                      ))}
+                      <th className={cn(th, 'w-[104px] pl-5')}>{t.cSev}</th>
+                      <th className={th}>{t.cHost}</th>
+                      <th className={th}>{t.cCat}</th>
+                      <th className={cn(th, 'w-[64px]')}>{t.cHttp}</th>
+                      <th className={th}>{t.cProv}</th>
+                      <th className={th}>{t.cTls}</th>
+                      <th className={cn(th, 'pr-5')}>{t.cPorts}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -366,29 +401,31 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                           tabIndex={0}
                           onClick={() => setSelected(a)}
                           onKeyDown={(e) => e.key === 'Enter' && setSelected(a)}
-                          className="cursor-pointer align-top hover:bg-panel2 focus-visible:bg-panel2 focus-visible:outline-2 focus-visible:outline-accent [&>td]:border-b [&>td]:border-line [&>td]:px-2.5 [&>td]:py-2"
+                          className="cursor-pointer align-top hover:bg-panel2 focus-visible:bg-panel2 focus-visible:outline-offset-[-2px] [&:last-child>td]:border-b-0 [&>td]:border-b [&>td]:border-line [&>td]:px-3 [&>td]:py-3"
                           style={{ boxShadow: a.severity ? `inset 3px 0 0 ${SEV_VAR[a.severity]}` : undefined }}
                         >
-                          <td>{a.severity ? <SeverityBadge severity={a.severity} label={sevName(a.severity, lang)} /> : <span className="text-muted">{t.pending}</span>}</td>
+                          <td className="!pl-5">{a.severity ? <SeverityBadge severity={a.severity} label={sevName(a.severity, lang)} /> : <span className="text-muted">{t.pending}</span>}</td>
                           <td>
-                            <div className="font-mono text-[13px] font-medium">{a.hostname}</div>
-                            <div className="flex max-w-[340px] items-center gap-1 break-words text-xs text-muted">
+                            <div className="font-mono text-[13px] font-medium leading-5">{a.hostname}</div>
+                            <div className="mt-0.5 flex max-w-[360px] items-center gap-1.5 text-xs leading-4 text-muted">
                               {a.hasLoginForm && <Lock className="size-3 shrink-0" aria-label={t.login} />}
-                              {a.title ?? '—'}
+                              <span className="truncate">{a.title ?? '—'}</span>
                             </div>
                           </td>
-                          <td>{a.category ? catName(a.category, lang) : '—'}</td>
-                          <td className="tabular font-mono">{a.httpStatus ?? <span className="text-muted">—</span>}</td>
+                          <td className="text-[13px] leading-5">{a.category ? catName(a.category, lang) : '—'}</td>
+                          <td className="tabular font-mono text-[13px] leading-5">{a.httpStatus ?? <span className="text-muted">—</span>}</td>
                           <td>
-                            {a.provider}
-                            <div className="font-mono text-xs text-muted">{a.ips[0]}</div>
+                            <div className="text-[13px] leading-5">{a.provider}</div>
+                            <div className="tabular mt-0.5 font-mono text-xs leading-4 text-muted">{a.ips[0]}</div>
                           </td>
-                          <td className={cn('tabular font-mono', TONE_CLASS[tls.tone])}>{tls.text}</td>
-                          <td>
-                            {a.ports.map((p) => (
-                              <PortChip key={p} port={p} risky={p in SENSITIVE_PORTS} />
-                            ))}
-                            {a.cves.length > 0 && <div className="font-mono text-xs text-crit">{a.cves.length} CVE</div>}
+                          <td className={cn('tabular whitespace-nowrap text-[13px] leading-5', TONE_CLASS[tls.tone])}>{tls.text}</td>
+                          <td className="!pr-5">
+                            <div className="flex flex-wrap gap-1">
+                              {a.ports.map((p) => (
+                                <PortChip key={p} port={p} risky={p in SENSITIVE_PORTS} />
+                              ))}
+                            </div>
+                            {a.cves.length > 0 && <div className="tabular mt-1 text-xs font-medium text-crit">{a.cves.length} CVE</div>}
                           </td>
                         </tr>
                       );
@@ -396,7 +433,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                   </tbody>
                 </table>
               </div>
-              {rows.length === 0 && <p className="py-7 text-center text-muted">{running ? t.scanning : t.none}</p>}
+              {rows.length === 0 && <p className="border-t border-line py-10 text-center text-muted">{running ? t.scanning : t.none}</p>}
             </Card>
           </>
         )}

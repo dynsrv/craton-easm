@@ -3,6 +3,7 @@
 import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Wordmark } from '@/components/brand';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
 
 const NAV = [
@@ -16,29 +17,39 @@ export function TopBar({ active, email, children }: { active: 'dashboard' | 'adm
     window.location.href = '/login';
   };
   return (
-    <header className="no-print sticky top-0 z-20 flex h-11 items-center gap-5 border-b border-line bg-panel px-4">
-      <Link href="/" aria-label="Craton home">
-        <Wordmark />
-      </Link>
-      <nav className="flex h-full items-stretch gap-1" aria-label="Main">
-        {NAV.map((n) => (
-          <Link
-            key={n.id}
-            href={n.href}
-            aria-current={active === n.id ? 'page' : undefined}
-            className={cn('flex items-center px-2.5 text-[13px] text-muted hover:text-ink', active === n.id && 'text-ink shadow-[inset_0_-2px_0_var(--color-accent)]')}
+    <header className="no-print sticky top-0 z-20 border-b border-line bg-panel shadow-[var(--shadow-panel)]">
+      <div className="mx-auto flex min-h-12 max-w-[1360px] flex-wrap items-center gap-x-3 px-4 sm:h-12 sm:flex-nowrap sm:gap-x-6 sm:px-6">
+        <Link href="/" aria-label="Craton home" className="shrink-0 rounded-sm">
+          <Wordmark compact />
+        </Link>
+        <nav className="order-last -mx-2.5 flex h-10 w-full items-stretch sm:order-none sm:mx-0 sm:h-full sm:w-auto" aria-label="Main">
+          {NAV.map((n) => (
+            <Link
+              key={n.id}
+              href={n.href}
+              aria-current={active === n.id ? 'page' : undefined}
+              className={cn(
+                'flex items-center px-2.5 text-sm text-muted hover:text-ink sm:px-3',
+                active === n.id && 'font-medium text-ink shadow-[inset_0_-2px_0_var(--color-primary)]',
+              )}
+            >
+              {n.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="ml-auto flex h-12 items-center gap-2">
+          {children}
+          <ThemeToggle />
+          {email && <span className="ml-2 hidden max-w-[220px] truncate text-[13px] text-muted lg:inline">{email}</span>}
+          <button
+            onClick={signOut}
+            title="Sign out"
+            className="flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-line px-2 text-[13px] text-muted hover:bg-panel2 hover:text-ink sm:px-2.5"
           >
-            {n.label}
-          </Link>
-        ))}
-      </nav>
-      <div className="ml-auto flex items-center gap-3">
-        {children}
-        {email && <span className="hidden text-xs text-muted sm:inline">{email}</span>}
-        <button onClick={signOut} className="flex items-center gap-1.5 text-xs text-muted hover:text-ink" aria-label="Sign out">
-          <LogOut className="size-3.5" />
-          Sign out
-        </button>
+            <LogOut className="size-4" />
+            <span className="hidden sm:inline">Sign out</span>
+          </button>
+        </div>
       </div>
     </header>
   );

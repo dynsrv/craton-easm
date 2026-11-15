@@ -4,20 +4,22 @@ import { grade } from '@/lib/score';
 export function ScoreGauge({ score, t }: { score: number; t: Dict }) {
   const g = grade(score);
   const color = SEV_VAR[g.severity];
-  const len = Math.PI * 70;
+  const len = Math.PI * 80;
   return (
     <div className="flex flex-col items-center">
-      <svg width="200" height="112" viewBox="0 0 200 112" role="img" aria-label={`${t.score}: ${score} ${t.of}`}>
-        <path d="M30 100a70 70 0 0 1 140 0" fill="none" stroke="var(--color-line)" strokeWidth="14" strokeLinecap="round" />
-        <path d="M30 100a70 70 0 0 1 140 0" fill="none" stroke={color} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(len * score) / 100} ${len}`} />
-        <text x="26" y="111" fill="var(--color-muted)" fontSize="10" fontFamily="var(--font-mono)">0</text>
-        <text x="162" y="111" fill="var(--color-muted)" fontSize="10" fontFamily="var(--font-mono)">100</text>
-      </svg>
-      <div className="-mt-[62px] text-center">
-        <div className="tabular text-[46px] font-bold leading-none">{score}</div>
-        <div className="text-[13px] text-muted">{t.of}</div>
+      <div className="relative">
+        <svg width="208" height="114" viewBox="0 0 208 114" role="img" aria-label={`${t.score}: ${score} ${t.of}`}>
+          <path d="M24 104a80 80 0 0 1 160 0" fill="none" stroke="var(--color-panel2)" strokeWidth="14" strokeLinecap="round" />
+          {score > 0 && (
+            <path d="M24 104a80 80 0 0 1 160 0" fill="none" stroke={color} strokeWidth="14" strokeLinecap="round" strokeDasharray={`${(len * score) / 100} ${len}`} />
+          )}
+        </svg>
+        <div className="absolute inset-x-0 bottom-0 text-center">
+          <div className="tabular text-[44px] font-semibold leading-none tracking-tight">{score}</div>
+          <div className="mt-1 text-xs text-muted">{t.of}</div>
+        </div>
       </div>
-      <div className="mt-3 rounded-sm border px-2.5 py-0.5 text-[13px] font-semibold" style={{ color, borderColor: color }}>
+      <div className="mt-4 inline-flex h-6 items-center rounded-sm border px-2.5 text-xs font-medium" style={{ color, borderColor: color }}>
         {t[g.key]}
       </div>
     </div>

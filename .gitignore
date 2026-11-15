@@ -7,3 +7,4 @@ next-env.d.ts
 *.tsbuildinfo
 prisma/schema.sqlite.prisma
 .vercel
+.tmp
