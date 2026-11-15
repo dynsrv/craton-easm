@@ -1,0 +1,95 @@
+// PostgreSQL is the default (Vercel + Neon/Supabase). For zero-config local work set
+// DATABASE_URL="file:./dev.db": scripts/prisma.mjs then derives a SQLite copy of this schema.
+// List fields are JSON strings so the models are identical on both databases.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Scan {
+  id         String    @id @default(cuid())
+  domain     String
+  status     String    @default("queued") // queued | running | completed | failed
+  phase      Int       @default(0) // 0 CT logs, 1 DNS, 2 HTTP/TLS, 3 ports/CVE, 4 triage, 5 brief, 6 done
+  log        String    @default("[]") // JSON string[]
+  source     String? // "crt.sh" | "dns-fallback"
+  namesFound Int       @default(0)
+  score      Int? // 0-100, 100 = clean
+  brief      String? // JSON ExecutiveBrief
+  triagedBy  String? // "llm" | "heuristic" | "mixed"
+  error      String?
+  createdAt  DateTime  @default(now())
+  finishedAt DateTime?
+  assets     Asset[]
+
+  @@index([domain, createdAt])
+}
+
+model Asset {
+  id       String @id @default(cuid())
+  scanId   String
+  scan     Scan   @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  hostname String
+
+  // DNS
+  ips      String  @default("[]") // JSON string[]
+  cname    String?
+  provider String  @default("Unknown")
+
+  // HTTP
+  scheme       String?
+  httpStatus   Int?
+  finalUrl     String?
+  title        String?
+  hasLoginForm Boolean @default(false)
+  server       String?
+  poweredBy    String?
+  hsts         Boolean @default(false)
+  csp          Boolean @default(false)
+
+  // TLS
+  tlsValid    Boolean?
+  tlsDaysLeft Int?
+  tlsIssuer   String?
+  tlsError    String?
+
+  // Shodan InternetDB
+  ports String @default("[]") // JSON number[]
+  cves  String @default("[]") // JSON string[]
+
+  // AI triage
+  category      String?
+  severity      String?
+  reasoningEn   String?
+  reasoningId   String?
+  remediationEn String?
+  remediationId String?
+  triageSource  String? // "llm" | "heuristic"
+
+  @@index([scanId])
+}
+
+model User {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  passwordHash       String
+  role               String    @default("admin")
+  mustChangePassword Boolean   @default(true)
+  failedLogins       Int       @default(0)
+  lockedUntil        DateTime?
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+}
+
+// Backend configuration managed from /admin. Values are AES-256-GCM encrypted with AUTH_SECRET.
+model Setting {
+  key       String   @id
+  value     String
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+}
