@@ -209,7 +209,7 @@ export async function runScan(scanId: string): Promise<void> {
 /** Screenshots are the bulk of the database: keep them only for the most recent scans of each domain. */
 async function pruneScreenshots(domain: string) {
   const older = await prisma.scan.findMany({ where: { domain }, orderBy: { createdAt: 'desc' }, skip: SCREENSHOT_RETENTION, select: { id: true } });
-  if (older.length) await prisma.asset.updateMany({ where: { scanId: { in: older.map((s) => s.id) }, screenshot: { not: null } }, data: { screenshot: null } });
+  if (older.length) await prisma.asset.updateMany({ where: { scanId: { in: older.map((s) => s.id) }, screenshot: { not: null } }, data: { screenshot: null, screenshotAt: null } });
 }
 
 /* ---------- row -> API shape ---------- */

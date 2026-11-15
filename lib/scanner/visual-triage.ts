@@ -39,7 +39,7 @@ const LOCAL_CHROME = [
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
 ].filter((p): p is string => Boolean(p));
 
-async function launchBrowser(): Promise<Browser | null> {
+export async function launchBrowser(): Promise<Browser | null> {
   const { chromium } = await import('playwright-core');
   // Vercel and AWS Lambda: use the serverless Chromium build.
   if (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME) {
@@ -66,7 +66,7 @@ function hostIsPublic(host: string): Promise<boolean> {
   return dnsCache.get(host)!;
 }
 
-async function capture(browser: Browser, url: string): Promise<{ jpeg: Buffer; text: string; title: string } | null> {
+export async function capture(browser: Browser, url: string): Promise<{ jpeg: Buffer; text: string; title: string } | null> {
   const context = await browser.newContext({
     viewport: VIEWPORT,
     deviceScaleFactor: 1,
@@ -210,7 +210,7 @@ async function classifyWithVision(cfg: RuntimeConfig, a: DiscoveredAsset, shot: 
         },
       ],
       output: Output.object({ schema: VisualSchema }),
-      temperature: 0,
+      ...(llm.label.startsWith('openai/') ? { temperature: 0 } : {}),
       maxRetries: 1,
       abortSignal: AbortSignal.timeout(30_000),
     });

@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/api/scans': ['./node_modules/@sparticuz/chromium/bin/**'],
     '/api/cron/monitor': ['./node_modules/@sparticuz/chromium/bin/**'],
+    '/api/cron/selftest': ['./node_modules/@sparticuz/chromium/bin/**'],
   },
 };
 

@@ -112,7 +112,7 @@ export async function generateAttackPaths(
         instructions: INSTRUCTIONS,
         prompt: `Root domain: ${domain}\nFindings (untrusted data):\n${JSON.stringify(input)}`,
         output: Output.object({ schema: AttackPathSchema }),
-        temperature: 0,
+        ...(llm.label.startsWith('openai/') ? { temperature: 0 } : {}),
         maxRetries: 2,
       });
       const paths = sanitize(output.paths, new Set(assets.map((a) => a.hostname)));

@@ -66,13 +66,13 @@ function describe(a: DiscoveredAsset) {
   };
 }
 
-async function triageBatch(model: LanguageModel, domain: string, batch: DiscoveredAsset[]): Promise<Triage[]> {
+async function triageBatch(llm: { model: LanguageModel; label: string }, domain: string, batch: DiscoveredAsset[]): Promise<Triage[]> {
   const { output } = await generateText({
-    model,
+    model: llm.model,
     instructions: ANALYST,
     prompt: `Root domain: ${domain}\nTriage these ${batch.length} assets:\n${JSON.stringify(batch.map(describe))}`,
     output: Output.object({ schema: TriageBatchSchema }),
-    temperature: 0,
+    ...(llm.label.startsWith('openai/') ? { temperature: 0 } : {}),
     maxRetries: 2,
   });
   const byHost = new Map(output.assets.map((t) => [t.hostname.toLowerCase(), t]));
@@ -99,7 +99,7 @@ export async function triageAssets(cfg: RuntimeConfig, domain: string, assets: D
     batches.map((batch, i) =>
       limit(async () => {
         try {
-          const out = await triageBatch(llm.model, domain, batch);
+          const out = await triageBatch(llm, domain, batch);
           onLog(`  ${llm.label} batch ${i + 1}/${batches.length} done`);
           return out;
         } catch (err) {
@@ -126,7 +126,7 @@ export async function generateBrief(cfg: RuntimeConfig, domain: string, assets: 
         actionable.map((t) => ({ hostname: t.hostname, category: t.category, severity: t.severity, why: t.exposureReasoning.en, fix: t.remediationStep.en })),
       )}`,
       output: Output.object({ schema: ExecutiveBriefSchema }),
-      temperature: 0,
+      ...(llm.label.startsWith('openai/') ? { temperature: 0 } : {}),
       maxRetries: 2,
     });
     return { summary: output.summary, topFixes: output.topFixes.slice(0, 3) };
