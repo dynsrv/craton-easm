@@ -76,16 +76,16 @@ export function ScanDialog({ open, onClose, t, children }: { open: boolean; onCl
         aria-labelledby="scan-dialog-title"
         className="fixed left-1/2 top-[12vh] z-50 w-[calc(100%-32px)] max-w-[520px] -translate-x-1/2 rounded-lg border border-line bg-panel p-6 shadow-2xl"
       >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div>
+        <div className="mb-4">
+          <div className="flex items-center justify-between gap-4">
             <h2 id="scan-dialog-title" className="text-lg font-semibold leading-7">
               {t.newScanTitle}
             </h2>
-            <p className="mt-1 text-[13px] leading-5 text-muted">{t.newScanBody}</p>
+            <Button variant="ghost" size="icon" className="-mr-2" onClick={onClose} aria-label={t.cancel}>
+              <X />
+            </Button>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} aria-label={t.cancel}>
-            <X />
-          </Button>
+          <p className="mt-1 text-[13px] leading-5 text-muted">{t.newScanBody}</p>
         </div>
         {children}
       </div>

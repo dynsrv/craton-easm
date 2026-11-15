@@ -43,7 +43,7 @@ function ExposureRow({ e, lang, t }: { e: ExposureDTO; lang: Lang; t: Dict }) {
 export function Exposures({ exposures, email, lang, t }: { exposures: ExposureDTO[]; email: EmailSecurity | null; lang: Lang; t: Dict }) {
   return (
     <div className="flex flex-col gap-5">
-      <p className="max-w-[80ch] text-muted">{t.exposuresIntro}</p>
+      <p className="text-muted">{t.exposuresIntro}</p>
       <div className="grid items-start gap-5 xl:grid-cols-2">
         {ORDER.map((kind) => {
           const items = exposures.filter((e) => e.kind === kind && e.severity !== 'Info');

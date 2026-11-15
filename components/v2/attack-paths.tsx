@@ -50,7 +50,7 @@ export function AttackPaths({ paths, lang, t, onHost }: { paths: AttackPath[]; l
   }
   return (
     <div className="flex flex-col gap-5">
-      <p className="max-w-[80ch] text-muted">{t.pathsIntro}</p>
+      <p className="text-muted">{t.pathsIntro}</p>
       {paths.map((p, i) => {
         const nodes = ordered(p);
         const edgeLabel = (from: string, to: string) => p.edges.find((e) => e.from === from && e.to === to)?.label[lang];
@@ -65,13 +65,14 @@ export function AttackPaths({ paths, lang, t, onHost }: { paths: AttackPath[]; l
                   {p.source === 'heuristic' && <span className="ml-2 rounded-sm border border-line px-1.5 py-px font-normal">{t.ruleBased}</span>}
                 </p>
                 <h2 className="mt-0.5 text-base font-semibold leading-6">{p.title[lang]}</h2>
-                <p className="mt-1 max-w-[80ch] text-[13px] leading-5 text-muted">{p.summary[lang]}</p>
                 </div>
               </div>
               <div className="flex shrink-0 gap-4 pt-0.5">
                 <Level label={t.likelihood} value={p.likelihood} lang={lang} />
                 <Level label={t.impact} value={p.impact} lang={lang} />
               </div>
+              {/* Full card width, aligned with the title */}
+              <p className="w-full pl-9 text-[13px] leading-5 text-muted">{p.summary[lang]}</p>
             </header>
 
             <ol className="flex flex-col items-stretch gap-0 lg:flex-row lg:items-stretch" aria-label={p.title[lang]}>

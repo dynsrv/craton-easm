@@ -80,7 +80,7 @@ body {
 h1,
 h2,
 h3 {
-  text-wrap: balance;
+  text-wrap: pretty;
 }
 
 button:not(:disabled),

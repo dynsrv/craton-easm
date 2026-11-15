@@ -221,7 +221,7 @@ function ServiceSettings() {
             </Button>
             {note && <span role="status" className={note.ok ? 'text-low' : 'text-crit'}>{note.text}</span>}
           </div>
-          <p className="hint max-w-[70ch]">Keys are encrypted before they are stored and are never sent back to the browser. A key saved here overrides the matching environment variable.</p>
+          <p className="hint">Keys are encrypted before they are stored and are never sent back to the browser. A key saved here overrides the matching environment variable.</p>
         </form>
       )}
     </Card>

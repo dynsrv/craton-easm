@@ -15,7 +15,7 @@ export function DriftTimeline({ events, baselineScanId, lang, t }: { events: Dri
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="max-w-[80ch] text-muted">{t.driftIntro}</p>
+      <p className="text-muted">{t.driftIntro}</p>
       {!baselineScanId && events.length === 0 && <Card className="py-12 text-center text-muted">{t.driftBaseline}</Card>}
       {baselineScanId && events.length === 0 && <Card className="py-12 text-center text-muted">{t.driftEmpty}</Card>}
 

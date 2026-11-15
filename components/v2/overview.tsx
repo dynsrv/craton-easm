@@ -100,12 +100,13 @@ export function Overview({ scan, assets, counts, lang, t, setTab, filterAssets }
           </dl>
         </Card>
 
-        <Card className="flex flex-col gap-5">
+        {/* Sections spread evenly when the score card beside it is taller */}
+        <Card className="flex flex-col justify-between gap-5">
           <div>
             <CardTitle icon={FileSearch} className="mb-3">
               {t.whatWeFound}
             </CardTitle>
-            <p className="max-w-[78ch] text-[15px] leading-6">{scan.brief?.summary[lang] ?? `${t.pending}…`}</p>
+            <p className="text-[15px] leading-6">{scan.brief?.summary[lang] ?? `${t.pending}…`}</p>
           </div>
 
           <div>
@@ -129,7 +130,7 @@ export function Overview({ scan, assets, counts, lang, t, setTab, filterAssets }
           </div>
 
           {path && (
-            <div className="mt-auto border-t border-line pt-4">
+            <div className="border-t border-line pt-4">
               <p className="mb-2 flex items-center gap-2 text-xs font-medium text-muted">
                 <Route className="size-4" strokeWidth={1.75} aria-hidden />
                 {t.likelyPath}

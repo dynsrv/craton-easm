@@ -111,11 +111,11 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
 
         <section>
           <Eyebrow>{t.why}</Eyebrow>
-          <p className="max-w-[65ch] leading-[1.55]">{a.reasoning?.[lang] ?? t.pending}</p>
+          <p className="leading-[1.55]">{a.reasoning?.[lang] ?? t.pending}</p>
         </section>
 
         <Callout tone="fix" title={t.fix}>
-          <p className="max-w-[65ch]">{a.remediation?.[lang] ?? t.pending}</p>
+          <p>{a.remediation?.[lang] ?? t.pending}</p>
         </Callout>
 
         <section>

@@ -227,7 +227,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
               <div>
                 <Radar className="mb-4 size-8 text-muted" strokeWidth={1.5} aria-hidden />
                 <h1 className="text-2xl font-semibold leading-8 tracking-tight">{t.welcomeTitle}</h1>
-                <p className="mt-2 max-w-[56ch] text-[15px] leading-6 text-muted">{t.welcomeBody}</p>
+                <p className="mt-2 text-[15px] leading-6 text-muted">{t.welcomeBody}</p>
               </div>
               <ScanForm t={t} domain={domain} setDomain={setDomain} authorized={authorized} setAuthorized={setAuthorized} busy={submitting} error={error} onSubmit={startScan} autoFocus />
             </Card>
