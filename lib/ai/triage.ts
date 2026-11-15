@@ -62,6 +62,7 @@ function describe(a: DiscoveredAsset) {
     tls: a.http?.tls ? { trusted: a.http.tls.valid, daysUntilExpiry: a.http.tls.daysLeft, error: a.http.tls.error ?? undefined } : undefined,
     openPorts: a.ports,
     knownCves: a.cves.slice(0, 8),
+    visualTriage: a.visual ? { looksLike: a.visual.visualClass, product: a.visual.product ?? undefined, anomalies: a.visual.anomalies } : undefined,
   };
 }
 

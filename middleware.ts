@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { SESSION_COOKIE, verifySession } from '@/lib/auth/session';
 
-const PUBLIC = ['/login', '/api/auth/login'];
+// /api/cron/* authenticates with CRON_SECRET inside the route instead of a session.
+const PUBLIC = ['/login', '/api/auth/login', '/api/cron/monitor'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

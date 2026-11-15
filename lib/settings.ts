@@ -3,9 +3,9 @@ import { authSecret } from './auth/session';
 import { prisma } from './db';
 
 /** Backend settings an admin can change at /admin. Database values override environment variables. */
-export const SETTING_KEYS = ['AI_PROVIDER', 'TRIAGE_MODEL', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'SHODAN_API_KEY'] as const;
+export const SETTING_KEYS = ['AI_PROVIDER', 'TRIAGE_MODEL', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'SHODAN_API_KEY', 'GITHUB_TOKEN', 'ALERT_WEBHOOK_URL'] as const;
 export type SettingKey = (typeof SETTING_KEYS)[number];
-export const SECRET_KEYS: ReadonlySet<SettingKey> = new Set(['OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'SHODAN_API_KEY']);
+export const SECRET_KEYS: ReadonlySet<SettingKey> = new Set(['OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'SHODAN_API_KEY', 'GITHUB_TOKEN', 'ALERT_WEBHOOK_URL']);
 
 function cipherKey(): Buffer {
   const secret = authSecret();
@@ -66,6 +66,8 @@ export interface RuntimeConfig {
   openaiKey: string | null;
   anthropicKey: string | null;
   shodanKey: string | null;
+  githubToken: string | null;
+  alertWebhookUrl: string | null;
 }
 
 export async function getRuntimeConfig(): Promise<RuntimeConfig> {
@@ -77,6 +79,8 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
     openaiKey: s.OPENAI_API_KEY.value,
     anthropicKey: s.ANTHROPIC_API_KEY.value,
     shodanKey: s.SHODAN_API_KEY.value,
+    githubToken: s.GITHUB_TOKEN.value,
+    alertWebhookUrl: s.ALERT_WEBHOOK_URL.value,
   };
 }
 
@@ -89,5 +93,7 @@ export function envRuntimeConfig(): RuntimeConfig {
     openaiKey: process.env.OPENAI_API_KEY || null,
     anthropicKey: process.env.ANTHROPIC_API_KEY || null,
     shodanKey: process.env.SHODAN_API_KEY || null,
+    githubToken: process.env.GITHUB_TOKEN || null,
+    alertWebhookUrl: process.env.ALERT_WEBHOOK_URL || null,
   };
 }

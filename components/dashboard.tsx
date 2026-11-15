@@ -1,16 +1,19 @@
 'use client';
 
-import { FileText, Loader2, Lock, Radar } from 'lucide-react';
+import { BellRing, FileText, ImageOff, Link2Off, Loader2, Lock, Radar } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AssetDrawer } from '@/components/asset-drawer';
+import { AttackPaths } from '@/components/v2/attack-paths';
+import { DriftTimeline } from '@/components/v2/drift-timeline';
+import { Exposures, ExposureStrip } from '@/components/v2/exposures';
 import { ScoreGauge } from '@/components/score-gauge';
 import { TopBar } from '@/components/top-bar';
 import { PortChip, SeverityBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle, Eyebrow } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
-import { catName, sevName, SEV_VAR, T, tlsLabel, TONE_CLASS } from '@/lib/i18n';
+import { catName, sevName, SEV_VAR, T, tlsLabel, TONE_CLASS, visName } from '@/lib/i18n';
 import { SENSITIVE_PORTS } from '@/lib/ports';
 import { SEVERITY_RANK } from '@/lib/score';
 import { CATEGORIES, SEVERITIES, type AssetDTO, type Category, type Lang, type ScanDTO, type Severity } from '@/lib/types';
@@ -25,6 +28,9 @@ interface ScanListItem {
 }
 
 const POLL_MS = 1500;
+
+const TABS = ['overview', 'paths', 'assets', 'exposures', 'drift'] as const;
+type Tab = (typeof TABS)[number];
 
 export function LangToggle({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
   return (
@@ -74,6 +80,23 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
   const [cat, setCat] = useState<Category | 'All'>('All');
   const [q, setQ] = useState('');
   const [selected, setSelected] = useState<AssetDTO | null>(null);
+  const [tab, setTabState] = useState<Tab>('overview');
+  const [monitorBusy, setMonitorBusy] = useState(false);
+
+  // The tab lives in the URL hash so links (e.g. from drift alerts) open the right view.
+  useEffect(() => {
+    const read = () => {
+      const h = window.location.hash.slice(1) as Tab;
+      if (TABS.includes(h)) setTabState(h);
+    };
+    read();
+    window.addEventListener('hashchange', read);
+    return () => window.removeEventListener('hashchange', read);
+  }, []);
+  const setTab = useCallback((next: Tab) => {
+    setTabState(next);
+    history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${next}`);
+  }, []);
   const logRef = useRef<HTMLPreElement>(null);
 
   const loadScan = useCallback(async (id: string) => {
@@ -91,7 +114,11 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
 
   // On first load, open the most recent scan.
   useEffect(() => {
-    loadRecent().then((scans) => scans[0] && loadScan(scans[0].id));
+    const wanted = new URLSearchParams(window.location.search).get('scan');
+    loadRecent().then((scans) => {
+      const id = wanted && scans.some((s) => s.id === wanted) ? wanted : scans[0]?.id;
+      if (id) loadScan(id);
+    });
   }, [loadRecent, loadScan]);
 
   // Poll while a scan is in flight.
@@ -157,6 +184,35 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
 
   const dateFmt = (iso: string) => new Date(iso).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   const th = 'border-b border-line px-3 py-2.5 text-left text-xs font-medium text-muted';
+  const takeoverHosts = new Set((scan?.exposures ?? []).filter((e) => e.kind === 'takeover').map((e) => e.hostname));
+  const actionableExposures = (scan?.exposures ?? []).filter((e) => e.severity !== 'Info');
+  const openHost = (hostname: string) => {
+    const a = assets.find((x) => x.hostname === hostname);
+    if (a) setSelected(a);
+  };
+  const filterAssets = (next: { sev?: Severity | 'All'; cat?: Category | 'All' }) => {
+    if (next.sev) setSev(next.sev);
+    if (next.cat) setCat(next.cat);
+    setTab('assets');
+  };
+  const toggleMonitor = async () => {
+    if (!scan) return;
+    setMonitorBusy(true);
+    try {
+      const res = await fetch('/api/monitors', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ domain: scan.domain, enabled: !scan.monitored }) });
+      if (res.ok) setScan({ ...scan, monitored: !scan.monitored });
+    } finally {
+      setMonitorBusy(false);
+    }
+  };
+  const tabCount: Record<Tab, number | null> = {
+    overview: null,
+    paths: scan?.attackPaths.length ?? 0,
+    assets: assets.length,
+    exposures: actionableExposures.length,
+    drift: scan?.driftEvents.filter((e) => e.scanId === scan.id).length ?? 0,
+  };
+  const tabLabel: Record<Tab, string> = { overview: t.tabOverview, paths: t.tabPaths, assets: t.tabAssets, exposures: t.tabExposures, drift: t.tabDrift };
 
   return (
     <div>
@@ -210,7 +266,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                 {t.scanned} {dateFmt(scan.finishedAt ?? scan.createdAt)} · {assets.length} {t.live}
               </p>
             </div>
-            <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:flex-nowrap">
               {recent.length > 1 && (
                 <Select
                   id="recent"
@@ -226,6 +282,21 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                   )}
                 />
               )}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={scan.monitored}
+                disabled={monitorBusy}
+                onClick={toggleMonitor}
+                title={t.monitorHint}
+                className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-line bg-panel px-3 text-[13px] font-medium hover:bg-panel2 disabled:opacity-50"
+              >
+                <span className={cn('relative h-4 w-7 rounded-full transition-colors', scan.monitored ? 'bg-primary' : 'bg-line')} aria-hidden>
+                  <span className={cn('absolute top-0.5 size-3 rounded-full bg-white transition-[left]', scan.monitored ? 'left-[14px]' : 'left-0.5')} />
+                </span>
+                <BellRing className="size-4 text-muted sm:hidden" aria-hidden />
+                <span className="hidden sm:inline">{t.monitor}</span>
+              </button>
               {done && (
                 <Link href={`/report/${scan.id}`} className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-line bg-panel px-3.5 text-[13px] font-medium hover:bg-panel2">
                   <FileText className="size-4" />
@@ -259,7 +330,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
               </pre>
             </div>
             <div className="mt-4 h-1 overflow-hidden rounded-full bg-panel2">
-              <div className="h-full bg-primary transition-[width]" style={{ width: `${Math.round((scan.phase / 6) * 100)}%` }} />
+              <div className="h-full bg-primary transition-[width]" style={{ width: `${Math.round((scan.phase / t.phases.length) * 100)}%` }} />
             </div>
           </Card>
         )}
@@ -272,7 +343,45 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
         )}
 
         {scan && (
-          <>
+          <nav className="-mb-1 flex gap-1 overflow-x-auto border-b border-line" role="tablist" aria-label={scan.domain}>
+            {TABS.map((id) => (
+              <button
+                key={id}
+                role="tab"
+                id={`tab-${id}`}
+                aria-selected={tab === id}
+                aria-controls={`panel-${id}`}
+                onClick={() => setTab(id)}
+                className={cn(
+                  '-mb-px flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm text-muted hover:text-ink',
+                  tab === id ? 'border-primary font-medium text-ink' : 'border-transparent',
+                )}
+              >
+                {tabLabel[id]}
+                {tabCount[id] != null && tabCount[id]! > 0 && <span className="tabular rounded-sm bg-panel2 px-1.5 text-xs font-medium text-muted">{tabCount[id]}</span>}
+              </button>
+            ))}
+          </nav>
+        )}
+
+        {scan && tab === 'paths' && (
+          <section role="tabpanel" id="panel-paths" aria-labelledby="tab-paths">
+            <AttackPaths paths={scan.attackPaths} lang={lang} t={t} onHost={openHost} />
+          </section>
+        )}
+        {scan && tab === 'exposures' && (
+          <section role="tabpanel" id="panel-exposures" aria-labelledby="tab-exposures">
+            <Exposures exposures={scan.exposures} email={scan.emailSecurity} lang={lang} t={t} />
+          </section>
+        )}
+        {scan && tab === 'drift' && (
+          <section role="tabpanel" id="panel-drift" aria-labelledby="tab-drift">
+            <DriftTimeline events={scan.driftEvents} baselineScanId={scan.baselineScanId} lang={lang} t={t} />
+          </section>
+        )}
+
+        {scan && tab === 'overview' && (
+          <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" className="flex flex-col gap-5">
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-[280px_minmax(0,1fr)_minmax(0,1.15fr)]">
               <Card className="flex flex-col">
                 <CardTitle>{t.score}</CardTitle>
@@ -291,7 +400,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                     <button
                       key={s}
                       aria-pressed={sev === s}
-                      onClick={() => setSev(sev === s ? 'All' : s)}
+                      onClick={() => filterAssets({ sev: s })}
                       className={cn('rounded-md border border-line bg-bg px-1 pb-2 pt-2.5 text-center hover:bg-panel2', sev === s && 'bg-panel2')}
                       style={{ boxShadow: `inset 0 3px 0 ${SEV_VAR[s]}`, borderColor: sev === s ? SEV_VAR[s] : undefined }}
                     >
@@ -307,7 +416,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                       const n = assets.filter((a) => a.category === c).length;
                       return (
                         <li key={c} className="grid grid-cols-[minmax(0,1fr)_72px_20px] items-center gap-3 text-[13px] leading-5">
-                          <button onClick={() => setCat(cat === c ? 'All' : c)} aria-pressed={cat === c} className={cn('truncate text-left hover:text-accent', cat === c ? 'font-medium text-accent' : n === 0 && 'text-muted')}>
+                          <button onClick={() => filterAssets({ cat: c })} aria-pressed={cat === c} className={cn('truncate text-left hover:text-accent', cat === c ? 'font-medium text-accent' : n === 0 && 'text-muted')}>
                             {catName(c, lang)}
                           </button>
                           <span className="h-1.5 overflow-hidden rounded-full bg-panel2" aria-hidden>
@@ -356,7 +465,12 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                 )}
               </Card>
             </div>
+            {done && <ExposureStrip exposures={actionableExposures} email={scan.emailSecurity} lang={lang} t={t} onOpen={() => setTab('exposures')} />}
+          </section>
+        )}
 
+        {scan && tab === 'assets' && (
+          <section role="tabpanel" id="panel-assets" aria-labelledby="tab-assets">
             <Card className="p-0">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 pb-4 pt-5">
                 <h2 className="mr-auto text-sm font-semibold leading-5">
@@ -390,10 +504,13 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
               </div>
 
               <div className="overflow-x-auto border-t border-line">
-                <table className="w-full min-w-[880px] border-collapse">
+                <table className="w-full min-w-[960px] border-collapse">
                   <thead>
                     <tr>
                       <th className={cn(th, 'w-[104px] pl-5')}>{t.cSev}</th>
+                      <th className={cn(th, 'w-[92px]')}>
+                        <span className="sr-only">{t.screenshot}</span>
+                      </th>
                       <th className={th}>{t.cHost}</th>
                       <th className={th}>{t.cCat}</th>
                       <th className={cn(th, 'w-[64px]')}>{t.cHttp}</th>
@@ -416,11 +533,35 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                         >
                           <td className="!pl-5">{a.severity ? <SeverityBadge severity={a.severity} label={sevName(a.severity, lang)} /> : <span className="text-muted">{t.pending}</span>}</td>
                           <td>
-                            <div className="font-mono text-[13px] font-medium leading-5">{a.hostname}</div>
+                            {a.hasScreenshot ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={`/api/assets/${a.id}/screenshot`} alt="" loading="lazy" width={80} height={50} className="h-[50px] w-20 rounded-sm border border-line bg-panel2 object-cover object-top" />
+                            ) : (
+                              <span className="grid h-[50px] w-20 place-items-center rounded-sm border border-dashed border-line text-muted" aria-hidden>
+                                <ImageOff className="size-4" />
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            <div className="flex flex-wrap items-center gap-2 font-mono text-[13px] font-medium leading-5">
+                              {a.hostname}
+                              {takeoverHosts.has(a.hostname) && (
+                                <span className="inline-flex items-center gap-1 rounded-sm border border-crit px-1.5 font-sans text-[11px] font-medium text-crit">
+                                  <Link2Off className="size-3" aria-hidden />
+                                  {t.takeoverBadge}
+                                </span>
+                              )}
+                            </div>
                             <div className="mt-0.5 flex max-w-[360px] items-center gap-1.5 text-xs leading-4 text-muted">
                               {a.hasLoginForm && <Lock className="size-3 shrink-0" aria-label={t.login} />}
                               <span className="truncate">{a.title ?? '—'}</span>
                             </div>
+                            {a.visualClass && a.visualClass !== 'Public Marketing Website' && a.visualClass !== 'Other / Unclear' && (
+                              <div className="mt-1 text-xs font-medium text-accent">
+                                {visName(a.visualClass, lang)}
+                                {a.visualProduct ? ` · ${a.visualProduct}` : ''}
+                              </div>
+                            )}
                           </td>
                           <td className="text-[13px] leading-5">{a.category ? catName(a.category, lang) : '—'}</td>
                           <td className="tabular font-mono text-[13px] leading-5">{a.httpStatus ?? <span className="text-muted">—</span>}</td>
@@ -445,7 +586,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
               </div>
               {rows.length === 0 && <p className="border-t border-line py-10 text-center text-muted">{running ? t.scanning : t.none}</p>}
             </Card>
-          </>
+          </section>
         )}
       </main>
 

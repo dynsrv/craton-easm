@@ -35,6 +35,24 @@ Requires Node 20 or newer.
 
 With no LLM key the app still works: triage falls back to the rule engine in `lib/ai/heuristic.ts`, and the dashboard says so.
 
+## v2 security modules
+
+| Module | File | What it does |
+| --- | --- | --- |
+| Dangling DNS and takeover | `lib/scanner/takeover.ts` | Finds CNAMEs pointing at cloud/SaaS providers (S3, Azure, GitHub Pages, Heroku, Vercel, Netlify, Shopify, Fastly and more) whose resource is gone: NXDOMAIN on the target, or the provider's "unclaimed" page from one GET. Severity follows the provider's status on [can-i-take-over-xyz](https://github.com/EdOverflow/can-i-take-over-xyz): vulnerable = Critical, edge case = High, not vulnerable = Medium. Review that list periodically. |
+| Visual triage | `lib/scanner/visual-triage.ts` | Up to 15 priority hosts are opened in headless Chromium (1280x800, 8 s each, fresh context, downloads and service workers off, requests to private addresses blocked). A vision model classifies each page (admin/DevOps panel, unauthenticated API docs, login portal, default/parked page, marketing site) and notes anomalies; without an AI key a rule-based classifier is used. Screenshots are kept for the 3 latest scans per domain. |
+| Leaks and cloud storage | `lib/scanner/exposure-leaks.ts` | GitHub code search (needs a GitHub token) for the domain and internal hostnames in `.env`, `config.json`, `docker-compose.yml`; every fragment is redacted in memory by `lib/redact.ts` before storage or LLM use. One HTTP HEAD per bucket name (`org`, `org-public`, `org-assets`, `org-backup`, `org-dev`, `org-static`) on AWS S3, Google Cloud Storage and Alibaba OSS Jakarta; 200 = anonymous listing allowed. Nothing is listed or downloaded. SPF and DMARC are read over DNS-over-HTTPS. |
+| Attack paths | `lib/ai/attack-paths.ts` | Chains findings into the 2-3 most plausible breach routes as nodes and edges, each with a "break the chain here" control. Steps describe what an attacker reaches, never how. Rule-based paths are used without an AI key. |
+| Drift | `lib/scanner/drift.ts` | Each scan stores a `ScanSnapshot`; the next scan of the domain records `DriftEvent`s for new hosts and ports, expired or expiring (<14 days) certificates, weakened SPF/DMARC, new takeovers, newly public buckets and new code references. High and critical events are POSTed as JSON to the alert webhook (Slack- and Teams-compatible `text` field included). |
+
+**Continuous monitoring.** Turn on "Monitor daily" for a domain on the dashboard. Vercel Cron calls `/api/cron/monitor` once a day (`vercel.json`), authenticated with `CRON_SECRET`, and re-scans up to 3 due domains per run.
+
+**New settings (Admin page).** `GITHUB_TOKEN` (a fine-grained token with no repository access is enough for code search) and `ALERT_WEBHOOK_URL` (HTTPS only, must resolve to a public address), with a "Send test alert" button.
+
+**New environment variable.** `CRON_SECRET`: random string; Vercel sends it with each cron request.
+
+**Headless Chromium.** On Vercel the app uses `@sparticuz/chromium` with `playwright-core`. Locally it uses an installed Chrome (or `CHROME_PATH`); if none is found, visual triage falls back to HTTP metadata and the scan continues.
+
 ## Admin page
 
 `/admin` is where an operator manages the backend without redeploying:

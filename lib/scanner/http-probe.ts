@@ -11,7 +11,7 @@ const MAX_BODY = 96 * 1024; // enough for <head> and a login form
 const MAX_REDIRECTS = 3;
 const resolver = new Resolver({ timeout: 3000, tries: 1 });
 
-interface RawResponse {
+export interface RawResponse {
   status: number;
   headers: http.IncomingHttpHeaders;
   body: string;
@@ -47,7 +47,7 @@ function readTls(socket: TLSSocket): TlsInfo | null {
 }
 
 /** One plain GET. Certificates are inspected, not enforced, so expired and self-signed hosts can still be described. */
-function requestOnce(url: URL, ip: string, timeoutMs: number): Promise<RawResponse> {
+export function requestOnce(url: URL, ip: string, timeoutMs: number, method: 'GET' | 'HEAD' = 'GET'): Promise<RawResponse> {
   return new Promise((resolve, reject) => {
     const isHttps = url.protocol === 'https:';
     const req = (isHttps ? https : http).request(
@@ -56,7 +56,7 @@ function requestOnce(url: URL, ip: string, timeoutMs: number): Promise<RawRespon
         hostname: url.hostname,
         port: url.port || (isHttps ? 443 : 80),
         path: `${url.pathname}${url.search}`,
-        method: 'GET',
+        method,
         headers: { 'User-Agent': UA, Accept: 'text/html,application/xhtml+xml,*/*;q=0.8', 'Accept-Encoding': 'identity' },
         lookup: pinnedLookup(ip),
         agent: false,

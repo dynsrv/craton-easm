@@ -25,7 +25,16 @@ model Scan {
   error      String?
   createdAt  DateTime  @default(now())
   finishedAt DateTime?
-  assets     Asset[]
+
+  // v2
+  attackPaths    String? // JSON AttackPath[]
+  emailSecurity  String? // JSON EmailSecurity
+  baselineScanId String? // previous scan this one was compared with
+
+  assets      Asset[]
+  exposures   Exposure[]
+  snapshot    ScanSnapshot?
+  driftEvents DriftEvent[]
 
   @@index([domain, createdAt])
 }
@@ -71,7 +80,73 @@ model Asset {
   remediationId String?
   triageSource  String? // "llm" | "heuristic"
 
+  // Visual triage (v2)
+  visualClass     String?
+  visualProduct   String?
+  visualAnomalies String    @default("[]") // JSON Bilingual[]
+  screenshot      Bytes? // JPEG 1280x800; pruned for older scans
+  screenshotAt    DateTime?
+
   @@index([scanId])
+}
+
+/// Takeover risks, cloud buckets, public code references and email-security gaps.
+model Exposure {
+  id            String  @id @default(cuid())
+  scanId        String
+  scan          Scan    @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  kind          String // takeover | bucket | code_leak | email
+  severity      String
+  hostname      String?
+  provider      String?
+  target        String
+  evidence      String // always redacted before it is stored
+  titleEn       String
+  titleId       String
+  reasoningEn   String
+  reasoningId   String
+  remediationEn String
+  remediationId String
+
+  @@index([scanId])
+}
+
+/// Compact state of one completed scan, the baseline for drift detection.
+model ScanSnapshot {
+  id        String   @id @default(cuid())
+  scanId    String   @unique
+  scan      Scan     @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  domain    String
+  data      String // JSON SnapshotData
+  createdAt DateTime @default(now())
+
+  @@index([domain, createdAt])
+}
+
+model DriftEvent {
+  id             String    @id @default(cuid())
+  domain         String
+  scanId         String
+  scan           Scan      @relation(fields: [scanId], references: [id], onDelete: Cascade)
+  baselineScanId String
+  kind           String
+  severity       String
+  hostname       String?
+  detailEn       String
+  detailId       String
+  notifiedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([domain, createdAt])
+}
+
+/// Domains re-scanned automatically by the daily job.
+model Monitor {
+  domain    String    @id
+  enabled   Boolean   @default(true)
+  createdBy String?
+  lastRunAt DateTime?
+  createdAt DateTime  @default(now())
 }
 
 model User {

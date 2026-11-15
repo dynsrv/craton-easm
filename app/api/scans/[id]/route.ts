@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireUser } from '@/lib/auth/guard';
 import { prisma } from '@/lib/db';
-import { toScanDTO } from '@/lib/run-scan';
+import { loadScanDTO } from '@/lib/run-scan';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,9 +11,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const auth = await requireUser();
   if ('response' in auth) return auth.response;
   const { id } = await params;
-  const scan = await prisma.scan.findUnique({ where: { id }, include: { assets: { orderBy: { hostname: 'asc' } } } });
+  const scan = await loadScanDTO(id);
   if (!scan) return NextResponse.json({ error: 'Scan not found' }, { status: 404 });
-  return NextResponse.json(toScanDTO(scan));
+  return NextResponse.json(scan);
 }
 
 /** DELETE /api/scans/:id  ->  remove a scan and its assets */

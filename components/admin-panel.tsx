@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Copy, Loader2, Plug, Trash2, UserPlus } from 'lucide-react';
+import { BellRing, Check, Copy, Loader2, Plug, Trash2, UserPlus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { PasswordForm } from '@/components/password-form';
 import { TopBar } from '@/components/top-bar';
@@ -28,6 +28,8 @@ const SECRETS = [
   { key: 'OPENAI_API_KEY', label: 'OpenAI API key', help: 'Primary model for triage and the executive brief.' },
   { key: 'ANTHROPIC_API_KEY', label: 'Anthropic API key', help: 'Used when no OpenAI key is set, or when the provider is Anthropic.' },
   { key: 'SHODAN_API_KEY', label: 'Shodan API key', help: 'Optional. Without it the free InternetDB is used for ports and CVEs.' },
+  { key: 'GITHUB_TOKEN', label: 'GitHub token', help: 'Enables the public code check. A fine-grained token with no repository access is enough for code search.' },
+  { key: 'ALERT_WEBHOOK_URL', label: 'Alert webhook URL', help: 'HTTPS endpoint that receives high-severity drift as JSON. Slack and Teams incoming webhooks work as-is.' },
 ] as const;
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
@@ -101,6 +103,19 @@ function ServiceSettings() {
     save(values);
   };
 
+  const testWebhook = async () => {
+    setBusy('test');
+    setNote(null);
+    try {
+      const r = await api<{ ok: boolean; message: string }>('/api/admin/settings/test-webhook', { method: 'POST' });
+      setNote({ ok: r.ok, text: r.message });
+    } catch (e) {
+      setNote({ ok: false, text: (e as Error).message });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const test = async () => {
     setBusy('test');
     setNote(null);
@@ -118,7 +133,7 @@ function ServiceSettings() {
 
   return (
     <Card>
-      <CardTitle>AI and data services</CardTitle>
+      <CardTitle>AI, data and alert services</CardTitle>
       {!settings ? (
         <p className="py-4 text-muted">{note ? note.text : 'Loading…'}</p>
       ) : (
@@ -187,6 +202,10 @@ function ServiceSettings() {
             <Button type="button" variant="outline" disabled={busy !== null} onClick={test}>
               {busy === 'test' ? <Loader2 className="animate-spin" /> : <Plug />}
               Test AI connection
+            </Button>
+            <Button type="button" variant="outline" disabled={busy !== null || bySecret('ALERT_WEBHOOK_URL')?.source === 'none'} onClick={testWebhook}>
+              <BellRing />
+              Send test alert
             </Button>
             {note && <span role="status" className={note.ok ? 'text-low' : 'text-crit'}>{note.text}</span>}
           </div>

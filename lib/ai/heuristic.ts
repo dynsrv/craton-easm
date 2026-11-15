@@ -111,6 +111,23 @@ function findings(a: DiscoveredAsset, category: Category): Finding[] {
     });
   }
 
+  if (a.visual?.visualClass === 'Exposed Admin / DevOps Panel') {
+    const what = a.visual.product ?? 'An operator console';
+    out.push({
+      severity: 'High',
+      why: { en: `${what} is visible from the internet. Operator tools hold credentials and direct access to infrastructure.`, id: `${what} terlihat dari internet. Perangkat operator menyimpan kredensial dan akses langsung ke infrastruktur.` },
+      fix: { en: 'Remove public access: put the console behind the VPN or SSO with MFA, and allow only office or VPN addresses.', id: 'Hapus akses publik: tempatkan konsol di belakang VPN atau SSO dengan MFA, dan izinkan hanya alamat kantor atau VPN.' },
+    });
+  }
+  if (a.visual?.visualClass === 'Unauthenticated API Docs') {
+    const nonProd = /(stag|dev|uat|test|sandbox|qa)/.test(label(a));
+    out.push({
+      severity: nonProd ? 'High' : 'Medium',
+      why: { en: 'API documentation is readable without signing in, giving attackers a full map of endpoints and parameters to probe.', id: 'Dokumentasi API dapat dibaca tanpa login, memberi penyerang peta lengkap endpoint dan parameter untuk diuji.' },
+      fix: { en: 'Require sign-in for the API docs, or publish only the public subset; never expose internal or admin endpoints in the published spec.', id: 'Wajibkan login untuk dokumentasi API, atau publikasikan hanya bagian publik; jangan pernah menampilkan endpoint internal atau admin di spesifikasi yang dipublikasikan.' },
+    });
+  }
+
   const banner = [h?.server, h?.poweredBy].filter((v): v is string => Boolean(v && /\d/.test(v))).join(', ');
   if (banner) {
     out.push({

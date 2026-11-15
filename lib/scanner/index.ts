@@ -1,9 +1,10 @@
 import pLimit from 'p-limit';
 import type { DiscoveredAsset } from '../types';
 import { fetchCtSubdomains } from './crtsh';
-import { bruteCommonPrefixes, isSharedEdge, prioritize, resolveAll, type DnsRecord } from './dns';
+import { bruteCommonPrefixes, COMMON_PREFIXES, isSharedEdge, prioritize, resolveAll, type DnsRecord } from './dns';
 import { probeHost } from './http-probe';
 import { lookupIp, type IpIntel } from './internetdb';
+import { findCnameOnlyRecords, type DanglingCandidate } from './takeover';
 
 export const MAX_HOSTS = 50;
 export const PROBE_CONCURRENCY = 8;
@@ -18,6 +19,10 @@ export interface DiscoveryResult {
   source: 'crt.sh' | 'dns-fallback';
   namesFound: number;
   assets: DiscoveredAsset[];
+  /** Live DNS records of the probed hosts (for takeover checks). */
+  records: DnsRecord[];
+  /** Names with a CNAME but no address: candidates for dangling DNS. */
+  cnameOnly: DanglingCandidate[];
 }
 
 /**
@@ -56,6 +61,11 @@ export async function discover(
   }
   await onProgress({ phase: 1, message: `  ${live.length} live, ${Math.max(0, names.length - live.length)} dead records filtered out` });
 
+  const liveNames = new Set(live.map((r) => r.hostname));
+  const deadNames = (source === 'crt.sh' ? names : COMMON_PREFIXES.map((p) => `${p}.${domain}`)).filter((n) => !liveNames.has(n));
+  const cnameOnly = await findCnameOnlyRecords(deadNames);
+  if (cnameOnly.length) await onProgress({ phase: 1, message: `  ${cnameOnly.length} name(s) with a CNAME but no address (checked for dangling DNS)` });
+
   const targets = prioritize(live, MAX_HOSTS);
   if (live.length > MAX_HOSTS) await onProgress({ phase: 1, message: `  capped at the ${MAX_HOSTS} most interesting hosts` });
 
@@ -87,5 +97,5 @@ export async function discover(
   const withCves = assets.filter((a) => a.cves.length).length;
   await onProgress({ phase: 3, message: `  ${assets.filter((a) => a.ports.length).length} hosts with port data, ${withCves} with known CVEs` });
 
-  return { source, namesFound: names.length, assets };
+  return { source, namesFound: names.length, assets, records: targets, cnameOnly };
 }

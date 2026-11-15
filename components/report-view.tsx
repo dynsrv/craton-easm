@@ -9,7 +9,7 @@ import { sevName, SEV_PRINT, T } from '@/lib/i18n';
 import { grade, SEVERITY_RANK } from '@/lib/score';
 import { SEVERITIES, type ScanDTO, type Severity } from '@/lib/types';
 
-const MAX_FINDINGS = 9; // keeps the brief on one A4 page
+const MAX_FINDINGS = 7; // keeps the brief on one A4 page
 
 export function ReportView({ scan }: { scan: ScanDTO }) {
   const [lang, setLang] = useLang();
@@ -90,6 +90,18 @@ export function ReportView({ scan }: { scan: ScanDTO }) {
                   </li>
                 ))}
               </ol>
+            </div>
+          )}
+
+          {scan.attackPaths[0] && (
+            <div>
+              <h2>{lang === 'id' ? 'Jalur serangan paling mungkin' : 'Most likely attack path'}</h2>
+              <p>
+                <b>{scan.attackPaths[0].title[lang]}.</b> {scan.attackPaths[0].nodes.map((n) => n.label[lang]).join(' → ')}.{' '}
+                <span style={{ color: '#1c6e42' }}>
+                  <b>{lang === 'id' ? 'Putus rantai' : 'Break the chain'}:</b> {scan.attackPaths[0].chokePoint.action[lang]}
+                </span>
+              </p>
             </div>
           )}
 

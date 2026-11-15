@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { PortChip, SeverityBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eyebrow } from '@/components/ui/card';
-import { catName, sevName, SEV_VAR, tlsLabel, TONE_CLASS, type Dict } from '@/lib/i18n';
+import { catName, sevName, SEV_VAR, tlsLabel, TONE_CLASS, visName, type Dict } from '@/lib/i18n';
 import { SENSITIVE_PORTS } from '@/lib/ports';
 import type { AssetDTO, Lang } from '@/lib/types';
 
@@ -79,6 +79,33 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
             <X />
           </Button>
         </header>
+
+        {(a.hasScreenshot || a.visualClass) && (
+          <section className="flex flex-col gap-2.5">
+            {a.hasScreenshot && (
+              <a href={`/api/assets/${a.id}/screenshot`} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-md border border-line bg-panel2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/api/assets/${a.id}/screenshot`} alt={`${t.screenshot}: ${a.hostname}`} width={1280} height={800} className="aspect-[16/10] w-full object-cover object-top" />
+              </a>
+            )}
+            {a.visualClass && (
+              <p className="text-[13px]">
+                <span className="text-muted">{t.looksLike}: </span>
+                <b className="font-medium">{visName(a.visualClass, lang)}</b>
+                {a.visualProduct ? <span className="text-muted"> · {a.visualProduct}</span> : null}
+              </p>
+            )}
+            {a.visualAnomalies.length > 0 && (
+              <ul className="flex flex-col gap-1.5">
+                {a.visualAnomalies.map((x, i) => (
+                  <li key={i} className="rounded-md border border-line bg-bg px-3 py-2 text-[13px] leading-5" style={{ boxShadow: 'inset 3px 0 0 var(--color-high)' }}>
+                    {x[lang]}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
 
         <section>
           <Eyebrow>{t.why}</Eyebrow>
