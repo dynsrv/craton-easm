@@ -83,12 +83,10 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
 
         {(a.hasScreenshot || a.visualClass) && (
           <section className="flex flex-col gap-2.5">
-            {a.hasScreenshot ? (
+            {a.hasScreenshot && (
               <a href={`/api/assets/${a.id}/screenshot`} target="_blank" rel="noreferrer" className="block" aria-label={`${t.screenshot}: ${a.hostname}`}>
-                <Shot assetId={a.id} available label={t.noPreview} className="aspect-[16/10] w-full" large />
+                <Shot assetId={a.id} className="aspect-[16/10] w-full" />
               </a>
-            ) : (
-              <Shot assetId={a.id} available={false} label={t.noPreview} className="aspect-[16/10] w-full" large />
             )}
             {a.visualClass && (
               <p className="text-[13px]">

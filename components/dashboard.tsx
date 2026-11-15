@@ -174,6 +174,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
     for (const a of assets) if (a.severity) c[a.severity]++;
     return c;
   }, [assets]);
+  const anyShots = assets.some((a) => a.hasScreenshot);
   const rows = assets.filter(
     (a) =>
       (sev === 'All' || a.severity === sev) &&
@@ -411,13 +412,16 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
               </div>
 
               <div className="overflow-x-auto border-t border-line">
+                {/* The screenshot column only appears when this scan captured any */}
                 <table className="w-full min-w-[960px] border-collapse">
                   <thead>
                     <tr>
                       <th className={cn(th, 'w-[104px] pl-5')}>{t.cSev}</th>
-                      <th className={cn(th, 'w-[92px]')}>
-                        <span className="sr-only">{t.screenshot}</span>
-                      </th>
+                      {anyShots && (
+                        <th className={cn(th, 'w-[92px]')}>
+                          <span className="sr-only">{t.screenshot}</span>
+                        </th>
+                      )}
                       <th className={th}>{t.cHost}</th>
                       <th className={th}>{t.cCat}</th>
                       <th className={cn(th, 'w-[64px]')}>{t.cHttp}</th>
@@ -438,9 +442,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
                           className="cursor-pointer align-top hover:bg-panel2 focus-visible:bg-panel2 focus-visible:outline-offset-[-2px] [&:last-child>td]:border-b-0 [&>td]:border-b [&>td]:border-line [&>td]:px-3 [&>td]:py-3"
                         >
                           <td className="!pl-5">{a.severity ? <SeverityBadge severity={a.severity} label={sevName(a.severity, lang)} /> : <span className="text-muted">{t.pending}</span>}</td>
-                          <td>
-                            <Shot assetId={a.id} available={a.hasScreenshot} label={t.noPreview} className="h-[50px] w-20" />
-                          </td>
+                          {anyShots && <td>{a.hasScreenshot && <Shot assetId={a.id} className="h-[50px] w-20" />}</td>}
                           <td>
                             <div className="flex flex-wrap items-center gap-2 font-mono text-[13px] font-medium leading-5">
                               {a.hostname}
