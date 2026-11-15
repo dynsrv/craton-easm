@@ -9,6 +9,7 @@ import { TopBar } from '@/components/top-bar';
 import { PortChip, SeverityBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle, Eyebrow } from '@/components/ui/card';
+import { Select } from '@/components/ui/select';
 import { catName, sevName, SEV_VAR, T, tlsLabel, TONE_CLASS } from '@/lib/i18n';
 import { SENSITIVE_PORTS } from '@/lib/ports';
 import { SEVERITY_RANK } from '@/lib/score';
@@ -211,13 +212,19 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
             </div>
             <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0">
               {recent.length > 1 && (
-                <select id="recent" aria-label={t.recent} value={scan.id} onChange={(e) => loadScan(e.target.value)} className="field min-w-0 flex-1 sm:w-[240px] sm:flex-none">
-                  {recent.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.domain} · {dateFmt(r.createdAt)}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  id="recent"
+                  aria-label={t.recent}
+                  value={scan.id}
+                  onValueChange={loadScan}
+                  className="flex-1 sm:w-[260px] sm:flex-none"
+                  options={recent.map((r) => ({ value: r.id, label: r.domain, hint: dateFmt(r.createdAt) }))}
+                  renderValue={(o) => (
+                    <>
+                      {o?.label} <span className="text-muted">· {o?.hint}</span>
+                    </>
+                  )}
+                />
               )}
               {done && (
                 <Link href={`/report/${scan.id}`} className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-line bg-panel px-3.5 text-[13px] font-medium hover:bg-panel2">
@@ -368,14 +375,17 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                     </button>
                   ))}
                 </div>
-                <select id="cat" aria-label={t.cCat} value={cat} onChange={(e) => setCat(e.target.value as Category | 'All')} className="field w-auto">
-                  <option value="All">{t.allCats}</option>
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {catName(c, lang)}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  id="cat"
+                  aria-label={t.cCat}
+                  value={cat}
+                  onValueChange={(v) => setCat(v as Category | 'All')}
+                  className="w-full sm:w-[220px]"
+                  options={[
+                    { value: 'All', label: t.allCats, hint: assets.length },
+                    ...CATEGORIES.map((c) => ({ value: c, label: catName(c, lang), hint: assets.filter((a) => a.category === c).length })),
+                  ]}
+                />
                 <input id="q" type="search" aria-label={t.search} placeholder={t.search} value={q} onChange={(e) => setQ(e.target.value)} className="field sm:w-[220px]" />
               </div>
 

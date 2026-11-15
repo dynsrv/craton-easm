@@ -188,6 +188,25 @@ select {
   }
 }
 
+/* dropdown options show focus through their highlight background, not the global outline */
+.select-menu [role='option']:focus-visible {
+  outline: none;
+}
+
+/* dropdown menus: short fade and slide from the side they open on */
+.select-menu[data-state='open'] {
+  animation: select-in 120ms ease-out;
+}
+.select-menu[data-side='top'] {
+  --select-from: 4px;
+}
+@keyframes select-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--select-from, -4px)) scale(0.98);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

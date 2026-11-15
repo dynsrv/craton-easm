@@ -6,6 +6,7 @@ import { PasswordForm } from '@/components/password-form';
 import { TopBar } from '@/components/top-bar';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
+import { Select } from '@/components/ui/select';
 
 interface SettingView {
   key: string;
@@ -125,11 +126,18 @@ function ServiceSettings() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="provider" className="label">AI provider</label>
-              <select id="provider" value={provider} onChange={(e) => setProvider(e.target.value)} className="field">
-                <option value="">Automatic (OpenAI first, then Anthropic)</option>
-                <option value="openai">OpenAI</option>
-                <option value="anthropic">Anthropic</option>
-              </select>
+              <Select
+                id="provider"
+                value={provider || 'auto'}
+                onValueChange={(v) => setProvider(v === 'auto' ? '' : v)}
+                className="w-full"
+                options={[
+                  { value: 'auto', label: 'Automatic', hint: 'OpenAI first, then Anthropic' },
+                  { value: 'openai', label: 'OpenAI' },
+                  { value: 'anthropic', label: 'Anthropic' },
+                ]}
+                renderValue={(o) => (o?.hint ? <>{o.label} <span className="text-muted">· {o.hint}</span></> : o?.label)}
+              />
             </div>
             <div>
               <label htmlFor="model" className="label">Model ID (blank = default)</label>
