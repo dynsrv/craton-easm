@@ -2,7 +2,7 @@ import { after, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireUser } from '@/lib/auth/guard';
 import { prisma } from '@/lib/db';
-import { runScan } from '@/lib/run-scan';
+import { listScans, runScan } from '@/lib/run-scan';
 import { normalizeDomain } from '@/lib/scanner/domain';
 
 export const runtime = 'nodejs'; // dns, tls and Prisma need the Node runtime
@@ -45,12 +45,7 @@ export async function POST(req: Request) {
 
 /** GET /api/scans  ->  the 20 most recent scans (without assets) */
 export async function GET() {
-  const auth = await requireUser();
+  const [auth, scans] = await Promise.all([requireUser(), listScans()]);
   if ('response' in auth) return auth.response;
-  const scans = await prisma.scan.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 20,
-    select: { id: true, domain: true, status: true, score: true, createdAt: true, _count: { select: { assets: true } } },
-  });
-  return NextResponse.json({ scans: scans.map(({ _count, ...s }) => ({ ...s, assetCount: _count.assets })) });
+  return NextResponse.json({ scans });
 }

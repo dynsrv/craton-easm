@@ -23,15 +23,9 @@ import { catName, sevName, SEV_VAR, T, tlsLabel, TONE_CLASS, visName } from '@/l
 import { SENSITIVE_PORTS } from '@/lib/ports';
 import { SEVERITY_RANK } from '@/lib/score';
 import { CATEGORIES, SEVERITIES, type AssetDTO, type Category, type Lang, type ScanDTO, type Severity } from '@/lib/types';
+import type { ScanListItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-interface ScanListItem {
-  id: string;
-  domain: string;
-  status: string;
-  score: number | null;
-  createdAt: string;
-}
 
 const POLL_MS = 1500;
 
@@ -73,13 +67,13 @@ export function useLang(): [Lang, (l: Lang) => void] {
   return [lang, setLang];
 }
 
-export function Dashboard({ userEmail }: { userEmail?: string }) {
+export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }: { userEmail?: string; initialScan?: ScanDTO | null; initialRecent?: ScanListItem[] }) {
   const [lang, setLang] = useLang();
   const t = T[lang];
   const [domain, setDomain] = useState('');
   const [authorized, setAuthorized] = useState(false);
-  const [scan, setScan] = useState<ScanDTO | null>(null);
-  const [recent, setRecent] = useState<ScanListItem[]>([]);
+  const [scan, setScan] = useState<ScanDTO | null>(initialScan);
+  const [recent, setRecent] = useState<ScanListItem[]>(initialRecent);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [sev, setSev] = useState<Severity | 'All'>('All');
@@ -119,14 +113,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
     return scans;
   }, []);
 
-  // On first load, open the most recent scan.
-  useEffect(() => {
-    const wanted = new URLSearchParams(window.location.search).get('scan');
-    loadRecent().then((scans) => {
-      const id = wanted && scans.some((s) => s.id === wanted) ? wanted : scans[0]?.id;
-      if (id) loadScan(id);
-    });
-  }, [loadRecent, loadScan]);
+
 
   // Poll while a scan is in flight.
   const running = scan?.status === 'queued' || scan?.status === 'running';
@@ -137,8 +124,11 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
     return () => clearInterval(timer);
   }, [running, scanId, loadScan]);
 
+  // Refresh the scan picker when a scan finishes (the first list arrives with the page).
+  const wasRunning = useRef(running);
   useEffect(() => {
-    if (!running) loadRecent();
+    if (wasRunning.current && !running) loadRecent();
+    wasRunning.current = running;
   }, [running, loadRecent]);
 
   useEffect(() => {

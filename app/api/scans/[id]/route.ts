@@ -8,10 +8,10 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/scans/:id  ->  scan status, live log and all assets. The dashboard polls this while a scan runs. */
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireUser();
-  if ('response' in auth) return auth.response;
   const { id } = await params;
-  const scan = await loadScanDTO(id);
+  // Middleware has already checked the session token; confirm the account while the scan loads.
+  const [auth, scan] = await Promise.all([requireUser(), loadScanDTO(id)]);
+  if ('response' in auth) return auth.response;
   if (!scan) return NextResponse.json({ error: 'Scan not found' }, { status: 404 });
   return NextResponse.json(scan);
 }

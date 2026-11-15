@@ -198,3 +198,12 @@ export interface DriftEventDTO {
   createdAt: string;
   notifiedAt: string | null;
 }
+
+export interface ScanListItem {
+  id: string;
+  domain: string;
+  status: string;
+  score: number | null;
+  createdAt: string;
+  assetCount?: number;
+}

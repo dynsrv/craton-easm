@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation';
 import { ReportView } from '@/components/report-view';
 import { loadScanDTO } from '@/lib/run-scan';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = { robots: { index: false, follow: false } };
 
 export const dynamic = 'force-dynamic';
 

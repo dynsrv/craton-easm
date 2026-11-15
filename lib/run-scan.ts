@@ -10,7 +10,7 @@ import { detectTakeovers } from './scanner/takeover';
 import { visualTriage } from './scanner/visual-triage';
 import { SEVERITY_RANK, surfaceScore } from './score';
 import { getRuntimeConfig } from './settings';
-import type { AssetDTO, AttackPath, Bilingual, Category, DriftEventDTO, EmailSecurity, ExecutiveBrief, ExposureDTO, ExposureFinding, ExposureKind, ScanDTO, Severity, Triage, VisualClass, VisualResult } from './types';
+import type { AssetDTO, AttackPath, Bilingual, Category, DriftEventDTO, EmailSecurity, ExecutiveBrief, ExposureDTO, ExposureFinding, ExposureKind, ScanDTO, ScanListItem, Severity, Triage, VisualClass, VisualResult } from './types';
 
 const MAX_LOG_LINES = 300;
 
@@ -300,20 +300,20 @@ export async function loadScanDTO(id: string): Promise<ScanDTO | null> {
     include: { assets: { select: ASSET_SELECT, orderBy: { hostname: 'asc' } }, exposures: true },
   });
   if (!scan) return null;
-  const [drift, monitor, withShot] = await Promise.all([
+  const [drift, monitor, withShot, prev] = await Promise.all([
     // drift detected by this scan and every earlier scan of the domain
     prisma.driftEvent.findMany({ where: { domain: scan.domain, scan: { createdAt: { lte: scan.createdAt } } }, orderBy: { createdAt: 'desc' }, take: 100 }),
     prisma.monitor.findUnique({ where: { domain: scan.domain } }),
     // whether an image is really stored (older scans have theirs pruned)
     prisma.asset.findMany({ where: { scanId: id, screenshot: { not: null } }, select: { id: true } }),
+    scan.baselineScanId
+      ? prisma.scan.findUnique({ where: { id: scan.baselineScanId }, select: { score: true, finishedAt: true, createdAt: true } })
+      : null,
   ]);
   const stored = new Set(withShot.map((a) => a.id));
   const dto = toScanDTO({ ...scan, assets: scan.assets as unknown as Asset[] }, drift, monitor?.enabled ?? false);
   dto.assets = dto.assets.map((a) => ({ ...a, hasScreenshot: stored.has(a.id) }));
-  if (scan.baselineScanId) {
-    const prev = await prisma.scan.findUnique({ where: { id: scan.baselineScanId }, select: { score: true, finishedAt: true, createdAt: true } });
-    if (prev) dto.baseline = { score: prev.score, date: (prev.finishedAt ?? prev.createdAt).toISOString() };
-  }
+  if (prev) dto.baseline = { score: prev.score, date: (prev.finishedAt ?? prev.createdAt).toISOString() };
   return dto;
 }
 
@@ -341,4 +341,14 @@ export function toScanDTO(scan: Scan & { assets: Asset[]; exposures?: Exposure[]
     baseline: null,
     monitored,
   };
+}
+
+/** The 20 most recent scans for the scan picker. */
+export async function listScans(): Promise<ScanListItem[]> {
+  const scans = await prisma.scan.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 20,
+    select: { id: true, domain: true, status: true, score: true, createdAt: true, _count: { select: { assets: true } } },
+  });
+  return scans.map(({ _count, createdAt, ...s }) => ({ ...s, createdAt: createdAt.toISOString(), assetCount: _count.assets }));
 }
