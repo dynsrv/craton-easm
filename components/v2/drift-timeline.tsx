@@ -25,7 +25,7 @@ export function DriftTimeline({ events, baselineScanId, lang, t }: { events: Dri
             {[...groups.entries()].map(([scanId, list]) => (
               <li key={scanId} className="relative">
                 <span className="absolute -left-[41px] -top-0.5 grid size-6 place-items-center rounded-full border border-line bg-panel" aria-hidden>
-                  <History className="size-3.5" style={{ color: 'var(--color-tone-teal)' }} />
+                  <History className="size-3.5 text-muted" strokeWidth={1.75} />
                 </span>
                 <p className="text-[13px] font-semibold leading-5">{fmt(list[0].createdAt)}</p>
                 <p className="text-xs text-muted">

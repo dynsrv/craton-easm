@@ -1,13 +1,15 @@
 'use client';
 
-import { BellRing, CircleCheck, FileText, Link2Off, Loader2, Lock, Radar, ShieldAlert, Wrench } from 'lucide-react';
+import { CircleCheck, FileText, Link2Off, Loader2, Lock, Plus, Radar } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AssetDrawer } from '@/components/asset-drawer';
 import { AttackPaths } from '@/components/v2/attack-paths';
 import { DriftTimeline } from '@/components/v2/drift-timeline';
 import { Exposures } from '@/components/v2/exposures';
-import { ModuleOverview, ModuleShowcase } from '@/components/v2/module-overview';
+import { ModuleShowcase } from '@/components/v2/module-overview';
+import { Overview } from '@/components/v2/overview';
+import { ScanDialog, ScanForm } from '@/components/v2/scan-form';
 import { Callout } from '@/components/ui/callout';
 import { Shot } from '@/components/ui/shot';
 import { MODULE, PHASE_ICONS } from '@/lib/modules';
@@ -86,6 +88,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
   const [selected, setSelected] = useState<AssetDTO | null>(null);
   const [tab, setTabState] = useState<Tab>('overview');
   const [monitorBusy, setMonitorBusy] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   // The tab lives in the URL hash so links (e.g. from drift alerts) open the right view.
   useEffect(() => {
@@ -155,6 +158,9 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
       const body = (await res.json()) as { id?: string; error?: string };
       if (!res.ok || !body.id) throw new Error(body.error ?? 'Could not start the scan');
       setSelected(null);
+      setDialogOpen(false);
+      setDomain('');
+      setTab('overview');
       setSev('All');
       setCat('All');
       setQ('');
@@ -225,70 +231,43 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
       </TopBar>
 
       <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-20 pt-6 sm:px-6">
-        <Card className="p-4">
-          <form onSubmit={startScan} className="flex flex-col gap-x-5 gap-y-3 lg:flex-row lg:items-center">
-            <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row">
-              <input
-                id="domain"
-                aria-label={t.domainLabel}
-                value={domain}
-                onChange={(e) => setDomain(e.target.value)}
-                placeholder="company.co.id"
-                spellCheck={false}
-                autoComplete="off"
-                required
-                className="field min-w-0 font-mono sm:max-w-[420px] sm:flex-1"
-              />
-              <Button type="submit" disabled={submitting || running || !authorized}>
-                {submitting || running ? <Loader2 className="animate-spin" /> : <Radar />}
-                {running ? t.scanning : t.run}
-              </Button>
-            </div>
-            <label htmlFor="authorized" className="flex items-center gap-2 text-[13px] text-muted">
-              <input id="authorized" type="checkbox" checked={authorized} onChange={(e) => setAuthorized(e.target.checked)} className="size-4 accent-[var(--color-primary)]" />
-              {t.authorize}
-            </label>
-          </form>
-        </Card>
-
-        {error && <div role="alert" className="rounded-md border border-crit px-4 py-2.5 text-crit">{error}</div>}
-
         {!scan && (
-          <div className="flex flex-col gap-5">
-            <Card className="px-6 py-12 text-center">
-              <Radar className="mx-auto mb-4 size-8 text-accent" aria-hidden />
-              <h1 className="text-lg font-semibold">{t.emptyTitle}</h1>
-              <p className="mx-auto mt-1.5 max-w-[56ch] text-muted">{t.emptyBody}</p>
+          <div className="flex flex-col gap-6 pt-4">
+            <Card className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center">
+              <div>
+                <Radar className="mb-4 size-8 text-muted" strokeWidth={1.5} aria-hidden />
+                <h1 className="text-2xl font-semibold leading-8 tracking-tight">{t.welcomeTitle}</h1>
+                <p className="mt-2 max-w-[56ch] text-[15px] leading-6 text-muted">{t.welcomeBody}</p>
+              </div>
+              <ScanForm t={t} domain={domain} setDomain={setDomain} authorized={authorized} setAuthorized={setAuthorized} busy={submitting} error={error} onSubmit={startScan} autoFocus />
             </Card>
             <ModuleShowcase t={t} />
           </div>
         )}
 
         {scan && (
-          <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 pt-1">
+          <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
             <div className="min-w-0">
               <p className="text-[13px] text-muted">{t.tagline}</p>
-              <h1 className="[overflow-wrap:anywhere] text-2xl font-semibold leading-8 tracking-tight">{scan.domain}</h1>
-              <p className="mt-0.5 text-[13px] text-muted">
-                {t.scanned} {dateFmt(scan.finishedAt ?? scan.createdAt)} · {assets.length} {t.live}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <h1 className="[overflow-wrap:anywhere] text-2xl font-semibold leading-8 tracking-tight">{scan.domain}</h1>
+                {recent.length > 1 && (
+                  <Select
+                    id="recent"
+                    aria-label={t.recent}
+                    value={scan.id}
+                    onValueChange={loadScan}
+                    className="h-7 w-auto max-w-[260px] border-transparent bg-panel2 text-xs"
+                    options={recent.map((r) => ({ value: r.id, label: r.domain, hint: dateFmt(r.createdAt) }))}
+                    renderValue={(o) => <span className="text-muted">{o?.hint}</span>}
+                  />
+                )}
+              </div>
+              <p className="mt-1 text-[13px] text-muted">
+                {running ? t.scanning : `${t.scanned} ${dateFmt(scan.finishedAt ?? scan.createdAt)} · ${assets.length} ${t.live}`}
               </p>
             </div>
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:flex-nowrap">
-              {recent.length > 1 && (
-                <Select
-                  id="recent"
-                  aria-label={t.recent}
-                  value={scan.id}
-                  onValueChange={loadScan}
-                  className="flex-1 sm:w-[260px] sm:flex-none"
-                  options={recent.map((r) => ({ value: r.id, label: r.domain, hint: dateFmt(r.createdAt) }))}
-                  renderValue={(o) => (
-                    <>
-                      {o?.label} <span className="text-muted">· {o?.hint}</span>
-                    </>
-                  )}
-                />
-              )}
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
               <button
                 type="button"
                 role="switch"
@@ -301,17 +280,20 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
                 <span className={cn('relative h-4 w-7 rounded-full transition-colors', scan.monitored ? 'bg-primary' : 'bg-line')} aria-hidden>
                   <span className={cn('absolute top-0.5 size-3 rounded-full bg-white transition-[left]', scan.monitored ? 'left-[14px]' : 'left-0.5')} />
                 </span>
-                <BellRing className="size-4 text-muted sm:hidden" aria-hidden />
-                <span className="hidden sm:inline">{t.monitor}</span>
+                {t.monitor}
               </button>
               {done && (
                 <Link href={`/report/${scan.id}`} className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-line bg-panel px-3.5 text-[13px] font-medium hover:bg-panel2">
-                  <FileText className="size-4" />
+                  <FileText className="size-4 text-muted" strokeWidth={1.75} />
                   {t.report}
                 </Link>
               )}
+              <Button onClick={() => setDialogOpen(true)} disabled={running}>
+                <Plus />
+                {t.newScan}
+              </Button>
             </div>
-          </div>
+          </header>
         )}
 
         {scan?.status === 'failed' && (
@@ -322,16 +304,16 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
 
         {scan && running && (
           <Card>
-            <CardTitle icon={Radar} tone="var(--color-accent)">{t.progress}</CardTitle>
+            <CardTitle icon={Radar}>{t.progress}</CardTitle>
             <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
               <ul className="flex flex-col gap-2.5">
                 {t.phases.map((p, i) => (
-                  <li key={p} className={cn('flex items-center gap-3 text-muted', i < scan.phase && 'text-ink', i === scan.phase && 'font-medium text-accent')}>
+                  <li key={p} className={cn('flex items-center gap-3 text-muted', i < scan.phase && 'text-ink', i === scan.phase && 'font-medium text-ink')}>
                     {(() => {
-                      if (i < scan.phase) return <CircleCheck className="size-4 shrink-0 text-low" aria-hidden />;
+                      if (i < scan.phase) return <CircleCheck className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />;
                       if (i === scan.phase) return <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />;
                       const Icon = PHASE_ICONS[i];
-                      return <Icon className="size-4 shrink-0 opacity-60" aria-hidden />;
+                      return <Icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />;
                     })()}
                     {p}
                   </li>
@@ -344,6 +326,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
             <div className="mt-4 h-1 overflow-hidden rounded-full bg-panel2">
               <div className="h-full bg-primary transition-[width]" style={{ width: `${Math.round((scan.phase / t.phases.length) * 100)}%` }} />
             </div>
+            <p className="mt-3 text-[13px] text-muted">{t.resultsSoon}</p>
           </Card>
         )}
 
@@ -354,7 +337,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
           </Callout>
         )}
 
-        {scan && (
+        {scan && !running && (
           <nav className="-mb-1 flex gap-1 overflow-x-auto border-b border-line" role="tablist" aria-label={scan.domain}>
             {TABS.map((id) => (
               <button
@@ -371,7 +354,7 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
               >
                 {(() => {
                   const Icon = MODULE[id].icon;
-                  return <Icon className="size-4" aria-hidden style={{ color: tab === id ? MODULE[id].tone : undefined }} />;
+                  return <Icon className="size-4" strokeWidth={1.75} aria-hidden />;
                 })()}
                 {tabLabel[id]}
                 {tabCount[id] != null && tabCount[id]! > 0 && <span className="tabular rounded-sm bg-panel2 px-1.5 text-xs font-medium text-muted">{tabCount[id]}</span>}
@@ -380,123 +363,29 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
           </nav>
         )}
 
-        {scan && tab === 'paths' && (
+        {scan && !running && tab === 'paths' && (
           <section role="tabpanel" id="panel-paths" aria-labelledby="tab-paths">
             <AttackPaths paths={scan.attackPaths} lang={lang} t={t} onHost={openHost} />
           </section>
         )}
-        {scan && tab === 'exposures' && (
+        {scan && !running && tab === 'exposures' && (
           <section role="tabpanel" id="panel-exposures" aria-labelledby="tab-exposures">
             <Exposures exposures={scan.exposures} email={scan.emailSecurity} lang={lang} t={t} />
           </section>
         )}
-        {scan && tab === 'drift' && (
+        {scan && !running && tab === 'drift' && (
           <section role="tabpanel" id="panel-drift" aria-labelledby="tab-drift">
             <DriftTimeline events={scan.driftEvents} baselineScanId={scan.baselineScanId} lang={lang} t={t} />
           </section>
         )}
 
-        {scan && tab === 'overview' && (
-          <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview" className="flex flex-col gap-5">
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-[280px_minmax(0,1fr)_minmax(0,1.15fr)]">
-              <Card className="flex flex-col">
-                <CardTitle icon={MODULE.score.icon} tone={MODULE.score.tone}>{t.score}</CardTitle>
-                <div className="flex flex-1 items-center justify-center py-2">
-                  {scan.score != null ? <ScoreGauge score={scan.score} t={t} /> : <p className="py-8 text-muted">{t.pending}…</p>}
-                </div>
-                <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-line pt-4">
-                  {(
-                    [
-                      [scan.namesFound, t.names],
-                      [assets.length, t.live],
-                      [assets.filter((a) => a.hasLoginForm).length, t.logins],
-                      [assets.filter((a) => a.tlsDaysLeft != null && a.tlsDaysLeft < 30).length, t.certs],
-                    ] as const
-                  ).map(([n, label]) => (
-                    <div key={label}>
-                      <dd className="tabular text-lg font-semibold leading-7">{n}</dd>
-                      <dt className="text-xs leading-4 text-muted">{label}</dt>
-                    </div>
-                  ))}
-                </dl>
-              </Card>
-
-              <Card className="flex flex-col">
-                <CardTitle icon={ShieldAlert} tone="var(--color-tone-rose)">{t.bySev}</CardTitle>
-                <div className="mb-4 flex h-2 gap-0.5 overflow-hidden rounded-full bg-panel2" aria-hidden>
-                  {SEVERITIES.map((s) => counts[s] > 0 && <i key={s} className="block min-w-1" style={{ background: SEV_VAR[s], flex: counts[s] }} />)}
-                </div>
-                <div className="mb-5 grid grid-cols-5 gap-1.5 sm:gap-2">
-                  {SEVERITIES.map((s) => (
-                    <button
-                      key={s}
-                      aria-pressed={sev === s}
-                      onClick={() => filterAssets({ sev: s })}
-                      className={cn('rounded-md border border-line bg-bg px-1 pb-2.5 pt-2 text-center hover:bg-panel2', sev === s && 'bg-panel2')}
-                      style={{ borderColor: sev === s ? SEV_VAR[s] : undefined }}
-                    >
-                      <b className="tabular block text-2xl font-semibold leading-8" style={{ color: counts[s] ? SEV_VAR[s] : 'var(--color-muted)' }}>
-                        {counts[s]}
-                      </b>
-                      <span className="flex items-center justify-center gap-1.5 truncate text-[11px] text-muted sm:text-xs">
-                        <SeverityDot severity={s} className="hidden sm:inline-block" />
-                        <span className="truncate">{sevName(s, lang)}</span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-                <div className="border-t border-line pt-4">
-                  <Eyebrow className="mb-3">{t.byCat}</Eyebrow>
-                  <ul className="flex flex-col gap-2.5">
-                    {CATEGORIES.map((c) => {
-                      const n = assets.filter((a) => a.category === c).length;
-                      return (
-                        <li key={c} className="grid grid-cols-[minmax(0,1fr)_72px_20px] items-center gap-3 text-[13px] leading-5">
-                          <button onClick={() => filterAssets({ cat: c })} aria-pressed={cat === c} className={cn('truncate text-left hover:text-accent', cat === c ? 'font-medium text-accent' : n === 0 && 'text-muted')}>
-                            {catName(c, lang)}
-                          </button>
-                          <span className="h-1.5 overflow-hidden rounded-full bg-panel2" aria-hidden>
-                            <i className="block h-full rounded-full bg-primary" style={{ width: `${assets.length ? (n / assets.length) * 100 : 0}%` }} />
-                          </span>
-                          <span className="tabular text-right text-muted">{n}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </Card>
-
-              <Card className="md:col-span-2 xl:col-span-1">
-                <CardTitle icon={Wrench} tone="var(--color-low)">{t.fixes}</CardTitle>
-                {scan.brief?.topFixes.length ? (
-                  <ol className="flex flex-col gap-4">
-                    {scan.brief.topFixes.map((f, i) => (
-                      <li key={i} className="grid grid-cols-[24px_minmax(0,1fr)] gap-3">
-                        <span className="tabular mt-px grid size-6 place-items-center rounded-full bg-panel2 text-xs font-semibold text-accent">{i + 1}</span>
-                        <div>
-                          <strong className="block font-semibold leading-5">{f.title[lang]}</strong>
-                          <p className="mt-0.5 text-[13px] leading-5 text-muted">{f.detail[lang]}</p>
-                          <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 font-mono text-xs leading-5 text-muted">
-                            {f.hostnames.map((hn) => (
-                              <span key={hn} className="whitespace-nowrap">
-                                {hn}
-                              </span>
-                            ))}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                ) : (
-                  <p className="py-8 text-center text-muted">{done ? '—' : `${t.pending}…`}</p>
-                )}
-              </Card>
-            </div>
-            {done && <ModuleOverview scan={scan} t={t} onOpen={setTab} />}
+        {scan && !running && tab === 'overview' && (
+          <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
+            <Overview scan={scan} assets={assets} counts={counts} lang={lang} t={t} setTab={setTab} filterAssets={filterAssets} />
           </section>
         )}
 
-        {scan && tab === 'assets' && (
+        {scan && !running && tab === 'assets' && (
           <section role="tabpanel" id="panel-assets" aria-labelledby="tab-assets">
             <Card className="p-0">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 pb-4 pt-5">
@@ -611,6 +500,9 @@ export function Dashboard({ userEmail }: { userEmail?: string }) {
       </main>
 
       {selected && <AssetDrawer asset={selected} lang={lang} t={t} onClose={() => setSelected(null)} />}
+      <ScanDialog open={dialogOpen} onClose={() => setDialogOpen(false)} t={t}>
+        <ScanForm t={t} domain={domain} setDomain={setDomain} authorized={authorized} setAuthorized={setAuthorized} busy={submitting} error={error} onSubmit={startScan} autoFocus />
+      </ScanDialog>
     </div>
   );
 }

@@ -310,6 +310,10 @@ export async function loadScanDTO(id: string): Promise<ScanDTO | null> {
   const stored = new Set(withShot.map((a) => a.id));
   const dto = toScanDTO({ ...scan, assets: scan.assets as unknown as Asset[] }, drift, monitor?.enabled ?? false);
   dto.assets = dto.assets.map((a) => ({ ...a, hasScreenshot: stored.has(a.id) }));
+  if (scan.baselineScanId) {
+    const prev = await prisma.scan.findUnique({ where: { id: scan.baselineScanId }, select: { score: true, finishedAt: true, createdAt: true } });
+    if (prev) dto.baseline = { score: prev.score, date: (prev.finishedAt ?? prev.createdAt).toISOString() };
+  }
   return dto;
 }
 
@@ -334,6 +338,7 @@ export function toScanDTO(scan: Scan & { assets: Asset[]; exposures?: Exposure[]
     emailSecurity: parse<EmailSecurity | null>(scan.emailSecurity, null),
     driftEvents: drift.map(toDriftDTO),
     baselineScanId: scan.baselineScanId,
+    baseline: null,
     monitored,
   };
 }

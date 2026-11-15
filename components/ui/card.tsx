@@ -6,10 +6,10 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return <div className={cn('rounded-md border border-line bg-panel p-5 shadow-[var(--shadow-panel)]', className)} {...props} />;
 }
 
-export function CardTitle({ className, icon: Icon, tone, children, ...props }: React.HTMLAttributes<HTMLHeadingElement> & { icon?: LucideIcon; tone?: string }) {
+export function CardTitle({ className, icon: Icon, children, ...props }: React.HTMLAttributes<HTMLHeadingElement> & { icon?: LucideIcon; tone?: string }) {
   return (
     <h2 className={cn('mb-4 flex items-center gap-2 text-sm font-semibold leading-5', className)} {...props}>
-      {Icon && <Icon className="size-4 shrink-0" style={{ color: tone ?? 'var(--color-muted)' }} aria-hidden />}
+      {Icon && <Icon className="size-4 shrink-0 text-muted" strokeWidth={1.75} aria-hidden />}
       {children}
     </h2>
   );

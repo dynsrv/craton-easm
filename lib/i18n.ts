@@ -52,6 +52,24 @@ export const sevName = (s: Severity, lang: Lang) => (lang === 'id' ? SEV_ID[s] :
 export const catName = (c: Category, lang: Lang) => (lang === 'id' ? CAT_ID[c] : CAT_EN[c]);
 
 const en = {
+  newScan: 'New scan',
+  newScanTitle: 'Scan a domain',
+  newScanBody: 'Craton maps what an outsider can see: subdomains, exposed services, screenshots, leaks and storage. It takes about two minutes.',
+  cancel: 'Cancel',
+  welcomeTitle: 'See your company the way an attacker does',
+  welcomeBody: 'Enter a root domain. Craton finds every internet-facing system, checks it from the outside, and tells you what to fix first.',
+  whatWeFound: 'What we found',
+  likelyPath: 'Most likely attack path',
+  seePaths: 'See all attack paths',
+  fixFirst: 'Fix these first',
+  since: (d: string) => `since ${d}`,
+  firstScan: 'First scan of this domain',
+  better: 'better',
+  worse: 'worse',
+  unchanged: 'No change',
+  byHosting: 'Hosting',
+  resultsSoon: 'Results appear here when the scan finishes.',
+  viewAssets: 'View assets',
   modulesTitle: 'Security modules',
   mod: { takeover: 'Subdomain takeover', visual: 'Visual triage', code_leak: 'Public code', bucket: 'Cloud storage', email: 'Email security', paths: 'Attack paths', drift: 'Drift' } as Record<string, string>,
   modSub: {
@@ -186,6 +204,24 @@ const en = {
 };
 
 const id: typeof en = {
+  newScan: 'Scan baru',
+  newScanTitle: 'Pindai domain',
+  newScanBody: 'Craton memetakan apa yang terlihat dari luar: subdomain, layanan terbuka, tangkapan layar, kebocoran, dan penyimpanan. Butuh sekitar dua menit.',
+  cancel: 'Batal',
+  welcomeTitle: 'Lihat perusahaan Anda seperti penyerang melihatnya',
+  welcomeBody: 'Masukkan root domain. Craton menemukan setiap sistem yang menghadap internet, memeriksanya dari luar, dan memberi tahu apa yang perlu diperbaiki lebih dulu.',
+  whatWeFound: 'Temuan kami',
+  likelyPath: 'Jalur serangan paling mungkin',
+  seePaths: 'Lihat semua jalur serangan',
+  fixFirst: 'Perbaiki ini dulu',
+  since: (d: string) => `sejak ${d}`,
+  firstScan: 'Scan pertama untuk domain ini',
+  better: 'lebih baik',
+  worse: 'lebih buruk',
+  unchanged: 'Tidak berubah',
+  byHosting: 'Hosting',
+  resultsSoon: 'Hasil muncul di sini setelah scan selesai.',
+  viewAssets: 'Lihat aset',
   modulesTitle: 'Modul keamanan',
   mod: { takeover: 'Pengambilalihan subdomain', visual: 'Triage visual', code_leak: 'Kode publik', bucket: 'Penyimpanan cloud', email: 'Keamanan email', paths: 'Jalur serangan', drift: 'Perubahan' },
   modSub: {

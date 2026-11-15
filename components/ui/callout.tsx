@@ -16,9 +16,9 @@ export function Callout({ tone = 'info', title, icon, children, className }: { t
   const Icon = icon ?? t.icon;
   return (
     <div className={cn('flex gap-3 rounded-md px-4 py-3 text-[13px] leading-5', className)} style={{ background: `color-mix(in oklab, ${t.color} 9%, var(--color-panel))` }}>
-      <Icon className="mt-0.5 size-4 shrink-0" style={{ color: t.color }} aria-hidden />
+      <Icon className="mt-0.5 size-4 shrink-0 text-muted" strokeWidth={1.75} aria-hidden />
       <div className="min-w-0 flex-1">
-        {title && <p className="mb-0.5 text-xs font-semibold" style={{ color: t.color }}>{title}</p>}
+        {title && <p className="mb-0.5 text-xs font-semibold">{title}</p>}
         <div>{children}</div>
       </div>
     </div>

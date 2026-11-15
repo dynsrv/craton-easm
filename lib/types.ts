@@ -117,6 +117,8 @@ export interface ScanDTO {
   emailSecurity: EmailSecurity | null;
   driftEvents: DriftEventDTO[];
   baselineScanId: string | null;
+  /** Score and date of the previous scan of this domain, for the trend. */
+  baseline: { score: number | null; date: string } | null;
   monitored: boolean;
 }
 

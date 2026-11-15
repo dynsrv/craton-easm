@@ -28,21 +28,21 @@ export interface ModuleStyle {
 }
 
 export const MODULE: Record<string, ModuleStyle> = {
-  overview: { icon: LayoutDashboard, tone: 'var(--color-accent)' },
-  score: { icon: Gauge, tone: 'var(--color-accent)' },
-  discovery: { icon: Radar, tone: 'var(--color-accent)' },
-  dns: { icon: Network, tone: 'var(--color-accent)' },
-  assets: { icon: Server, tone: 'var(--color-accent)' },
-  takeover: { icon: Unlink, tone: 'var(--color-tone-rose)' },
-  visual: { icon: ScanEye, tone: 'var(--color-tone-violet)' },
-  code_leak: { icon: CodeXml, tone: 'var(--color-tone-amber)' },
-  bucket: { icon: Cloud, tone: 'var(--color-tone-sky)' },
-  email: { icon: MailCheck, tone: 'var(--color-tone-teal)' },
-  exposures: { icon: ShieldAlert, tone: 'var(--color-tone-rose)' },
-  triage: { icon: BrainCircuit, tone: 'var(--color-tone-violet)' },
-  paths: { icon: Route, tone: 'var(--color-tone-amber)' },
-  drift: { icon: History, tone: 'var(--color-tone-teal)' },
-  brief: { icon: FileText, tone: 'var(--color-accent)' },
+  overview: { icon: LayoutDashboard, tone: 'var(--color-muted)' },
+  score: { icon: Gauge, tone: 'var(--color-muted)' },
+  discovery: { icon: Radar, tone: 'var(--color-muted)' },
+  dns: { icon: Network, tone: 'var(--color-muted)' },
+  assets: { icon: Server, tone: 'var(--color-muted)' },
+  takeover: { icon: Unlink, tone: 'var(--color-muted)' },
+  visual: { icon: ScanEye, tone: 'var(--color-muted)' },
+  code_leak: { icon: CodeXml, tone: 'var(--color-muted)' },
+  bucket: { icon: Cloud, tone: 'var(--color-muted)' },
+  email: { icon: MailCheck, tone: 'var(--color-muted)' },
+  exposures: { icon: ShieldAlert, tone: 'var(--color-muted)' },
+  triage: { icon: BrainCircuit, tone: 'var(--color-muted)' },
+  paths: { icon: Route, tone: 'var(--color-muted)' },
+  drift: { icon: History, tone: 'var(--color-muted)' },
+  brief: { icon: FileText, tone: 'var(--color-muted)' },
 };
 
 /** Icons for the nine scan phases, in pipeline order. */
