@@ -52,7 +52,7 @@ export function Exposures({ exposures, email, lang, t }: { exposures: ExposureDT
             <Card key={kind} className="flex flex-col p-0">
               <header className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 pb-4 pt-5">
                 <IconTile icon={MODULE[kind].icon} tone={MODULE[kind].tone} />
-                <h2 className="text-sm font-semibold">{t.kindTitle[kind]}</h2>
+                <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">{t.kindTitle[kind]}</h2>
                 <span className="tabular rounded-sm bg-panel2 px-1.5 text-xs font-medium text-muted">{items.length}</span>
                 {kind === 'email' && email && (
                   <span className="ml-auto flex gap-3 text-xs text-muted">

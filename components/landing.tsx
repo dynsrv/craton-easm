@@ -158,6 +158,8 @@ const NIGHT = {
   '--color-panel2': '#161616',
   '--color-line': '#262626',
   '--color-ink': '#f5f5f5',
+  '--color-primary': '#f5f5f5',
+  '--color-accent': '#8ab4ff',
   '--color-muted': '#8f8f8f',
   '--color-field': '#000000',
   '--color-inverse': '#000000',

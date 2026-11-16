@@ -151,7 +151,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
   const done = scan?.status === 'completed';
 
   const dateFmt = (iso: string) => new Date(iso).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  const th = 'border-b border-line px-3 py-2.5 text-left text-xs font-medium text-muted';
+  const th = 'border-b border-line px-3 py-2.5 text-left font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted';
   const takeoverHosts = new Set((scan?.exposures ?? []).filter((e) => e.kind === 'takeover').map((e) => e.hostname));
   const actionableExposures = (scan?.exposures ?? []).filter((e) => e.severity !== 'Info');
   const openHost = (hostname: string) => {
@@ -200,7 +200,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
         autoFocus={!scan}
       />
 
-      <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-20 pt-6 sm:px-6">
+      <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-20 pt-8 sm:px-6">
         {!scan && (
           <div className="flex flex-col gap-6 pt-4">
             <Card className="p-6 sm:p-8">
@@ -216,9 +216,9 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
         {scan && (
           <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
             <div className="min-w-0">
-              <p className="text-[13px] text-muted">{t.tagline}</p>
+              <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.16em] text-muted">{t.tagline}</p>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <h1 className="[overflow-wrap:anywhere] text-2xl font-semibold leading-8 tracking-tight">{scan.domain}</h1>
+                <h1 className="[overflow-wrap:anywhere] text-[32px] font-semibold leading-10 tracking-[-0.025em]">{scan.domain}</h1>
                 {recent.length > 1 && (
                   <Select
                     id="recent"
@@ -246,12 +246,12 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
                 className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-line bg-panel px-3 text-[13px] font-medium hover:bg-panel2 disabled:opacity-50"
               >
                 <span className={cn('relative h-4 w-7 rounded-full transition-colors', scan.monitored ? 'bg-primary' : 'bg-line')} aria-hidden>
-                  <span className={cn('absolute top-0.5 size-3 rounded-full bg-white transition-[left]', scan.monitored ? 'left-[14px]' : 'left-0.5')} />
+                  <span className={cn('absolute top-0.5 size-3 rounded-full transition-[left]', scan.monitored ? 'left-[14px] bg-[var(--color-inverse)]' : 'left-0.5 bg-muted')} />
                 </span>
                 {t.monitor}
               </button>
               {done && (
-                <Link href={`/report/${scan.id}`} className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-primary bg-primary px-3.5 text-[13px] font-medium text-white hover:brightness-110">
+                <Link href={`/report/${scan.id}`} className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-primary bg-primary px-3.5 text-[13px] font-medium text-[var(--color-inverse)] hover:opacity-85">
                   <FileText className="size-4" strokeWidth={1.75} />
                   {t.report}
                 </Link>
@@ -353,9 +353,9 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
           <section role="tabpanel" id="panel-assets" aria-labelledby="tab-assets">
             <Card className="p-0">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 pb-4 pt-5">
-                <h2 className="mr-auto flex items-center gap-2 text-sm font-semibold leading-5">
-                  <MODULE.assets.icon className="size-4 text-muted" aria-hidden />
-                  {t.assets} <span className="tabular ml-1 font-normal text-muted">{rows.length === assets.length ? assets.length : `${rows.length} / ${assets.length}`}</span>
+                <h2 className="mr-auto flex items-center gap-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
+                  <MODULE.assets.icon className="size-3.5" strokeWidth={1.75} aria-hidden />
+                  {t.assets} <span className="tabular text-ink">{rows.length === assets.length ? assets.length : `${rows.length} / ${assets.length}`}</span>
                 </h2>
                 <div className="flex flex-wrap gap-1.5" role="group" aria-label={t.cSev}>
                   {(['All', ...SEVERITIES] as const).map((s) => (

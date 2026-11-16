@@ -52,7 +52,7 @@ export function AdminPanel({ email }: { email: string }) {
   return (
     <div>
       <TopBar active="admin" email={email} />
-      <main className="mx-auto flex max-w-[920px] flex-col gap-5 px-4 pb-20 pt-6 sm:px-6">
+      <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-20 pt-8 sm:px-6">
         <div>
           <h1 className="text-2xl font-semibold leading-8 tracking-tight">Administration</h1>
           <p className="mt-0.5 text-muted">Backend services, operator accounts and your own password.</p>
@@ -292,7 +292,7 @@ function Users() {
           <thead>
             <tr>
               {['Email', 'Status', 'Last sign-in', ''].map((h) => (
-                <th key={h} className="border-b border-line px-3 py-2.5 text-left text-xs font-medium text-muted first:pl-0">{h}</th>
+                <th key={h} className="border-b border-line px-3 py-2.5 text-left font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted first:pl-0">{h}</th>
               ))}
             </tr>
           </thead>

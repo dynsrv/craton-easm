@@ -7,8 +7,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border-primary bg-primary text-white hover:brightness-110',
-        outline: 'border-line bg-panel text-ink hover:bg-panel2',
+        default: 'border-primary bg-primary text-[var(--color-inverse)] hover:opacity-85',
+        outline: 'border-line bg-transparent text-ink hover:border-muted',
         ghost: 'border-transparent bg-transparent text-muted hover:bg-panel2 hover:text-ink',
       },
       size: { default: 'h-8 px-3.5 text-[13px]', sm: 'h-7 px-2.5 text-xs', icon: 'size-8' },

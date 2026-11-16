@@ -48,14 +48,14 @@ export function ModuleOverview({ scan, t, onOpen }: { scan: ScanDTO; t: Dict; on
   return (
     <Card>
       <CardTitle icon={Layers}>{t.modulesTitle}</CardTitle>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {tiles.map((m) => {
           const mod = MODULE[m.key];
           return (
             <button
               key={m.key}
               onClick={() => onOpen(m.tab)}
-              className="group flex flex-col gap-3 rounded-md border border-line bg-bg p-4 text-left transition-colors hover:border-[color:var(--color-muted)] hover:bg-panel2"
+              className="group flex flex-col gap-4 bg-panel p-5 text-left transition-colors hover:bg-panel2"
             >
               <span className="flex items-center justify-between">
                 <IconTile icon={mod.icon} tone={mod.tone} />
@@ -84,9 +84,9 @@ export function ModuleShowcase({ t }: { t: Dict }) {
   const keys = ['discovery', 'takeover', 'visual', 'code_leak', 'bucket', 'email', 'paths', 'drift'];
   const title: Record<string, string> = t.mod;
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
       {keys.map((k) => (
-        <div key={k} className="flex gap-3 rounded-md border border-line bg-panel p-4">
+        <div key={k} className="flex gap-3 bg-panel p-5">
           <IconTile icon={MODULE[k].icon} tone={MODULE[k].tone} />
           <div>
             <p className="text-[13px] font-semibold leading-5">{k === 'discovery' ? (t.tabAssets === 'Aset' ? 'Penemuan aset' : 'Asset discovery') : title[k]}</p>

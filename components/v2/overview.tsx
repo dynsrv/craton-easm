@@ -131,7 +131,7 @@ export function Overview({ scan, assets, counts, lang, t, setTab, filterAssets }
 
           {path && (
             <div className="border-t border-line pt-4">
-              <p className="mb-2 flex items-center gap-2 text-xs font-medium text-muted">
+              <p className="mb-2 flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
                 <Route className="size-4" strokeWidth={1.75} aria-hidden />
                 {t.likelyPath}
               </p>
@@ -157,10 +157,11 @@ export function Overview({ scan, assets, counts, lang, t, setTab, filterAssets }
       {scan.brief?.topFixes.length ? (
         <Card>
           <CardTitle icon={ListOrdered}>{t.fixFirst}</CardTitle>
-          <ol className="grid gap-4 md:grid-cols-3">
+          {/* Ruled grid, as on the landing page: no boxes inside the card */}
+          <ol className="grid gap-px border border-line bg-line md:grid-cols-3">
             {scan.brief.topFixes.map((f, i) => (
-              <li key={i} className="flex flex-col gap-2 rounded-md border border-line bg-bg p-4">
-                <span className="tabular text-xs font-semibold text-muted">{String(i + 1).padStart(2, '0')}</span>
+              <li key={i} className="flex flex-col gap-2 bg-panel p-5">
+                <span className="tabular font-mono text-[28px] font-light leading-none text-muted">{String(i + 1).padStart(2, '0')}</span>
                 <strong className="font-semibold leading-5">{f.title[lang]}</strong>
                 <p className="text-[13px] leading-5 text-muted">{f.detail[lang]}</p>
                 <p className="mt-auto flex flex-wrap gap-x-3 gap-y-0.5 pt-1 font-mono text-xs leading-5 text-muted">
