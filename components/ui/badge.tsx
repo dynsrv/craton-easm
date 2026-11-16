@@ -10,7 +10,8 @@ export function SeverityBadge({ severity, label, className }: { severity: Severi
   const solid = severity === 'Critical';
   return (
     <span
-      className={cn('inline-flex h-[22px] items-center whitespace-nowrap rounded-sm border px-2 text-xs font-medium', className)}
+      data-sev={severity}
+      className={cn('sev-badge inline-flex h-[22px] items-center whitespace-nowrap rounded-sm border px-2 text-xs font-medium', className)}
       style={{ borderColor: color, color: solid ? 'var(--color-inverse)' : color, background: solid ? color : 'transparent' }}
     >
       {label}

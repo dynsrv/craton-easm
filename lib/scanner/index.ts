@@ -9,8 +9,8 @@ import { trustedPorts } from '../ports';
 import { findCnameOnlyRecords, type DanglingCandidate } from './takeover';
 import { gatherOsintNames, type OsintSourceResult } from './osint';
 
-export const MAX_HOSTS = 50;
-export const PROBE_CONCURRENCY = 8;
+export const MAX_HOSTS = 200;
+export const PROBE_CONCURRENCY = 12;
 export const PROBE_TIMEOUT_MS = 5000;
 
 export interface DiscoveryProgress {

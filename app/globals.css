@@ -286,3 +286,11 @@ select {
     font-size: 16px;
   }
 }
+
+/* Light theme: severity pills are filled, with ink chosen for contrast (white on red/orange, black on amber/yellow). */
+:root[data-theme='light'] .sev-badge { border-color: transparent; font-weight: 600; }
+:root[data-theme='light'] .sev-badge[data-sev='Critical'] { background: var(--color-crit) !important; color: #fff !important; }
+:root[data-theme='light'] .sev-badge[data-sev='High'] { background: var(--color-high) !important; color: #fff !important; }
+:root[data-theme='light'] .sev-badge[data-sev='Medium'] { background: var(--color-med) !important; color: #1a1300 !important; }
+:root[data-theme='light'] .sev-badge[data-sev='Low'] { background: var(--color-low) !important; color: #1a1700 !important; }
+:root[data-theme='light'] .sev-badge[data-sev='Info'] { background: var(--color-info) !important; color: #fff !important; }
