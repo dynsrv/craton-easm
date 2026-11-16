@@ -63,7 +63,7 @@ const FN_ICON = { identify: ScanSearch, protect: ShieldCheck, detect: Radar, res
 
 const COPY = {
   en: {
-    nav: { framework: 'Framework', brief: 'The Brief', leaders: 'For Leaders', trust: 'Trust' },
+    nav: { framework: 'Framework', brief: 'The Brief', leaders: 'For Leaders', trust: 'Trust', compliance: 'Compliance' },
     labels: { problem: 'The Problem', framework: 'The Framework', brief: 'The Brief', leaders: 'For Leadership', trust: 'Trust', start: 'Get Started', log: 'Scan Log' },
     kicker: 'External Attack Surface Management',
     signIn: 'Sign in',
@@ -191,7 +191,7 @@ const COPY = {
     complianceLink: 'Indonesian compliance guide',
   },
   id: {
-    nav: { framework: 'Kerangka', brief: 'Laporan', leaders: 'Untuk Pimpinan', trust: 'Keamanan' },
+    nav: { framework: 'Kerangka', brief: 'Laporan', leaders: 'Untuk Pimpinan', trust: 'Keamanan', compliance: 'Kepatuhan' },
     labels: { problem: 'Masalahnya', framework: 'Kerangka Kerja', brief: 'Laporannya', leaders: 'Untuk Pimpinan', trust: 'Keamanan', start: 'Mulai', log: 'Log Pemindaian' },
     kicker: 'Manajemen Permukaan Serangan Eksternal',
     signIn: 'Masuk',
@@ -474,6 +474,9 @@ export function Landing() {
                 {label}
               </a>
             ))}
+            <Link href="/compliance" className="text-[13px] text-muted transition-colors hover:text-ink">
+              {c.nav.compliance}
+            </Link>
           </nav>
           <div className="ml-auto flex items-center gap-3">
             <LangToggle lang={lang} setLang={setLang} />

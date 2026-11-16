@@ -25,6 +25,19 @@ function Section({ id, className, children, first, ...rest }: { id: string; clas
   );
 }
 
+/** Number in a soft circle tinted with the theme accent, so lists read as steps. */
+function NumBadge({ n, className }: { n: number; className?: string }) {
+  return (
+    <span
+      className={cn('tabular grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold text-accent', className)}
+      style={{ background: 'color-mix(in srgb, var(--color-accent) 16%, transparent)' }}
+      aria-hidden
+    >
+      {n}
+    </span>
+  );
+}
+
 function PublicBar({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur-md">
@@ -84,9 +97,9 @@ function Reader({ r, lang, applies }: { r: Regulation; lang: Lang; applies: bool
             <p className="lbl mb-3">{u.points}</p>
             <ol className="flex flex-col divide-y divide-line border-y border-line">
               {r.points.map((p, i) => (
-                <li key={i} className="grid grid-cols-[28px_minmax(0,1fr)] gap-x-3 py-2.5 text-[13px] leading-5">
-                  <span className="tabular pt-px font-mono text-xs text-muted">{String(i + 1).padStart(2, '0')}</span>
-                  <span>{p[lang]}</span>
+                <li key={i} className="grid grid-cols-[28px_minmax(0,1fr)] items-start gap-x-3.5 py-3 text-[13px] leading-5">
+                  <NumBadge n={i + 1} />
+                  <span className="pt-1">{p[lang]}</span>
                 </li>
               ))}
             </ol>
@@ -392,7 +405,7 @@ export function CompliancePage({ email }: { email: string | null }) {
           <ul className="grid gap-px border border-line bg-line lg:grid-cols-3">
             {u.limits.map((l, i) => (
               <li key={l} className="bg-panel p-5 text-[13px] leading-5 text-muted">
-                <span className="tabular mb-3 block font-mono text-xs text-ink">{String(i + 1).padStart(2, '0')}</span>
+                <NumBadge n={i + 1} className="mb-4" />
                 {l}
               </li>
             ))}
