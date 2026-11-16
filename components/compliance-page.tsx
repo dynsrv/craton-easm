@@ -193,9 +193,10 @@ export function CompliancePage({ email, isAdmin = false }: { email: string | nul
               { n: SECTORS.length, l: u.statSectors },
               { n: SIGNALS.length, l: u.statChecks },
             ].map((s, i) => (
-              <div key={s.l} className={cn('flex flex-col justify-between gap-6 p-4 sm:p-5', i > 0 && 'border-l border-line')}>
+              <div key={s.l} className={cn('flex flex-col gap-4 p-4 sm:p-5', i > 0 && 'border-l border-line')}>
                 <dd className="tabular order-first text-[40px] font-semibold leading-none tracking-[-0.03em] sm:text-[56px]">{s.n}</dd>
-                <dt className="text-[13px] leading-4 text-muted">{s.l}</dt>
+                {/* Two lines tall in every box, anchored at the top, so the three labels start on one line. */}
+                <dt className="min-h-8 text-[13px] leading-4 text-muted">{s.l}</dt>
               </div>
             ))}
           </dl>
