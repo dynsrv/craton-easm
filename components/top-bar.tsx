@@ -2,6 +2,7 @@
 
 import { LogOut } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useRef } from 'react';
 import { Wordmark } from '@/components/brand';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
@@ -17,8 +18,19 @@ export function TopBar({ active, email, children }: { active: 'dashboard' | 'com
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     window.location.href = '/';
   };
+  // Publishes the bar's height so sticky elements below it can sit flush against it, wrapped or not.
+  const bar = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = bar.current;
+    if (!el) return;
+    const set = () => document.documentElement.style.setProperty('--topbar-h', `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   return (
-    <header className="no-print sticky top-0 z-20 border-b border-line bg-bg/90 backdrop-blur-md">
+    <header ref={bar} className="no-print sticky top-0 z-20 border-b border-line bg-bg/90 backdrop-blur-md">
       <div className="mx-auto flex min-h-12 max-w-[1360px] flex-wrap items-center gap-x-3 px-4 sm:h-12 sm:flex-nowrap sm:gap-x-6 sm:px-6">
         <Link href="/" aria-label="Craton home" className="shrink-0 rounded-sm">
           <Wordmark compact />

@@ -20,6 +20,7 @@ import { PortList, SeverityBadge, SeverityDot } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle, Eyebrow } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
+import { ScanHistory } from '@/components/v2/scan-history';
 import { catName, sevName, SEV_VAR, T, tlsLabel, TONE_CLASS, visName } from '@/lib/i18n';
 import { SEVERITY_RANK } from '@/lib/score';
 import { CATEGORIES, SEVERITIES, type AssetDTO, type Category, type Lang, type ScanDTO, type Severity } from '@/lib/types';
@@ -50,6 +51,8 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
   const [selected, setSelected] = useState<AssetDTO | null>(null);
   const [tab, setTabState] = useState<Tab>('overview');
   const [monitorBusy, setMonitorBusy] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+  const [stuck, setStuck] = useState(false);
   
 
   // The tab lives in the URL hash so links (e.g. from drift alerts) open the right view.
@@ -183,6 +186,40 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
   };
   const tabLabel: Record<Tab, string> = { overview: t.tabOverview, paths: t.tabPaths, assets: t.tabAssets, exposures: t.tabExposures, compliance: t.tabCompliance, drift: t.tabDrift };
 
+  // The sticky bar shows the compact domain and the actions once the large header has scrolled away.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const obs = new IntersectionObserver(([e]) => setStuck(!e.isIntersecting && e.boundingClientRect.top < 0), { rootMargin: '-56px 0px 0px 0px' });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [scan?.id]);
+
+  const actions = scan ? (
+    <>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={scan.monitored}
+        disabled={monitorBusy}
+        onClick={toggleMonitor}
+        title={t.monitorHint}
+        className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-line bg-panel px-3 text-[13px] font-medium hover:bg-panel2 disabled:opacity-50"
+      >
+        <span className={cn('relative h-4 w-7 rounded-full transition-colors', scan.monitored ? 'bg-primary' : 'bg-line')} aria-hidden>
+          <span className={cn('absolute top-0.5 size-3 rounded-full transition-[left]', scan.monitored ? 'left-[14px] bg-[var(--color-inverse)]' : 'left-0.5 bg-muted')} />
+        </span>
+        {t.monitor}
+      </button>
+      {done && (
+        <Link href={`/report/${scan.id}`} className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-primary bg-primary px-3.5 text-[13px] font-medium text-[var(--color-inverse)] hover:opacity-85">
+          <FileText className="size-4" strokeWidth={1.75} />
+          {t.report}
+        </Link>
+      )}
+    </>
+  ) : null;
+
   return (
     <div>
       <TopBar active="dashboard" email={userEmail}>
@@ -201,7 +238,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
         autoFocus={!scan}
       />
 
-      <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-20 pt-8 sm:px-6">
+      <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-4 pt-8 sm:px-6">
         {!scan && (
           <div className="flex flex-col gap-6 pt-4">
             <Card className="p-6 sm:p-8">
@@ -215,51 +252,12 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
         )}
 
         {scan && (
-          <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+          <header ref={headerRef} className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
             <div className="min-w-0">
               <p className="mb-1 lbl">{t.tagline}</p>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <h1 className="[overflow-wrap:anywhere] text-[32px] font-semibold leading-10 tracking-[-0.025em]">
-                  <span className="domain-mark">{scan.domain}</span>
-                </h1>
-                {recent.length > 1 && (
-                  <Select
-                    id="recent"
-                    aria-label={t.recent}
-                    value={scan.id}
-                    onValueChange={loadScan}
-                    className="h-7 w-auto max-w-[260px] border-transparent bg-panel2 text-xs"
-                    options={recent.map((r) => ({ value: r.id, label: r.domain, hint: dateFmt(r.createdAt) }))}
-                    renderValue={(o) => <span className="text-muted">{o?.hint}</span>}
-                  />
-                )}
-              </div>
-              <p className="mt-1 text-[13px] text-muted">
-                {running ? t.scanning : `${t.scanned} ${dateFmt(scan.finishedAt ?? scan.createdAt)} · ${assets.length} ${t.live}`}
-              </p>
+              <ScanHistory recent={recent} currentId={scan.id} domain={scan.domain} lang={lang} dateFmt={dateFmt} dateLabel={running ? t.scanning : dateFmt(scan.finishedAt ?? scan.createdAt)} onPick={loadScan} />
             </div>
-            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-              <button
-                type="button"
-                role="switch"
-                aria-checked={scan.monitored}
-                disabled={monitorBusy}
-                onClick={toggleMonitor}
-                title={t.monitorHint}
-                className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-line bg-panel px-3 text-[13px] font-medium hover:bg-panel2 disabled:opacity-50"
-              >
-                <span className={cn('relative h-4 w-7 rounded-full transition-colors', scan.monitored ? 'bg-primary' : 'bg-line')} aria-hidden>
-                  <span className={cn('absolute top-0.5 size-3 rounded-full transition-[left]', scan.monitored ? 'left-[14px] bg-[var(--color-inverse)]' : 'left-0.5 bg-muted')} />
-                </span>
-                {t.monitor}
-              </button>
-              {done && (
-                <Link href={`/report/${scan.id}`} className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-primary bg-primary px-3.5 text-[13px] font-medium text-[var(--color-inverse)] hover:opacity-85">
-                  <FileText className="size-4" strokeWidth={1.75} />
-                  {t.report}
-                </Link>
-              )}
-            </div>
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">{actions}</div>
           </header>
         )}
 
@@ -304,31 +302,46 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
           </Callout>
         )}
 
-        {scan && !running && (
-          <nav className="-mb-1 flex gap-1 overflow-x-auto border-b border-line" role="tablist" aria-label={scan.domain}>
-            {TABS.map((id) => (
-              <button
-                key={id}
-                role="tab"
-                id={`tab-${id}`}
-                aria-selected={tab === id}
-                aria-controls={`panel-${id}`}
-                onClick={() => setTab(id)}
-                className={cn(
-                  '-mb-px flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm text-muted hover:text-ink',
-                  tab === id ? 'border-primary font-medium text-ink' : 'border-transparent',
-                )}
-              >
-                {(() => {
-                  const Icon = MODULE[id].icon;
-                  return <Icon className="size-4" strokeWidth={1.75} aria-hidden />;
-                })()}
-                {tabLabel[id]}
-                {tabCount[id] != null && tabCount[id]! > 0 && <span className="tabular rounded-sm bg-panel2 px-1.5 text-xs font-medium text-muted">{tabCount[id]}</span>}
-              </button>
-            ))}
-          </nav>
-        )}
+      </main>
+
+      {scan && !running && (
+        <div className="no-print sticky top-[var(--topbar-h,48px)] z-10 border-b border-line bg-bg/95 backdrop-blur-md">
+          <div className="mx-auto flex max-w-[1360px] flex-col px-4 sm:flex-row sm:items-center sm:gap-4 sm:px-6">
+            {stuck && (
+              <div className="flex shrink-0 items-center gap-3 pt-2 sm:pt-0">
+                <ScanHistory recent={recent} currentId={scan.id} domain={scan.domain} lang={lang} dateFmt={dateFmt} onPick={loadScan} variant="compact" />
+                <span className="hidden h-5 w-px bg-line sm:block" aria-hidden />
+              </div>
+            )}
+            <nav className="-mb-px flex min-w-0 flex-1 gap-1 overflow-x-auto" role="tablist" aria-label={scan.domain}>
+              {TABS.map((id) => (
+                <button
+                  key={id}
+                  role="tab"
+                  id={`tab-${id}`}
+                  aria-selected={tab === id}
+                  aria-controls={`panel-${id}`}
+                  onClick={() => setTab(id)}
+                  className={cn(
+                    'flex h-11 shrink-0 items-center gap-2 border-b-2 px-3 text-sm text-muted hover:text-ink',
+                    tab === id ? 'border-primary font-medium text-ink' : 'border-transparent',
+                  )}
+                >
+                  {(() => {
+                    const Icon = MODULE[id].icon;
+                    return <Icon className="size-4" strokeWidth={1.75} aria-hidden />;
+                  })()}
+                  {tabLabel[id]}
+                  {tabCount[id] != null && tabCount[id]! > 0 && <span className="tabular rounded-sm bg-panel2 px-1.5 text-xs font-medium text-muted">{tabCount[id]}</span>}
+                </button>
+              ))}
+            </nav>
+            {stuck && <div className="hidden shrink-0 items-center gap-2 lg:flex">{actions}</div>}
+          </div>
+        </div>
+      )}
+
+      <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-20 pt-5 sm:px-6">
 
         {scan && !running && tab === 'paths' && (
           <section role="tabpanel" id="panel-paths" aria-labelledby="tab-paths">

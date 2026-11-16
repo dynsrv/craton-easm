@@ -33,9 +33,9 @@ export function ComplianceLens({ scan, lang }: { scan: ScanDTO; lang: Lang }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Callout tone="info" title={u.lensTitle}>
+      <Callout tone="teal" title={u.lensTitle}>
         <p>{u.lensLead}</p>
-        <Link href="/compliance" className="mt-1.5 inline-flex items-center gap-1 font-medium underline underline-offset-4 hover:no-underline">
+        <Link href="/compliance" className="mt-1.5 inline-flex items-center gap-1 font-semibold underline underline-offset-4 hover:no-underline">
           {u.openGuide}
           <ArrowUpRight className="size-3.5" aria-hidden />
         </Link>
