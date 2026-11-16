@@ -131,7 +131,7 @@ export function Overview({ scan, assets, counts, lang, t, setTab, filterAssets }
 
           {path && (
             <div className="border-t border-line pt-4">
-              <p className="mb-2 flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
+              <p className="mb-2 flex items-center gap-2 lbl">
                 <Route className="size-4" strokeWidth={1.75} aria-hidden />
                 {t.likelyPath}
               </p>

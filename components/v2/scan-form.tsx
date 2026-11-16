@@ -56,7 +56,7 @@ export function ScanBar({
   return (
     <section aria-label={t.newScanTitle} className="no-print border-b border-line bg-panel">
       <form onSubmit={submit} className="mx-auto flex max-w-[1360px] flex-col gap-3 px-4 py-3.5 sm:px-6 lg:flex-row lg:items-center lg:gap-6">
-        <p className="flex shrink-0 items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
+        <p className="flex shrink-0 items-center gap-2 lbl">
           <Crosshair className="size-4 text-ink" strokeWidth={1.75} aria-hidden />
           {t.newScanTitle}
         </p>

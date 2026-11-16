@@ -151,7 +151,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
   const done = scan?.status === 'completed';
 
   const dateFmt = (iso: string) => new Date(iso).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-  const th = 'border-b border-line px-3 py-2.5 text-left font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted';
+  const th = 'border-b border-line px-3 py-2.5 text-left lbl';
   const takeoverHosts = new Set((scan?.exposures ?? []).filter((e) => e.kind === 'takeover').map((e) => e.hostname));
   const actionableExposures = (scan?.exposures ?? []).filter((e) => e.severity !== 'Info');
   const openHost = (hostname: string) => {
@@ -216,9 +216,11 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
         {scan && (
           <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
             <div className="min-w-0">
-              <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.16em] text-muted">{t.tagline}</p>
+              <p className="mb-1 lbl">{t.tagline}</p>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <h1 className="[overflow-wrap:anywhere] text-[32px] font-semibold leading-10 tracking-[-0.025em]">{scan.domain}</h1>
+                <h1 className="[overflow-wrap:anywhere] text-[32px] font-semibold leading-10 tracking-[-0.025em]">
+                  <span className="domain-mark">{scan.domain}</span>
+                </h1>
                 {recent.length > 1 && (
                   <Select
                     id="recent"
@@ -353,7 +355,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
           <section role="tabpanel" id="panel-assets" aria-labelledby="tab-assets">
             <Card className="p-0">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 pb-4 pt-5">
-                <h2 className="mr-auto flex items-center gap-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
+                <h2 className="mr-auto flex items-center gap-2.5 lbl">
                   <MODULE.assets.icon className="size-3.5" strokeWidth={1.75} aria-hidden />
                   {t.assets} <span className="tabular text-ink">{rows.length === assets.length ? assets.length : `${rows.length} / ${assets.length}`}</span>
                 </h2>

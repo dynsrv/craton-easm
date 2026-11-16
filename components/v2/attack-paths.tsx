@@ -34,7 +34,7 @@ function ordered(path: AttackPath): AttackPathNode[] {
 function Level({ label, value, lang }: { label: string; value: Severity; lang: Lang }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">{label}</span>
+      <span className="lbl">{label}</span>
       <span className="flex items-center gap-1.5 text-[13px] font-semibold leading-5" style={{ color: SEV_VAR[value] }}>
         <span className="size-2 rounded-full" style={{ background: SEV_VAR[value] }} aria-hidden />
         {sevName(value, lang)}
@@ -87,7 +87,7 @@ function Step({
       </div>
 
       <div className={cn('mb-4 flex min-w-0 flex-1 flex-col gap-2 rounded-md border bg-bg p-4 lg:mb-0', choke ? 'border-low' : 'border-line')}>
-        <div className="flex items-center justify-between gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
+        <div className="flex items-center justify-between gap-2 lbl">
           <span className="flex items-center gap-1.5">
             <Kind className="size-3.5" strokeWidth={1.75} aria-hidden />
             {t.nodeKind[node.kind]}
@@ -128,7 +128,7 @@ export function AttackPaths({ paths, lang, t, onHost }: { paths: AttackPath[]; l
             <header className="flex flex-col gap-3">
               <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
                 <div className="min-w-0">
-                  <p className="flex items-center gap-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">
+                  <p className="flex items-center gap-2 lbl">
                     {lang === 'id' ? 'Jalur' : 'Path'} {String(i + 1).padStart(2, '0')}
                     {p.source === 'heuristic' && <span className="rounded-sm border border-line px-1.5 py-px font-normal">{t.ruleBased}</span>}
                   </p>

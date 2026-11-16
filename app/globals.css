@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /* Layout idea: editorial operations console, matching the landing page. Near-black canvas, hairline rules,
-   square corners, monochrome actions, mono uppercase labels; colour is reserved for severity. 8px spacing rhythm. Two themes share one set of tokens; the executive report is always a white A4 sheet. */
+   square corners, monochrome actions, Title Case labels; colour is reserved for severity. 8px spacing rhythm. Two themes share one set of tokens; the executive report is always a white A4 sheet. */
 @theme {
   /* dark palette (default) */
   --color-bg: #000000;
@@ -126,6 +126,23 @@ select {
     outline: 1px solid var(--color-ink);
     outline-offset: -1px;
     border-color: var(--color-ink);
+  }
+  /* Section and column labels: Title Case, readable size. */
+  .lbl {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.25rem;
+    color: var(--color-muted);
+    text-transform: capitalize;
+  }
+  /* The assessed domain: light tint of the accent, readable in both themes. */
+  .domain-mark {
+    padding: 0 0.28em;
+    margin-left: -0.28em;
+    color: var(--color-accent);
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
   .label {
     display: block;

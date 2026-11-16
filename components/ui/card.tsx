@@ -8,7 +8,7 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
 
 export function CardTitle({ className, icon: Icon, children, ...props }: React.HTMLAttributes<HTMLHeadingElement> & { icon?: LucideIcon; tone?: string }) {
   return (
-    <h2 className={cn('mb-5 flex items-center gap-2.5 font-mono text-[11px] font-medium uppercase leading-4 tracking-[0.16em] text-muted', className)} {...props}>
+    <h2 className={cn('mb-5 flex items-center gap-2.5 lbl', className)} {...props}>
       {Icon && <Icon className="size-3.5 shrink-0" strokeWidth={1.75} aria-hidden />}
       {children}
     </h2>
@@ -17,5 +17,5 @@ export function CardTitle({ className, icon: Icon, children, ...props }: React.H
 
 /** Small label above a block of content inside a card or drawer. */
 export function Eyebrow({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
-  return <h4 className={cn('mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted', className)} {...props} />;
+  return <h4 className={cn('mb-2 lbl', className)} {...props} />;
 }

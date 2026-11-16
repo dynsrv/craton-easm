@@ -64,7 +64,7 @@ function Section({ title, icon: Icon, desc, aside, children, className }: { titl
     <section className={cn('flex min-w-0 flex-col border border-line bg-panel', className)}>
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-1 border-b border-line px-5 py-4">
         <div className="min-w-0">
-          <h2 className="flex items-center gap-2.5 font-mono text-[11px] font-medium uppercase leading-4 tracking-[0.16em] text-muted">
+          <h2 className="flex items-center gap-2.5 lbl">
             <Icon className="size-3.5 shrink-0 text-ink" strokeWidth={1.75} aria-hidden />
             {title}
           </h2>
@@ -78,7 +78,7 @@ function Section({ title, icon: Icon, desc, aside, children, className }: { titl
 }
 
 /** Column header row used by every table-like list so labels share one style. */
-const TH = 'font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted';
+const TH = 'lbl';
 
 export function AdminPanel({ email }: { email: string }) {
   const [tab, setTab] = useState<TabId>('services');
