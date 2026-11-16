@@ -413,7 +413,7 @@ export function CompliancePage({ email, isAdmin = false }: { email: string | nul
           </ul>
         </Section>
       </main>
-      {!email && <SiteFooter lang={lang} />}
+      <SiteFooter lang={lang} />
     </div>
     </ShellCtx.Provider>
   );

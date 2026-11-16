@@ -3,6 +3,7 @@
 import { BellRing, Bot, Check, Copy, Gauge, GitBranch, KeyRound, Loader2, Plug, Radar, ServerCog, ShieldCheck, Sparkles, Trash2, UserCheck, UserPlus, UserX, Users as UsersIcon, Webhook, type LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { PasswordForm } from '@/components/password-form';
+import { AppFooter } from '@/components/site-chrome';
 import { TopBar } from '@/components/top-bar';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
@@ -161,6 +162,7 @@ export function AdminPanel({ email }: { email: string }) {
           </div>
         </div>
       </main>
+      <AppFooter />
     </div>
   );
 }

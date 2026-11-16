@@ -25,6 +25,8 @@ export async function middleware(req: NextRequest) {
   }
   if (pathname === '/compliance/app') return NextResponse.redirect(new URL('/compliance', req.url));
 
+  // The legal pages must be readable by anyone, signed in or not.
+  if (pathname === '/legal' || pathname.startsWith('/legal/')) return NextResponse.next();
   if (PUBLIC.some((p) => pathname === p)) return NextResponse.next();
 
   const session = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);

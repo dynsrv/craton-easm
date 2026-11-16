@@ -1,5 +1,6 @@
 'use client';
 
+import { SiteFooter } from '@/components/site-chrome';
 import { ArrowLeft, Printer } from 'lucide-react';
 import Link from 'next/link';
 import { LangToggle, useLang } from '@/components/dashboard';
@@ -140,6 +141,7 @@ export function ReportView({ scan }: { scan: ScanDTO }) {
           </div>
         </article>
       </div>
+      <SiteFooter lang={lang} className="-mx-4 mt-2" />
     </div>
   );
 }

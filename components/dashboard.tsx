@@ -15,6 +15,7 @@ import { Callout } from '@/components/ui/callout';
 import { Shot } from '@/components/ui/shot';
 import { MODULE, PHASE_ICONS } from '@/lib/modules';
 import { ScoreGauge } from '@/components/score-gauge';
+import { SiteFooter } from '@/components/site-chrome';
 import { TopBar } from '@/components/top-bar';
 import { PortList, SeverityBadge, SeverityDot } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -536,6 +537,8 @@ export function Dashboard({ userEmail, isAdmin = false, initialScan = null, init
           </section>
         )}
       </main>
+
+      <SiteFooter lang={lang} />
 
       {selected && <AssetDrawer asset={selected} lang={lang} t={t} onClose={() => setSelected(null)} />}
     </div>

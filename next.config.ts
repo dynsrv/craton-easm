@@ -1,6 +1,11 @@
+import { readFileSync } from 'node:fs';
 import type { NextConfig } from 'next';
 
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
+
 const nextConfig: NextConfig = {
+  // Shown in the footer of every page.
+  env: { NEXT_PUBLIC_APP_VERSION: version, NEXT_PUBLIC_APP_BUILD: (process.env.VERCEL_GIT_COMMIT_SHA ?? '').slice(0, 7) },
   // Prisma ships a native query engine; keep it out of the server bundle.
   serverExternalPackages: ['@prisma/client', 'playwright-core', '@sparticuz/chromium'],
   // The serverless Chromium ships as compressed files that are read at runtime: make sure they are deployed.

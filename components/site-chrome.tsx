@@ -3,7 +3,9 @@
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { CratonMark } from '@/components/brand';
-import { LangToggle } from '@/components/lang';
+import { LangToggle, useLang } from '@/components/lang';
+import { BUILD, CONTACT_EMAIL, LEGAL_SLUGS, OPERATOR, PRODUCT, SITE_HOST, VERSION } from '@/lib/legal';
+import { LEGAL } from '@/lib/legal-content';
 import type { Lang } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -72,27 +74,59 @@ export function SiteHeader({ lang, setLang, onLanding = false, active }: { lang:
   );
 }
 
-export function SiteFooter({ lang }: { lang: Lang }) {
+const FOOT = {
+  en: { legal: 'Legal', contact: 'Contact', version: 'Version', rights: 'All rights reserved.' },
+  id: { legal: 'Hukum', contact: 'Kontak', version: 'Versi', rights: 'Hak cipta dilindungi.' },
+} as const;
+
+/** Footer for every page. It takes its colours from the surrounding theme, so it fits the dark public pages and the workspace alike. */
+export function SiteFooter({ lang, className }: { lang: Lang; className?: string }) {
   const s = STR[lang];
+  const f = FOOT[lang];
+  const build = BUILD ? ` · ${BUILD}` : '';
   return (
-    <footer className="border-t border-line px-5 py-10 sm:px-8">
-      <div className="mx-auto flex max-w-[1280px] flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-        <span className="flex items-center gap-2.5">
-          <CratonMark className="size-4" />
-          <span className="text-xs font-semibold tracking-[0.22em]">CRATON</span>
-          <span className="text-[13px] text-muted">· {s.footer}</span>
-        </span>
-        <span className="flex flex-wrap items-center gap-6 text-[13px] text-muted">
-          <span>security.digitalstrategy.id</span>
-          <span>© 2026</span>
-          <Link href="/compliance" className="hover:text-ink">
-            {s.complianceLink}
+    <footer className={cn('no-print border-t border-line bg-bg px-5 py-8 text-[13px] text-muted sm:px-8', className)}>
+      <div className="mx-auto flex max-w-[1360px] flex-col gap-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <Link href="/" aria-label="Craton home" className="flex items-center gap-2.5 text-ink">
+            <CratonMark className="size-4" />
+            <span className="text-xs font-semibold tracking-[0.22em]">CRATON</span>
+            <span className="font-normal text-muted">· {s.footer}</span>
           </Link>
-          <Link href="/login" className="hover:text-ink">
-            {s.signIn}
-          </Link>
-        </span>
+          <nav aria-label={f.legal} className="flex flex-wrap gap-x-6 gap-y-2">
+            {LEGAL_SLUGS.map((slug) => (
+              <Link key={slug} href={`/legal/${slug}`} className="hover:text-ink">
+                {LEGAL[slug].title[lang === 'id' ? 1 : 0]}
+              </Link>
+            ))}
+            <Link href="/compliance" className="hover:text-ink">
+              {s.complianceLink}
+            </Link>
+          </nav>
+        </div>
+        <div className="flex flex-col gap-1.5 border-t border-line pt-5 text-xs sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6">
+          <span>
+            © {new Date().getFullYear()} {PRODUCT} · {OPERATOR}. {f.rights}
+          </span>
+          <span className="tabular">
+            {f.version} {VERSION}
+            {build}
+          </span>
+          <span>
+            {f.contact}:{' '}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="underline-offset-2 hover:text-ink hover:underline">
+              {CONTACT_EMAIL}
+            </a>
+          </span>
+          <span className="sm:ml-auto">{SITE_HOST}</span>
+        </div>
       </div>
     </footer>
   );
+}
+
+/** For pages without their own language switch: follows the language saved by the dashboard. */
+export function AppFooter({ className }: { className?: string }) {
+  const [lang] = useLang();
+  return <SiteFooter lang={lang} className={className} />;
 }

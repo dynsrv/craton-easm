@@ -1,5 +1,6 @@
 'use client';
 
+import { AppFooter } from '@/components/site-chrome';
 import { ArrowLeft, CircleCheck, Loader2, Lock, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -29,7 +30,8 @@ export function LoginForm({ problems }: { problems: string[] }) {
   };
 
   return (
-    <div className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div className="flex min-h-dvh flex-col">
+    <div className="grid flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       {/* Brand side: what you are signing in to */}
       <aside className="hidden flex-col justify-between border-r border-line bg-panel p-10 lg:flex xl:p-14">
         <Link href="/" aria-label="Craton home" className="w-fit">
@@ -106,6 +108,8 @@ export function LoginForm({ problems }: { problems: string[] }) {
           </p>
         </div>
       </main>
+    </div>
+    <AppFooter />
     </div>
   );
 }
