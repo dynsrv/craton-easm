@@ -413,7 +413,7 @@ export function CompliancePage({ email, isAdmin = false }: { email: string | nul
           </ul>
         </Section>
       </main>
-      <SiteFooter lang={lang} />
+      <SiteFooter lang={lang} inner={email ? undefined : 'max-w-[1280px]'} />
     </div>
     </ShellCtx.Provider>
   );

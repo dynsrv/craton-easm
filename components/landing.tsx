@@ -631,7 +631,7 @@ export function Landing() {
         </Band>
       </main>
 
-      <SiteFooter lang={lang} />
+      <SiteFooter lang={lang} inner="max-w-[1280px]" />
     </div>
   );
 }

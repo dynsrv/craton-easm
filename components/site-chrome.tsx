@@ -80,12 +80,12 @@ const FOOT = {
 } as const;
 
 /** Footer for every page: copyright, version, contact and the legal pages, in one row. It takes its colours from the surrounding theme. */
-export function SiteFooter({ lang, className }: { lang: Lang; className?: string }) {
+export function SiteFooter({ lang, className, inner = 'max-w-[1360px]' }: { lang: Lang; className?: string; inner?: string }) {
   const f = FOOT[lang];
   const build = BUILD ? ` · ${BUILD}` : '';
   return (
-    <footer className={cn('no-print border-t border-line bg-bg px-5 py-6 text-xs text-muted sm:px-8', className)}>
-      <div className="mx-auto flex max-w-[1360px] flex-col gap-x-8 gap-y-3 lg:flex-row lg:items-center lg:justify-between">
+    <footer className={cn('no-print border-t border-line bg-bg py-6 text-xs text-muted', className)}>
+      <div className={cn('mx-auto flex flex-col gap-x-8 gap-y-3 px-5 sm:px-8 lg:flex-row lg:items-center lg:justify-between', inner)}>
         <p className="flex flex-wrap items-center gap-x-5 gap-y-1">
           <span>
             © {new Date().getFullYear()} {PRODUCT} · {OPERATOR}

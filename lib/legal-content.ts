@@ -10,6 +10,8 @@ export interface Section {
 export interface LegalDoc {
   title: T;
   summary: T;
+  /** Three plain-language takeaways shown above the full text. */
+  short: T[];
   sections: Section[];
 }
 
@@ -25,6 +27,11 @@ export const LEGAL: Record<LegalSlug, LegalDoc> = {
     summary: [
       `The rules for using ${PRODUCT}. Short version: assess only domains you are allowed to assess, and treat the results as a guide, not a guarantee.`,
       `Aturan penggunaan ${PRODUCT}. Singkatnya: nilai hanya domain yang boleh Anda nilai, dan anggap hasilnya sebagai panduan, bukan jaminan.`,
+    ],
+    short: [
+      ["Assess only domains you own or have permission to assess.", "Nilai hanya domain yang Anda miliki atau yang Anda dapat izin untuk menilainya."],
+      ["You own your scan results; we own the software.", "Hasil pindai milik Anda; perangkat lunak milik kami."],
+      ["We may suspend access if these terms are broken. Indonesian law applies.", "Kami dapat menangguhkan akses jika ketentuan dilanggar. Hukum Indonesia berlaku."],
     ],
     sections: [
       {
@@ -131,6 +138,11 @@ export const LEGAL: Record<LegalSlug, LegalDoc> = {
       `What ${PRODUCT} collects, why, who else sees it, and the rights you have over personal data under Indonesian law (UU 27/2022).`,
       `Data apa yang dikumpulkan ${PRODUCT}, untuk apa, siapa lagi yang melihatnya, dan hak Anda atas data pribadi menurut hukum Indonesia (UU 27/2022).`,
     ],
+    short: [
+      ["We collect your login details and the scan data you generate. We do not sell it or use it for ads.", "Kami mengumpulkan data masuk dan data pindai yang Anda hasilkan. Kami tidak menjualnya atau memakainya untuk iklan."],
+      ["Scans send the assessed domain to public data sources and, for summaries, to an AI provider.", "Pindai mengirim domain yang dinilai ke sumber data publik dan, untuk ringkasan, ke penyedia AI."],
+      ["You can ask to access, correct or delete your data at any time.", "Anda dapat meminta akses, perbaikan, atau penghapusan data Anda kapan saja."],
+    ],
     sections: [
       {
         h: ['1. Who is responsible', '1. Siapa yang bertanggung jawab'],
@@ -235,6 +247,11 @@ export const LEGAL: Record<LegalSlug, LegalDoc> = {
       `What you may and may not do with ${PRODUCT}. It exists to protect the organisations that are assessed and the people who run the service.`,
       `Apa yang boleh dan tidak boleh Anda lakukan dengan ${PRODUCT}. Kebijakan ini ada untuk melindungi organisasi yang dinilai dan pihak yang menjalankan layanan.`,
     ],
+    short: [
+      ["Use Craton to protect systems you are responsible for.", "Gunakan Craton untuk melindungi sistem yang menjadi tanggung jawab Anda."],
+      ["Never use findings to attack, extort or embarrass anyone.", "Jangan pernah memakai temuan untuk menyerang, memeras, atau mempermalukan siapa pun."],
+      ["Abuse leads to warnings, suspension and, where required, reports to authorities.", "Penyalahgunaan berujung peringatan, penangguhan, dan, bila diwajibkan, laporan ke otoritas."],
+    ],
     sections: [
       {
         h: ['1. The basic rule', '1. Aturan dasar'],
@@ -291,6 +308,11 @@ export const LEGAL: Record<LegalSlug, LegalDoc> = {
     summary: [
       `What ${PRODUCT} can and cannot promise about its results, and how far our responsibility goes.`,
       `Apa yang dapat dan tidak dapat dijanjikan ${PRODUCT} tentang hasilnya, dan sejauh mana tanggung jawab kami.`,
+    ],
+    short: [
+      ["Results show what is visible from outside at scan time. They are not an audit.", "Hasil menunjukkan apa yang terlihat dari luar saat pindai. Bukan audit."],
+      ["Third-party data can be stale, and CVE matches are not tested.", "Data pihak ketiga bisa usang, dan kecocokan CVE tidak diuji."],
+      ["Our liability is limited as the law allows; you remain responsible for your own fixes.", "Tanggung jawab kami dibatasi sebagaimana hukum mengizinkan; Anda tetap bertanggung jawab atas perbaikan Anda."],
     ],
     sections: [
       {
@@ -360,6 +382,11 @@ export const LEGAL: Record<LegalSlug, LegalDoc> = {
     summary: [
       'How to tell us something went wrong, what we will do, and how fast. This also covers reports from owners of assessed domains and data requests.',
       'Cara memberi tahu kami jika ada yang tidak beres, apa yang akan kami lakukan, dan seberapa cepat. Halaman ini juga mencakup laporan dari pemilik domain yang dinilai dan permintaan data.',
+    ],
+    short: [
+      [`Email us. We confirm receipt in ${SLA.ackDays} working days and answer within ${SLA.resolveDays} days.`, `Kirim email kepada kami. Kami konfirmasi penerimaan dalam ${SLA.ackDays} hari kerja dan menjawab dalam ${SLA.resolveDays} hari.`],
+      [`Domain owners who were assessed without permission get a response within ${SLA.abuseHours} hours.`, `Pemilik domain yang dinilai tanpa izin mendapat tanggapan dalam ${SLA.abuseHours} jam.`],
+      ["Found a flaw in Craton? Report it privately and we will not act against good-faith research.", "Menemukan celah di Craton? Laporkan secara pribadi; kami tidak akan menindak riset beritikad baik."],
     ],
     sections: [
       {
