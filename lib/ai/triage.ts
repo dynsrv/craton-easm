@@ -61,7 +61,9 @@ function describe(a: DiscoveredAsset) {
       : 'no HTTP response on 443 or 80',
     tls: a.http?.tls ? { trusted: a.http.tls.valid, daysUntilExpiry: a.http.tls.daysLeft, error: a.http.tls.error ?? undefined } : undefined,
     openPorts: a.ports,
-    knownCves: a.cves.slice(0, 8),
+    // Listed by Shodan from the software version it saw (not tested by us); kev = exploited in the wild.
+    knownCves: a.cveFacts?.length ? a.cveFacts : a.cves.slice(0, 8),
+    softwareSeen: a.cpes.slice(0, 6),
     visualTriage: a.visual ? { looksLike: a.visual.visualClass, product: a.visual.product ?? undefined, anomalies: a.visual.anomalies } : undefined,
   };
 }

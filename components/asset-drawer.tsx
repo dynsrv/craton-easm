@@ -3,6 +3,7 @@
 import { Check, ClipboardCopy, ScanEye, X } from 'lucide-react';
 import { Callout } from '@/components/ui/callout';
 import { Shot } from '@/components/ui/shot';
+import { CveList } from '@/components/v2/cve-list';
 import { useEffect, useRef, useState } from 'react';
 import { PortChip, SeverityBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -56,7 +57,6 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
     [t.csp, a.httpStatus == null ? '—' : yn(a.csp)],
     [t.tls, <span key="tls" className={TONE_CLASS[tls.tone]}>{tls.text}{a.tlsIssuer ? ` · ${a.tlsIssuer}` : ''}{a.tlsError ? ` · ${a.tlsError}` : ''}</span>],
     [t.ports, a.ports.length ? a.ports.map((p) => <PortChip key={p} port={p} risky={p in SENSITIVE_PORTS} />) : '—'],
-    [t.cves, <span key="cves" className={a.cves.length ? 'text-crit' : ''}>{a.cves.length ? a.cves.join(', ') : '—'}</span>],
   ];
 
   return (
@@ -115,6 +115,8 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
         <Callout tone="fix" title={t.fix}>
           <p>{a.remediation?.[lang] ?? t.pending}</p>
         </Callout>
+
+        {a.cves.length > 0 && <CveList asset={a} lang={lang} t={t} />}
 
         <section>
           <Eyebrow>{t.evidence}</Eyebrow>

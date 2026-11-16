@@ -3,6 +3,7 @@ import type { DiscoveredAsset } from '../types';
 import { fetchCtSubdomains } from './crtsh';
 import { bruteCommonPrefixes, COMMON_PREFIXES, isSharedEdge, prioritize, resolveAll, type DnsRecord } from './dns';
 import { probeHost } from './http-probe';
+import { cveRank, getCveDetails } from '../cve';
 import { lookupIp, type IpIntel } from './internetdb';
 import { findCnameOnlyRecords, type DanglingCandidate } from './takeover';
 
@@ -92,9 +93,20 @@ export async function discover(
   const assets: DiscoveredAsset[] = targets.map((t, i) => {
     // Ports on a shared CDN edge describe the CDN, not this customer.
     const info = isSharedEdge(t.provider) ? undefined : intel.get(t.ips[0]);
-    return { ...t, http: probes[i], ports: info?.ports ?? [], cves: info?.cves ?? [] };
+    return { ...t, http: probes[i], ports: info?.ports ?? [], cves: info?.cves ?? [], cpes: info?.cpes ?? [] };
   });
   const withCves = assets.filter((a) => a.cves.length).length;
+
+  // Rank each host's CVEs by real-world urgency so triage and the UI lead with what matters.
+  if (withCves) {
+    const details = await getCveDetails(assets.flatMap((a) => a.cves));
+    for (const a of assets) {
+      a.cves.sort((x, y) => cveRank(details.get(x), details.get(y)));
+      a.cveFacts = a.cves.slice(0, 8).map((id) => ({ id, cvss: details.get(id)?.cvss ?? null, kev: details.get(id)?.kev ?? false }));
+    }
+    const kev = new Set(assets.flatMap((a) => a.cveFacts ?? []).filter((f) => f.kev).map((f) => f.id));
+    await onProgress({ phase: 3, message: `  CVE details for ${details.size} IDs${kev.size ? `, ${kev.size} actively exploited (CISA KEV)` : ''}` });
+  }
   await onProgress({ phase: 3, message: `  ${assets.filter((a) => a.ports.length).length} hosts with port data, ${withCves} with known CVEs` });
 
   return { source, namesFound: names.length, assets, records: targets, cnameOnly };

@@ -70,6 +70,7 @@ model Asset {
   // Shodan InternetDB
   ports String @default("[]") // JSON number[]
   cves  String @default("[]") // JSON string[]
+  cpes  String @default("[]") // JSON string[]: software and versions Shodan saw, the reason CVEs are listed
 
   // AI triage
   category      String?

@@ -73,6 +73,7 @@ export async function runScan(scanId: string): Promise<void> {
         tlsError: a.http?.tls?.error,
         ports: JSON.stringify(a.ports),
         cves: JSON.stringify(a.cves),
+        cpes: JSON.stringify(a.cpes),
       })),
     });
     await prisma.scan.update({ where: { id: scanId }, data: { source: result.source, namesFound: result.namesFound } });
@@ -245,6 +246,7 @@ export function toAssetDTO(a: Asset): AssetDTO {
     tlsError: a.tlsError,
     ports: parse<number[]>(a.ports, []),
     cves: parse<string[]>(a.cves, []),
+    cpes: parse<string[]>(a.cpes, []),
     category: a.category as Category | null,
     severity: a.severity as Severity | null,
     reasoning: a.reasoningEn ? { en: a.reasoningEn, id: a.reasoningId ?? a.reasoningEn } : null,
@@ -289,7 +291,7 @@ export function toDriftDTO(d: DriftEvent): DriftEventDTO {
 export const ASSET_SELECT = {
   id: true, scanId: true, hostname: true, ips: true, cname: true, provider: true, scheme: true, httpStatus: true, finalUrl: true, title: true,
   hasLoginForm: true, server: true, poweredBy: true, hsts: true, csp: true, tlsValid: true, tlsDaysLeft: true, tlsIssuer: true, tlsError: true,
-  ports: true, cves: true, category: true, severity: true, reasoningEn: true, reasoningId: true, remediationEn: true, remediationId: true,
+  ports: true, cves: true, cpes: true, category: true, severity: true, reasoningEn: true, reasoningId: true, remediationEn: true, remediationId: true,
   triageSource: true, visualClass: true, visualProduct: true, visualAnomalies: true, screenshotAt: true,
 } as const;
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleCheck, FileText, Link2Off, Loader2, Lock, Plus, Radar } from 'lucide-react';
+import { CircleCheck, FileText, Link2Off, Loader2, Lock, Plus, Radar, X } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AssetDrawer } from '@/components/asset-drawer';
@@ -9,7 +9,7 @@ import { DriftTimeline } from '@/components/v2/drift-timeline';
 import { Exposures } from '@/components/v2/exposures';
 import { ModuleShowcase } from '@/components/v2/module-overview';
 import { Overview } from '@/components/v2/overview';
-import { ScanDialog, ScanForm } from '@/components/v2/scan-form';
+import { ScanForm, ScanPanel } from '@/components/v2/scan-form';
 import { Callout } from '@/components/ui/callout';
 import { Shot } from '@/components/ui/shot';
 import { MODULE, PHASE_ICONS } from '@/lib/modules';
@@ -82,7 +82,8 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
   const [selected, setSelected] = useState<AssetDTO | null>(null);
   const [tab, setTabState] = useState<Tab>('overview');
   const [monitorBusy, setMonitorBusy] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
+  const closeScan = useCallback(() => setScanOpen(false), []);
 
   // The tab lives in the URL hash so links (e.g. from drift alerts) open the right view.
   useEffect(() => {
@@ -148,7 +149,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
       const body = (await res.json()) as { id?: string; error?: string };
       if (!res.ok || !body.id) throw new Error(body.error ?? 'Could not start the scan');
       setSelected(null);
-      setDialogOpen(false);
+      setScanOpen(false);
       setDomain('');
       setTab('overview');
       setSev('All');
@@ -279,12 +280,18 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
                   {t.report}
                 </Link>
               )}
-              <Button onClick={() => setDialogOpen(true)} disabled={running}>
-                <Plus />
-                {t.newScan}
+              <Button onClick={() => setScanOpen((v) => !v)} disabled={running} aria-expanded={scanOpen} aria-controls="new-scan" variant={scanOpen ? 'outline' : 'default'}>
+                {scanOpen ? <X /> : <Plus />}
+                {scanOpen ? t.cancel : t.newScan}
               </Button>
             </div>
           </header>
+        )}
+
+        {scan && (
+          <ScanPanel open={scanOpen} onClose={closeScan} t={t}>
+            <ScanForm t={t} domain={domain} setDomain={setDomain} authorized={authorized} setAuthorized={setAuthorized} busy={submitting} error={error} onSubmit={startScan} autoFocus />
+          </ScanPanel>
         )}
 
         {scan?.status === 'failed' && (
@@ -492,9 +499,6 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
       </main>
 
       {selected && <AssetDrawer asset={selected} lang={lang} t={t} onClose={() => setSelected(null)} />}
-      <ScanDialog open={dialogOpen} onClose={() => setDialogOpen(false)} t={t}>
-        <ScanForm t={t} domain={domain} setDomain={setDomain} authorized={authorized} setAuthorized={setAuthorized} busy={submitting} error={error} onSubmit={startScan} autoFocus />
-      </ScanDialog>
     </div>
   );
 }

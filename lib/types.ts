@@ -46,6 +46,9 @@ export interface DiscoveredAsset {
   http: HttpProbe | null;
   ports: number[];
   cves: string[];
+  cpes: string[];
+  /** CVSS and KEV status for the most urgent CVEs, so triage can weigh them. */
+  cveFacts?: { id: string; cvss: number | null; kev: boolean }[];
   /** Filled by visual triage before AI triage, so the analyst sees what the page is. */
   visual?: { visualClass: VisualClass; product: string | null; anomalies: string[] };
 }
@@ -86,6 +89,7 @@ export interface AssetDTO {
   tlsError: string | null;
   ports: number[];
   cves: string[];
+  cpes: string[];
   category: Category | null;
   severity: Severity | null;
   reasoning: Bilingual | null;

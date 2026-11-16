@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Radar, X } from 'lucide-react';
+import { Loader2, Radar } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import type { Dict } from '@/lib/i18n';
@@ -17,14 +17,14 @@ interface ScanFormProps {
   autoFocus?: boolean;
 }
 
-/** Domain input, authorisation and submit: used on the welcome screen and in the New scan dialog. */
+/** Domain input, authorisation and submit: used on the welcome screen and in the inline New scan panel. */
 export function ScanForm({ t, domain, setDomain, authorized, setAuthorized, busy, error, onSubmit, autoFocus }: ScanFormProps) {
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (autoFocus) ref.current?.focus();
+    if (autoFocus) ref.current?.focus({ preventScroll: true });
   }, [autoFocus]);
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-3">
+    <form onSubmit={onSubmit} className="flex flex-col">
       <label htmlFor="domain" className="label">
         {t.domainLabel}
       </label>
@@ -38,19 +38,19 @@ export function ScanForm({ t, domain, setDomain, authorized, setAuthorized, busy
           spellCheck={false}
           autoComplete="off"
           required
-          className="field h-10 min-w-0 flex-1 font-mono text-sm"
+          className="field min-w-0 flex-1 font-mono"
         />
-        <Button type="submit" disabled={busy || !authorized} className="h-10 px-4">
+        <Button type="submit" disabled={busy || !authorized}>
           {busy ? <Loader2 className="animate-spin" /> : <Radar />}
           {busy ? t.scanning : t.run}
         </Button>
       </div>
-      <label htmlFor="authorized" className="flex items-start gap-2.5 text-[13px] leading-5 text-muted">
-        <input id="authorized" type="checkbox" checked={authorized} onChange={(e) => setAuthorized(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[var(--color-primary)]" />
+      <label htmlFor="authorized" className="mt-3 flex items-center gap-2 text-[13px] leading-5 text-muted">
+        <input id="authorized" type="checkbox" checked={authorized} onChange={(e) => setAuthorized(e.target.checked)} className="size-4 shrink-0 accent-[var(--color-primary)]" />
         {t.authorize}
       </label>
       {error && (
-        <p role="alert" className="text-[13px] text-crit">
+        <p role="alert" className="mt-2 text-[13px] leading-5 text-crit">
           {error}
         </p>
       )}
@@ -58,37 +58,30 @@ export function ScanForm({ t, domain, setDomain, authorized, setAuthorized, busy
   );
 }
 
-/** Modal wrapper for the scan form. */
-export function ScanDialog({ open, onClose, t, children }: { open: boolean; onClose: () => void; t: Dict; children: React.ReactNode }) {
+/** New scan panel shown in the page flow under the header: no overlay, the results stay visible below. */
+export function ScanPanel({ open, onClose, t, children }: { open: boolean; onClose: () => void; t: Dict; children: React.ReactNode }) {
+  const ref = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!open) return;
+    ref.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <>
-      <div className="fixed inset-0 z-40" style={{ background: 'var(--scrim)' }} onClick={onClose} />
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="scan-dialog-title"
-        className="fixed left-1/2 top-[12vh] z-50 w-[calc(100%-32px)] max-w-[520px] -translate-x-1/2 rounded-lg border border-line bg-panel p-6 shadow-2xl"
-      >
-        <div className="mb-4">
-          <div className="flex items-center justify-between gap-4">
-            <h2 id="scan-dialog-title" className="text-lg font-semibold leading-7">
-              {t.newScanTitle}
-            </h2>
-            <Button variant="ghost" size="icon" className="-mr-2" onClick={onClose} aria-label={t.cancel}>
-              <X />
-            </Button>
-          </div>
+    <section ref={ref} id="new-scan" aria-labelledby="new-scan-title" className="rounded-lg border border-line bg-panel p-6">
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:items-start">
+        <div>
+          <h2 id="new-scan-title" className="flex items-center gap-2 text-base font-semibold leading-6">
+            <Radar className="size-4 shrink-0 text-muted" strokeWidth={1.75} aria-hidden />
+            {t.newScanTitle}
+          </h2>
           <p className="mt-1 text-[13px] leading-5 text-muted">{t.newScanBody}</p>
         </div>
-        {children}
+        {/* Closed with the header's Cancel button or Escape */}
+        <div className="min-w-0">{children}</div>
       </div>
-    </>
+    </section>
   );
 }
