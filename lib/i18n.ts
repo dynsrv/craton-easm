@@ -53,6 +53,9 @@ export const catName = (c: Category, lang: Lang) => (lang === 'id' ? CAT_ID[c] :
 
 const en = {
   newScan: 'New scan',
+  authorizeShort: 'I am authorised to assess this domain',
+  welcomeStart: 'Enter a root domain in the bar above to run your first scan.',
+  domainPlaceholder: 'Enter a root domain, e.g. company.co.id',
   newScanTitle: 'Scan a domain',
   newScanBody: 'Craton maps what an outsider can see: subdomains, exposed services, screenshots, leaks and storage. It takes about two minutes.',
   cancel: 'Cancel',
@@ -228,6 +231,9 @@ const en = {
 
 const id: typeof en = {
   newScan: 'Scan baru',
+  authorizeShort: 'Saya berwenang menilai domain ini',
+  welcomeStart: 'Masukkan domain utama di kolom atas untuk menjalankan pemindaian pertama.',
+  domainPlaceholder: 'Masukkan domain utama, mis. perusahaan.co.id',
   newScanTitle: 'Pindai domain',
   newScanBody: 'Craton memetakan apa yang terlihat dari luar: subdomain, layanan terbuka, tangkapan layar, kebocoran, dan penyimpanan. Butuh sekitar dua menit.',
   cancel: 'Batal',

@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleCheck, FileText, Link2Off, Loader2, Lock, Plus, Radar, X } from 'lucide-react';
+import { CircleCheck, FileText, Link2Off, Loader2, Lock, Radar } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AssetDrawer } from '@/components/asset-drawer';
@@ -9,7 +9,7 @@ import { DriftTimeline } from '@/components/v2/drift-timeline';
 import { Exposures } from '@/components/v2/exposures';
 import { ModuleShowcase } from '@/components/v2/module-overview';
 import { Overview } from '@/components/v2/overview';
-import { ScanForm, ScanPanel } from '@/components/v2/scan-form';
+import { ScanBar } from '@/components/v2/scan-form';
 import { Callout } from '@/components/ui/callout';
 import { Shot } from '@/components/ui/shot';
 import { MODULE, PHASE_ICONS } from '@/lib/modules';
@@ -32,40 +32,8 @@ const POLL_MS = 1500;
 const TABS = ['overview', 'paths', 'assets', 'exposures', 'drift'] as const;
 type Tab = (typeof TABS)[number];
 
-export function LangToggle({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
-  return (
-    <div className="inline-flex h-8 overflow-hidden rounded-md border border-line" role="group" aria-label="Language">
-      {(['en', 'id'] as const).map((l) => (
-        <button
-          key={l}
-          aria-pressed={lang === l}
-          onClick={() => setLang(l)}
-          className={cn('px-2.5 text-xs font-medium uppercase text-muted hover:text-ink', lang === l && 'bg-panel2 text-ink')}
-        >
-          {l}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-/** Remembers the report language between the dashboard and the report page. */
-export function useLang(): [Lang, (l: Lang) => void] {
-  const [lang, setLangState] = useState<Lang>('en');
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('ng-lang');
-      if (saved === 'id' || saved === 'en') setLangState(saved);
-    } catch {}
-  }, []);
-  const setLang = useCallback((l: Lang) => {
-    setLangState(l);
-    try {
-      localStorage.setItem('ng-lang', l);
-    } catch {}
-  }, []);
-  return [lang, setLang];
-}
+export { LangToggle, useLang } from '@/components/lang';
+import { LangToggle, useLang } from '@/components/lang';
 
 export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }: { userEmail?: string; initialScan?: ScanDTO | null; initialRecent?: ScanListItem[] }) {
   const [lang, setLang] = useLang();
@@ -82,8 +50,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
   const [selected, setSelected] = useState<AssetDTO | null>(null);
   const [tab, setTabState] = useState<Tab>('overview');
   const [monitorBusy, setMonitorBusy] = useState(false);
-  const [scanOpen, setScanOpen] = useState(false);
-  const closeScan = useCallback(() => setScanOpen(false), []);
+  
 
   // The tab lives in the URL hash so links (e.g. from drift alerts) open the right view.
   useEffect(() => {
@@ -149,7 +116,6 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
       const body = (await res.json()) as { id?: string; error?: string };
       if (!res.ok || !body.id) throw new Error(body.error ?? 'Could not start the scan');
       setSelected(null);
-      setScanOpen(false);
       setDomain('');
       setTab('overview');
       setSev('All');
@@ -221,17 +187,27 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
       <TopBar active="dashboard" email={userEmail}>
         <LangToggle lang={lang} setLang={setLang} />
       </TopBar>
+      <ScanBar
+        t={t}
+        domain={domain}
+        setDomain={setDomain}
+        authorized={authorized}
+        setAuthorized={setAuthorized}
+        busy={submitting}
+        running={!!running}
+        error={error}
+        onSubmit={startScan}
+        autoFocus={!scan}
+      />
 
       <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-20 pt-6 sm:px-6">
         {!scan && (
           <div className="flex flex-col gap-6 pt-4">
-            <Card className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-center">
-              <div>
-                <Radar className="mb-4 size-8 text-muted" strokeWidth={1.5} aria-hidden />
-                <h1 className="text-2xl font-semibold leading-8 tracking-tight">{t.welcomeTitle}</h1>
-                <p className="mt-2 text-[15px] leading-6 text-muted">{t.welcomeBody}</p>
-              </div>
-              <ScanForm t={t} domain={domain} setDomain={setDomain} authorized={authorized} setAuthorized={setAuthorized} busy={submitting} error={error} onSubmit={startScan} autoFocus />
+            <Card className="p-6 sm:p-8">
+              <Radar className="mb-4 size-8 text-muted" strokeWidth={1.5} aria-hidden />
+              <h1 className="text-2xl font-semibold leading-8 tracking-tight">{t.welcomeTitle}</h1>
+              <p className="mt-2 text-[15px] leading-6 text-muted">{t.welcomeBody}</p>
+              <p className="mt-4 text-[13px] font-medium">{t.welcomeStart}</p>
             </Card>
             <ModuleShowcase t={t} />
           </div>
@@ -275,23 +251,13 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
                 {t.monitor}
               </button>
               {done && (
-                <Link href={`/report/${scan.id}`} className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-line bg-panel px-3.5 text-[13px] font-medium hover:bg-panel2">
-                  <FileText className="size-4 text-muted" strokeWidth={1.75} />
+                <Link href={`/report/${scan.id}`} className="inline-flex h-8 shrink-0 items-center gap-2 rounded-md border border-primary bg-primary px-3.5 text-[13px] font-medium text-white hover:brightness-110">
+                  <FileText className="size-4" strokeWidth={1.75} />
                   {t.report}
                 </Link>
               )}
-              <Button onClick={() => setScanOpen((v) => !v)} disabled={running} aria-expanded={scanOpen} aria-controls="new-scan" variant={scanOpen ? 'outline' : 'default'}>
-                {scanOpen ? <X /> : <Plus />}
-                {scanOpen ? t.cancel : t.newScan}
-              </Button>
             </div>
           </header>
-        )}
-
-        {scan && (
-          <ScanPanel open={scanOpen} onClose={closeScan} t={t}>
-            <ScanForm t={t} domain={domain} setDomain={setDomain} authorized={authorized} setAuthorized={setAuthorized} busy={submitting} error={error} onSubmit={startScan} autoFocus />
-          </ScanPanel>
         )}
 
         {scan?.status === 'failed' && (

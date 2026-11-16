@@ -31,11 +31,11 @@ export const metadata: Metadata = {
     'vulnerability exposure',
   ],
   authors: [{ name: 'DynSrv' }],
-  alternates: { canonical: '/login' },
+  alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     siteName: 'Craton EASM',
-    url: '/login',
+    url: '/',
     title: 'Craton EASM: see your company the way an attacker does',
     description: DESCRIPTION,
     locale: 'en_US',
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     title: 'Craton EASM: see your company the way an attacker does',
     description: DESCRIPTION,
   },
-  // Only the sign-in page is public; signed-in pages opt out of indexing themselves.
+  // The landing page and sign-in page are public; signed-in pages opt out of indexing themselves.
   robots: { index: true, follow: true },
   formatDetection: { telephone: false, email: false, address: false },
 };

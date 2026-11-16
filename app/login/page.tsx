@@ -6,7 +6,7 @@ import { authSecret } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = { title: { absolute: 'Craton EASM: external attack surface management' } };
+export const metadata: Metadata = { title: 'Sign in', alternates: { canonical: '/login' } };
 
 export default async function LoginPage() {
   if (await getSession()) redirect('/');

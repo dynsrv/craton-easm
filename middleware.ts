@@ -19,6 +19,8 @@ export async function middleware(req: NextRequest) {
   if (PUBLIC.some((p) => pathname === p)) return NextResponse.next();
 
   const session = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
+  // The home page is the public landing page until someone signs in.
+  if (!session && pathname === '/') return NextResponse.next();
   if (!session) {
     if (isApi) return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
     const url = req.nextUrl.clone();

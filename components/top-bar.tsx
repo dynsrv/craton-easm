@@ -14,7 +14,7 @@ const NAV = [
 export function TopBar({ active, email, children }: { active: 'dashboard' | 'admin' | null; email?: string; children?: React.ReactNode }) {
   const signOut = async () => {
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
-    window.location.href = '/login';
+    window.location.href = '/';
   };
   return (
     <header className="no-print sticky top-0 z-20 border-b border-line bg-panel shadow-[var(--shadow-panel)]">
