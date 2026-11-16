@@ -305,7 +305,7 @@ export function Dashboard({ userEmail, isAdmin = false, initialScan = null, init
       </main>
 
       {scan && !running && (
-        <div className="no-print sticky top-[var(--topbar-h,48px)] z-10 border-b border-line bg-bg/95 backdrop-blur-md">
+        <div className="no-print sticky top-0 z-10 sm:top-[var(--topbar-h,48px)] border-b border-line bg-bg/95 backdrop-blur-md">
           <div className="mx-auto flex max-w-[1360px] flex-col px-4 sm:flex-row sm:items-center sm:gap-4 sm:px-6">
             {stuck && (
               <div className="flex shrink-0 items-center gap-3 pt-2 sm:pt-0">

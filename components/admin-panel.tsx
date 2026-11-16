@@ -1,6 +1,6 @@
 'use client';
 
-import { BellRing, Bot, Check, Copy, Gauge, GitBranch, KeyRound, Loader2, Plug, Radar, ServerCog, Sparkles, Trash2, UserCheck, UserPlus, UserX, Users as UsersIcon, Webhook, type LucideIcon } from 'lucide-react';
+import { BellRing, Bot, Check, Copy, Gauge, GitBranch, KeyRound, Loader2, Plug, Radar, ServerCog, ShieldCheck, Sparkles, Trash2, UserCheck, UserPlus, UserX, Users as UsersIcon, Webhook, type LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { PasswordForm } from '@/components/password-form';
 import { TopBar } from '@/components/top-bar';
@@ -130,11 +130,35 @@ export function AdminPanel({ email }: { email: string }) {
         </div>
         <div role="tabpanel" id="admin-panel-access" aria-labelledby="admin-tab-access" hidden={tab !== 'access'} className="grid items-start gap-5">
           <Users defaultHosts={defaultHosts} />
-          <Section title="Your password" icon={KeyRound} desc="Use at least 12 characters. You stay signed in on this device." className="max-w-xl">
-            <div className="p-5">
-              <PasswordForm className="max-w-none" />
-            </div>
-          </Section>
+          <div className="grid items-start gap-5 lg:grid-cols-2">
+            <Section title="Your password" icon={KeyRound} desc="Use at least 12 characters. You stay signed in on this device.">
+              <div className="p-5">
+                <PasswordForm className="max-w-none" />
+              </div>
+            </Section>
+            <Section title="What each role can do" icon={ShieldCheck} desc="Roles are checked on the server for every request, not just hidden in the menu.">
+              <dl className="divide-y divide-line">
+                {[
+                  { t: 'Super admin', d: ['Opens this page and manages users, limits and API keys', 'Sees every scan, including ones from customers', 'Scans any domain with no per-user limit applied'] },
+                  { t: 'Customer', d: ['Scans their own domains, up to their host limit', 'Sees only their own scans, reports and monitors', 'Cannot open Administration or see other accounts'] },
+                ].map((r) => (
+                  <div key={r.t} className="px-5 py-4">
+                    <dt className="text-[13px] font-medium">{r.t}</dt>
+                    <dd>
+                      <ul className="mt-1.5 flex flex-col gap-1 text-[13px] leading-5 text-muted">
+                        {r.d.map((x) => (
+                          <li key={x} className="flex gap-2">
+                            <Check className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                            {x}
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </Section>
+          </div>
         </div>
       </main>
     </div>
@@ -239,7 +263,7 @@ function ServiceSettings() {
         <p className="px-5 py-8 text-muted">{note ? note.text : 'Loading…'}</p>
       ) : (
         <form onSubmit={submit} className="flex flex-col">
-          <div className="grid gap-x-5 gap-y-5 border-b border-line px-5 py-5 sm:grid-cols-2">
+          <div className="grid gap-x-5 gap-y-4 border-b border-line px-5 py-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]">
             <div>
               <label htmlFor="provider" className="label">AI provider</label>
               <Select
@@ -289,15 +313,10 @@ function ServiceSettings() {
                 </button>
               </p>
             </div>
-          </div>
-
-          <div className="border-b border-line px-5 py-5">
-            <label htmlFor="max-hosts" className="label">Hosts per scan</label>
-            <div className="flex flex-wrap items-center gap-3">
-              <input id="max-hosts" type="number" inputMode="numeric" min={10} max={500} value={maxHosts} onChange={(e) => setMaxHosts(e.target.value)} placeholder="50" className="field tabular !h-9 w-32" />
-              <p className="hint min-w-0 flex-1">
-                Most hosts probed in one scan, from 10 to 500 (default 50). A user&apos;s own limit under Users &amp; access overrides this. Higher limits take longer and use more compute; scans stop at 5 minutes.
-              </p>
+            <div>
+              <label htmlFor="max-hosts" className="label">Hosts per scan</label>
+              <input id="max-hosts" type="number" inputMode="numeric" min={10} max={500} value={maxHosts} onChange={(e) => setMaxHosts(e.target.value)} placeholder="50" className="field tabular !h-9" />
+              <p className="hint mt-1.5">Default for everyone, 10 to 500. A user&apos;s own limit overrides it. More hosts take longer and cost more.</p>
             </div>
           </div>
 
@@ -311,7 +330,7 @@ function ServiceSettings() {
               const s = bySecret(key);
               const Icon = SERVICE_ICON[key];
               return (
-                <div key={key} className="grid items-start gap-x-5 gap-y-3 px-5 py-4 sm:grid-cols-[minmax(0,5fr)_minmax(0,6fr)_92px]">
+                <div key={key} className="grid items-start gap-x-5 gap-y-2.5 px-5 py-3.5 sm:grid-cols-[minmax(0,5fr)_minmax(0,6fr)_92px]">
                   <div className="flex min-w-0 gap-3">
                     <Icon className="mt-0.5 size-4 shrink-0 text-muted" strokeWidth={1.75} aria-hidden />
                     <div className="min-w-0">
@@ -319,14 +338,15 @@ function ServiceSettings() {
                       <p className="hint mt-0.5 leading-5">{help}</p>
                     </div>
                   </div>
-                  <div className="min-w-0">
+                  <div className="flex min-w-0 items-start gap-2 sm:contents">
+                  <div className="min-w-0 flex-1">
                     <input
                       id={key}
                       type="password"
                       autoComplete="off"
                       value={keys[key] ?? ''}
                       onChange={(e) => setKeys({ ...keys, [key]: e.target.value })}
-                      placeholder={s?.display ? `${s.display}  (enter a new value to replace)` : key === 'ALERT_WEBHOOK_URL' ? 'https://hooks.slack.com/services/…' : 'Paste key'}
+                      placeholder={s?.display ? `${s.display}  ·  paste to replace` : key === 'ALERT_WEBHOOK_URL' ? 'https://hooks.slack.com/services/…' : 'Paste key'}
                       spellCheck={false}
                       className="field !h-9 font-mono"
                     />
@@ -335,10 +355,11 @@ function ServiceSettings() {
                       {SOURCE_LABEL[s?.source ?? 'none']}
                     </p>
                   </div>
-                  <Button type="button" variant="outline" className="h-9 w-full" disabled={s?.source !== 'database' || busy !== null} onClick={() => save({ [key]: null }, `${label} removed.`)}>
+                  <Button type="button" variant="outline" className="h-9 w-9 shrink-0 px-0 sm:w-full sm:px-3" aria-label={`Remove ${label}`} disabled={s?.source !== 'database' || busy !== null} onClick={() => save({ [key]: null }, `${label} removed.`)}>
                     <Trash2 />
-                    Remove
+                    <span className="hidden sm:inline">Remove</span>
                   </Button>
+                  </div>
                 </div>
               );
             })}
@@ -446,19 +467,19 @@ function Users({ defaultHosts }: { defaultHosts: number }) {
       aside={<span className="tabular text-xs text-muted">{admins} super admin{admins === 1 ? '' : 's'} · {users.length - admins} customer{users.length - admins === 1 ? '' : 's'}</span>}
     >
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[820px] table-fixed border-collapse">
+        <table className="w-full min-w-[640px] table-fixed lg:min-w-[820px] border-collapse">
           <colgroup>
             <col />
             <col className="w-[150px]" />
             <col className="w-[110px]" />
             <col className="w-[130px]" />
-            <col className="w-[150px]" />
+            <col className="hidden w-[150px] lg:table-column" />
             <col className="w-[96px]" />
           </colgroup>
           <thead>
             <tr className="border-b border-line">
               {['Email', 'Role', 'Host limit', 'Status', 'Last sign-in', ''].map((h, i) => (
-                <th key={i} className={cn(TH, 'px-3 py-2.5 text-left first:pl-5 last:pr-5', i === 5 && 'text-right')}>{h}</th>
+                <th key={i} className={cn(TH, 'px-3 py-2.5 text-left first:pl-5 last:pr-5', i === 4 && 'hidden lg:table-cell', i === 5 && 'text-right')}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -505,7 +526,7 @@ function Users({ defaultHosts }: { defaultHosts: number }) {
                       {u.disabled ? 'Disabled' : u.mustChangePassword ? 'Password pending' : 'Active'}
                     </span>
                   </td>
-                  <td className="tabular text-[13px] text-muted">{date(u.lastLoginAt)}</td>
+                  <td className="tabular hidden text-[13px] text-muted lg:table-cell">{date(u.lastLoginAt)}</td>
                   <td className="text-right">
                     {working ? (
                       <Loader2 className="ml-auto size-4 animate-spin text-muted" aria-label="Saving" />

@@ -30,7 +30,7 @@ export function TopBar({ active, email, isAdmin = false, children }: { active: '
     return () => ro.disconnect();
   }, []);
   return (
-    <header ref={bar} className="no-print sticky top-0 z-20 border-b border-line bg-bg/90 backdrop-blur-md">
+    <header ref={bar} className="no-print z-20 border-b border-line bg-bg/90 backdrop-blur-md sm:sticky sm:top-0">
       <div className="mx-auto flex min-h-12 max-w-[1360px] flex-wrap items-center gap-x-3 px-4 sm:h-12 sm:flex-nowrap sm:gap-x-6 sm:px-6">
         <Link href="/" aria-label="Craton home" className="shrink-0 rounded-sm">
           <Wordmark compact />

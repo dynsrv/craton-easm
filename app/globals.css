@@ -287,6 +287,13 @@ select {
   }
 }
 
+/* Placeholders sit a step below typed text, on every device. Typed text stays 16px on touch (no iOS zoom). */
+input::placeholder,
+textarea::placeholder {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
 /* Light theme: severity pills are filled, with ink chosen for contrast (white on red/orange, black on amber/yellow). */
 :root[data-theme='light'] .sev-badge { border-color: transparent; font-weight: 600; }
 :root[data-theme='light'] .sev-badge[data-sev='Critical'] { background: var(--color-crit) !important; color: #fff !important; }
