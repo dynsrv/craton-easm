@@ -1,5 +1,6 @@
 'use client';
 
+import { DomainText } from '@/components/ui/domain-text';
 import { ArrowRight, Building2, FileSearch, Gauge, ListOrdered, Route, Server, TrendingDown, TrendingUp } from 'lucide-react';
 import { ScoreGauge } from '@/components/score-gauge';
 import { Card, CardTitle } from '@/components/ui/card';
@@ -162,12 +163,12 @@ export function Overview({ scan, assets, counts, lang, t, setTab, filterAssets }
             {scan.brief.topFixes.map((f, i) => (
               <li key={i} className="flex flex-col gap-2 bg-panel p-5">
                 <span className="tabular font-mono text-[28px] font-light leading-none text-muted">{String(i + 1).padStart(2, '0')}</span>
-                <strong className="font-semibold leading-5">{f.title[lang]}</strong>
-                <p className="text-[13px] leading-5 text-muted">{f.detail[lang]}</p>
+                <strong className="font-semibold leading-5"><DomainText text={f.title[lang]} domain={scan.domain} /></strong>
+                <p className="text-[13px] leading-5 text-muted"><DomainText text={f.detail[lang]} domain={scan.domain} /></p>
                 <p className="mt-auto flex flex-wrap gap-x-3 gap-y-0.5 pt-1 font-mono text-xs leading-5 text-muted">
                   {f.hostnames.map((hn) => (
                     <span key={hn} className="whitespace-nowrap">
-                      {hn}
+                      <DomainText text={hn} domain={scan.domain} />
                     </span>
                   ))}
                 </p>
