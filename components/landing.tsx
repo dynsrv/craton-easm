@@ -1,36 +1,23 @@
 'use client';
 
-import {
-  ArrowRight,
-  Ban,
-  Briefcase,
-  CircleCheck,
-  Cpu,
-  FileText,
-  Globe,
-  Landmark,
-  Lock,
-  Network,
-  Radar,
-  Scissors,
-  ServerCog,
-  ShieldCheck,
-  Sparkles,
-  Telescope,
-  type LucideIcon,
-} from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Briefcase, Cpu, Landmark, ServerCog, ShieldCheck, Sparkles, Telescope } from 'lucide-react';
 import Link from 'next/link';
-import { Wordmark } from '@/components/brand';
+import { useMemo } from 'react';
+import { CratonMark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { MODULE } from '@/lib/modules';
 import { SEV_VAR, T } from '@/lib/i18n';
 import type { Lang, Severity } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const COPY = {
   en: {
-    nav: { how: 'How it works', leaders: 'For leaders', product: 'Modules', trust: 'Trust' },
+    nav: { how: 'How it works', leaders: 'For leaders', product: 'Capabilities', trust: 'Trust' },
+    labels: { problem: 'The problem', how: 'How it works', product: 'The brief', leaders: 'For leadership', modules: 'Capabilities', trust: 'Trust', start: 'Get started' },
+    kicker: 'External attack surface management',
+    productTitle2: 'What leadership sees after one scan.',
+    productLead2: 'A score that moves, a plain-language summary, the three fixes that matter most and the route an attacker would take. In English or Bahasa Indonesia.',
+    scroll: 'Scroll',
+    logTitle: 'Scan log',
     signIn: 'Sign in',
     eyebrow: 'External attack surface management for Indonesian enterprises',
     h1: 'See your company the way an attacker does.',
@@ -93,7 +80,13 @@ const COPY = {
     footer: 'External attack surface management',
   },
   id: {
-    nav: { how: 'Cara kerja', leaders: 'Untuk pimpinan', product: 'Modul', trust: 'Keamanan' },
+    nav: { how: 'Cara kerja', leaders: 'Untuk pimpinan', product: 'Kapabilitas', trust: 'Keamanan' },
+    labels: { problem: 'Masalahnya', how: 'Cara kerja', product: 'Laporannya', leaders: 'Untuk pimpinan', modules: 'Kapabilitas', trust: 'Keamanan', start: 'Mulai' },
+    kicker: 'Manajemen permukaan serangan eksternal',
+    productTitle2: 'Yang dilihat pimpinan setelah satu pemindaian.',
+    productLead2: 'Skor yang bergerak, ringkasan dengan bahasa sederhana, tiga perbaikan terpenting, dan rute yang akan diambil penyerang. Dalam Bahasa Indonesia atau Inggris.',
+    scroll: 'Gulir',
+    logTitle: 'Log pemindaian',
     signIn: 'Masuk',
     eyebrow: 'Manajemen permukaan serangan eksternal untuk perusahaan Indonesia',
     h1: 'Lihat perusahaan Anda seperti penyerang melihatnya.',
@@ -156,28 +149,126 @@ const COPY = {
     footer: 'Manajemen permukaan serangan eksternal',
   },
 } satisfies Record<Lang, unknown>;
-
 const MODULE_KEYS = ['discovery', 'takeover', 'visual', 'code_leak', 'bucket', 'email', 'paths', 'drift'] as const;
 
-function Section({ id, className, children }: { id?: string; className?: string; children: React.ReactNode }) {
+/** The landing page is always dark, independent of the workspace theme. */
+const NIGHT = {
+  '--color-bg': '#000000',
+  '--color-panel': '#0a0a0a',
+  '--color-panel2': '#161616',
+  '--color-line': '#262626',
+  '--color-ink': '#f5f5f5',
+  '--color-muted': '#8f8f8f',
+  '--color-field': '#000000',
+  '--color-inverse': '#000000',
+  '--color-crit': '#ff5a5f',
+  '--color-high': '#f5a14a',
+  '--color-med': '#e6c34a',
+  '--color-low': '#4fd18b',
+  '--color-info': '#8f8f8f',
+  colorScheme: 'dark',
+} as React.CSSProperties;
+
+const LOG = [
+  ['00:00.4', 'ct-logs', '44 names under company.co.id'],
+  ['00:03.1', 'dns', '27 resolve · 3 CNAMEs point at deleted cloud apps'],
+  ['00:21.8', 'http', '19 live · 9 login pages · 2 consoles without auth'],
+  ['00:34.2', 'intel', 'CVE-2021-41773 on hris · actively exploited (CISA KEV)'],
+  ['00:41.0', 'code', 'staging credentials in a public repository'],
+  ['00:58.6', 'triage', '3 attack paths · 3 choke points · brief ready'],
+];
+
+/** Deterministic pseudo-random points: same picture on server and client. */
+function rng(seed: number) {
+  let s = seed;
+  return () => ((s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296);
+}
+
+/** Hero graphic: a field of hosts, the links between them, and the few an attacker would use. */
+function SurfaceMap() {
+  const { nodes, edges, hot } = useMemo(() => {
+    const r = rng(7);
+    const nodes = Array.from({ length: 150 }, () => ({ x: 20 + r() * 760, y: 20 + r() * 560, s: r() }));
+    const edges: [number, number][] = [];
+    nodes.forEach((a, i) => {
+      const near = nodes
+        .map((b, j) => ({ j, d: Math.hypot(a.x - b.x, a.y - b.y) }))
+        .filter((n) => n.j !== i)
+        .sort((p, q) => p.d - q.d)
+        .slice(0, 2);
+      near.forEach((n) => n.d < 95 && i < n.j && edges.push([i, n.j]));
+    });
+    // Highlight three hosts in the right-hand part of the map, clear of the headline.
+    const pick = (x: number, y: number) =>
+      nodes
+        .map((n, i) => ({ i, d: Math.hypot(n.x - x, n.y - y) }))
+        .filter(({ i }) => nodes[i].x > 650 && nodes[i].x < 770)
+        .sort((a, b) => a.d - b.d)[0].i;
+    const hot = [
+      { i: pick(690, 140), label: 'staging.company.co.id' },
+      { i: pick(755, 320), label: 'kibana.company.co.id' },
+      { i: pick(680, 480), label: 'erp.company.co.id' },
+    ];
+    return { nodes, edges, hot };
+  }, []);
+  const path = hot.map((h) => h.i);
   return (
-    <section id={id} className={cn('scroll-mt-20 px-4 sm:px-6', className)}>
-      <div className="mx-auto max-w-[1200px]">{children}</div>
+    <svg viewBox="0 0 800 600" className="h-full w-full" aria-hidden preserveAspectRatio="xMidYMid slice">
+      <g stroke="var(--color-line)" strokeWidth="1">
+        {edges.map(([a, b], k) => (
+          <line key={k} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y} />
+        ))}
+      </g>
+      <polyline
+        points={path.map((i) => `${nodes[i].x},${nodes[i].y}`).join(' ')}
+        fill="none"
+        stroke="var(--color-crit)"
+        strokeWidth="1.25"
+        strokeDasharray="4 4"
+        className="landing-dash"
+      />
+      {nodes.map((n, k) => (
+        <circle key={k} cx={n.x} cy={n.y} r={n.s > 0.85 ? 2.4 : 1.5} fill={n.s > 0.85 ? '#d4d4d4' : '#4a4a4a'} />
+      ))}
+      {hot.map((h) => {
+        const n = nodes[h.i];
+        return (
+          <g key={h.i}>
+            <circle cx={n.x} cy={n.y} r="10" fill="none" stroke="var(--color-crit)" strokeWidth="1" className="landing-pulse" />
+            <circle cx={n.x} cy={n.y} r="3.5" fill="var(--color-crit)" />
+            <line x1={n.x - 6} y1={n.y - 6} x2={n.x - 28} y2={n.y - 28} stroke="var(--color-crit)" strokeWidth="1" className="max-lg:hidden" />
+            <text className="max-lg:hidden" x={n.x - 32} y={n.y - 31} textAnchor="end" fill="var(--color-ink)" fontSize="12" fontFamily="var(--font-mono)">
+              {h.label}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function Label({ n, children }: { n: string; children: React.ReactNode }) {
+  return (
+    <p className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+      <span className="text-ink">{n}</span>
+      <span className="h-px w-8 bg-line" aria-hidden />
+      {children}
+    </p>
+  );
+}
+
+function Band({ id, className, children }: { id?: string; className?: string; children: React.ReactNode }) {
+  return (
+    <section id={id} className={cn('scroll-mt-14 border-t border-line px-5 sm:px-8', className)}>
+      <div className="mx-auto max-w-[1280px]">{children}</div>
     </section>
   );
 }
 
-function SectionHead({ title, lead }: { title: string; lead?: string }) {
-  return (
-    <div className="mb-10">
-      <h2 className="text-[28px] font-semibold leading-9 tracking-tight sm:text-[32px] sm:leading-10">{title}</h2>
-      {lead && <p className="mt-3 text-base leading-7 text-muted">{lead}</p>}
-    </div>
-  );
-}
+const btn = 'inline-flex h-12 items-center gap-3 px-6 text-[15px] font-medium transition-colors';
 
-/** Static product preview for the hero: shows the real layout with sample data. */
-function ProductPreview({ c }: { c: (typeof COPY)['en'] }) {
+/** Sample brief, styled as the product renders it. */
+function BriefPreview({ c }: { c: (typeof COPY)['en'] }) {
   const sev: [Severity, number][] = [
     ['Critical', 2],
     ['High', 6],
@@ -186,71 +277,52 @@ function ProductPreview({ c }: { c: (typeof COPY)['en'] }) {
     ['Info', 6],
   ];
   const total = sev.reduce((n, [, v]) => n + v, 0);
-  const score = 38;
-  const len = Math.PI * 52;
   return (
-    <div className="relative rounded-xl border border-line bg-panel p-5 shadow-[0_24px_60px_-24px_rgba(0,0,0,0.45)] sm:p-6" aria-hidden>
-      <div className="flex items-start justify-between gap-4">
+    <div className="grid border border-line bg-panel lg:grid-cols-[280px_minmax(0,1fr)_minmax(0,1fr)]" aria-hidden>
+      <div className="flex flex-col justify-between gap-8 border-b border-line p-6 lg:border-b-0 lg:border-r">
         <div>
-          <p className="font-mono text-sm font-semibold">company.co.id</p>
-          <p className="mt-0.5 text-xs text-muted">{c.preview.scanned}</p>
-        </div>
-        <span className="rounded-sm border border-line px-1.5 py-0.5 text-[11px] font-medium uppercase tracking-[0.06em] text-muted">{c.sample}</span>
-      </div>
-
-      <div className="mt-5 grid gap-5 sm:grid-cols-[150px_minmax(0,1fr)]">
-        <div className="flex flex-col items-center rounded-lg border border-line bg-bg p-4">
-          <p className="self-start text-xs font-medium text-muted">{c.preview.score}</p>
-          <svg width="136" height="76" viewBox="0 0 136 76" className="mt-2">
-            <path d="M16 70a52 52 0 0 1 104 0" fill="none" stroke="var(--color-panel2)" strokeWidth="10" strokeLinecap="round" />
-            <path d="M16 70a52 52 0 0 1 104 0" fill="none" stroke={SEV_VAR.High} strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(len * score) / 100} ${len}`} />
-          </svg>
-          <p className="tabular -mt-7 text-[30px] font-semibold leading-none">{score}</p>
-          <p className="mt-3 rounded-sm border px-2 py-0.5 text-[11px] font-medium" style={{ color: SEV_VAR.High, borderColor: SEV_VAR.High }}>
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">{c.preview.score}</p>
+          <p className="tabular mt-3 text-[88px] font-semibold leading-none tracking-[-0.04em]">38</p>
+          <p className="mt-3 text-sm font-medium" style={{ color: SEV_VAR.High }}>
             {c.preview.grade}
           </p>
         </div>
-        <div className="flex min-w-0 flex-col gap-3">
-          <p className="text-xs font-medium text-muted">{c.preview.found}</p>
-          <p className="text-[13px] leading-5">{c.preview.foundText}</p>
-          <div className="mt-auto flex h-1.5 overflow-hidden rounded-full">
+        <div>
+          <div className="flex h-1 overflow-hidden">
             {sev.map(([s, v]) => (
               <i key={s} className="block h-full" style={{ width: `${(v / total) * 100}%`, background: SEV_VAR[s] }} />
             ))}
           </div>
+          <p className="mt-3 font-mono text-xs text-muted">company.co.id · {c.preview.scanned}</p>
         </div>
       </div>
-
-      <div className="mt-5 grid gap-5 border-t border-line pt-5 sm:grid-cols-2">
-        <div>
-          <p className="mb-2.5 text-xs font-medium text-muted">{c.preview.fixes}</p>
-          <ol className="flex flex-col gap-2">
-            {c.preview.fixList.map((f, i) => (
-              <li key={f} className="flex items-start gap-2.5 text-[13px] leading-5">
-                <span className="tabular mt-px text-xs font-semibold text-muted">0{i + 1}</span>
-                {f}
-              </li>
-            ))}
-          </ol>
-        </div>
-        <div>
-          <p className="mb-2.5 text-xs font-medium text-muted">{c.preview.path}</p>
-          <ol className="flex flex-col gap-2">
-            {c.preview.nodes.map((n, i) => (
-              <li key={n} className="flex items-center gap-2.5 text-[13px] leading-5">
-                <span
-                  className={cn(
-                    'grid size-5 shrink-0 place-items-center rounded-full border text-[10px] font-semibold',
-                    i === 1 ? 'border-low bg-low text-[var(--color-inverse)]' : 'border-line text-muted',
-                  )}
-                >
-                  {i === 1 ? <Scissors className="size-3" /> : i + 1}
-                </span>
-                <span className={i === 1 ? 'font-medium' : ''}>{n}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
+      <div className="border-b border-line p-6 lg:border-b-0 lg:border-r">
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">{c.preview.found}</p>
+        <p className="mt-4 text-[17px] leading-7">{c.preview.foundText}</p>
+        <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">{c.preview.fixes}</p>
+        <ol className="mt-4 flex flex-col">
+          {c.preview.fixList.map((f, i) => (
+            <li key={f} className="flex gap-4 border-t border-line py-3 text-sm">
+              <span className="tabular font-mono text-xs text-muted">0{i + 1}</span>
+              {f}
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div className="p-6">
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">{c.preview.path}</p>
+        <ol className="mt-6 flex flex-col">
+          {c.preview.nodes.map((n, i) => (
+            <li key={n} className="relative flex gap-4 pb-8 last:pb-0">
+              {i < c.preview.nodes.length - 1 && <span className="absolute left-[5px] top-4 h-full w-px bg-line" aria-hidden />}
+              <span className={cn('relative mt-1.5 size-[11px] shrink-0 border', i === 1 ? 'border-low bg-low' : 'border-muted bg-bg')} />
+              <div>
+                <p className={cn('text-[15px]', i === 1 && 'font-semibold')}>{n}</p>
+                {i === 1 && <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-low">Break here</p>}
+              </div>
+            </li>
+          ))}
+        </ol>
       </div>
     </div>
   );
@@ -268,101 +340,144 @@ export function Landing() {
   ];
 
   return (
-    <div className="min-h-dvh bg-bg">
-      <header className="sticky top-0 z-20 border-b border-line bg-panel/90 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-[1200px] items-center gap-3 px-4 sm:gap-6 sm:px-6">
-          <Link href="/" aria-label="Craton home" className="shrink-0">
-            <Wordmark compact />
+    <div style={NIGHT} className="min-h-dvh bg-bg text-ink antialiased">
+      <style>{`
+        @keyframes landing-dash { to { stroke-dashoffset: -64; } }
+        @keyframes landing-pulse { 0% { opacity: .9; transform: scale(.6); } 100% { opacity: 0; transform: scale(2.2); } }
+        .landing-dash { animation: landing-dash 3s linear infinite; }
+        .landing-pulse { transform-box: fill-box; transform-origin: center; animation: landing-pulse 2.4s ease-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .landing-dash, .landing-pulse { animation: none; } }
+      `}</style>
+
+      <header className="fixed inset-x-0 top-0 z-30 border-b border-line bg-bg/80 backdrop-blur-md">
+        <div className="mx-auto flex h-14 max-w-[1280px] items-center gap-6 px-5 sm:px-8">
+          <Link href="/" aria-label="Craton home" className="flex shrink-0 items-center gap-2.5">
+            <CratonMark className="size-5" />
+            <span className="text-sm font-semibold tracking-[0.22em]">CRATON</span>
           </Link>
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Sections">
+          <nav className="hidden items-center gap-7 md:flex" aria-label="Sections">
             {navLinks.map(([href, label]) => (
-              <a key={href} href={href} className="rounded-md px-3 py-1.5 text-sm text-muted hover:bg-panel2 hover:text-ink">
+              <a key={href} href={href} className="text-[13px] text-muted transition-colors hover:text-ink">
                 {label}
               </a>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-3">
             <LangToggle lang={lang} setLang={setLang} />
-            <ThemeToggle />
-            <Link href="/login" className="inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-primary bg-primary px-3 text-[13px] font-medium text-white hover:brightness-110 sm:px-3.5">
+            <Link href="/login" className="inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap bg-ink px-3.5 text-[13px] font-medium text-bg hover:bg-white">
               {c.signIn}
+              <ArrowUpRight className="size-3.5" aria-hidden />
             </Link>
           </div>
         </div>
       </header>
 
       <main>
-        {/* Hero */}
-        <Section className="pb-20 pt-14 sm:pt-20">
-          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
-            <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-3 py-1 text-xs font-medium text-muted">
-                <Radar className="size-3.5" strokeWidth={1.75} aria-hidden />
-                {c.eyebrow}
-              </p>
-              <h1 className="mt-6 text-[40px] font-semibold leading-[1.08] tracking-[-0.02em] sm:text-[52px]">{c.h1}</h1>
-              <p className="mt-6 text-[17px] leading-7 text-muted">{c.lead}</p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/login" className="inline-flex h-11 items-center gap-2 rounded-md border border-primary bg-primary px-5 text-[15px] font-medium text-white hover:brightness-110">
-                  {c.ctaPrimary}
-                  <ArrowRight className="size-4" aria-hidden />
-                </Link>
-                <a href="#how" className="inline-flex h-11 items-center rounded-md border border-line bg-panel px-5 text-[15px] font-medium hover:bg-panel2">
-                  {c.ctaSecondary}
-                </a>
-              </div>
-              <ul className="mt-8 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
-                {c.proof.map((p) => (
-                  <li key={p} className="flex items-center gap-2 text-sm text-muted">
-                    <CircleCheck className="size-4 shrink-0 text-low" strokeWidth={1.75} aria-hidden />
-                    {p}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <ProductPreview c={c} />
+        {/* Hero: full height, type-led, with the attack surface drawn behind */}
+        <section className="relative flex min-h-[100svh] flex-col overflow-hidden px-5 pt-14 sm:px-8">
+          <div className="pointer-events-none absolute inset-0 opacity-90 [mask-image:linear-gradient(to_right,transparent_25%,black_70%)] max-lg:opacity-40 max-lg:[mask-image:linear-gradient(to_bottom,transparent_20%,black_90%)]">
+            <SurfaceMap />
           </div>
-        </Section>
+          <div className="relative mx-auto flex w-full max-w-[1280px] flex-1 flex-col justify-center py-16">
+            <Label n="CRATON">{c.kicker}</Label>
+            <h1 className="mt-8 max-w-[14ch] text-[48px] font-semibold leading-[0.98] tracking-[-0.035em] sm:text-[72px] lg:text-[96px]">{c.h1}</h1>
+            <p className="mt-8 max-w-[58ch] text-[17px] leading-7 text-muted sm:text-lg sm:leading-8">{c.lead}</p>
+            <div className="mt-10 flex flex-wrap gap-3">
+              <Link href="/login" className={cn(btn, 'bg-ink text-bg hover:bg-white')}>
+                {c.ctaPrimary}
+                <ArrowRight className="size-4" aria-hidden />
+              </Link>
+              <a href="#how" className={cn(btn, 'border border-line text-ink hover:border-muted')}>
+                {c.ctaSecondary}
+              </a>
+            </div>
+          </div>
+          <dl className="relative mx-auto grid w-full max-w-[1280px] grid-cols-2 border-t border-line lg:grid-cols-4">
+            {c.proof.map((p, i) => (
+              <div key={p} className={cn('py-5 pr-4', i > 0 && 'lg:border-l lg:border-line lg:pl-6', i % 2 === 1 && 'max-lg:border-l max-lg:border-line max-lg:pl-4')}>
+                <dt className="font-mono text-[11px] text-muted">0{i + 1}</dt>
+                <dd className="mt-1.5 text-sm">{p}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* Scan log */}
+        <Band className="bg-panel py-10">
+          <div className="grid gap-6 lg:grid-cols-[200px_minmax(0,1fr)]">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">{c.logTitle}</p>
+            <ol className="font-mono text-[13px] leading-7">
+              {LOG.map(([time, src, msg]) => (
+                <li key={time} className="grid grid-cols-[72px_80px_minmax(0,1fr)] gap-3 sm:grid-cols-[88px_96px_minmax(0,1fr)]">
+                  <span className="text-muted">{time}</span>
+                  <span className="text-muted">{src}</span>
+                  <span className={cn('truncate', msg.includes('KEV') || msg.includes('credentials') ? 'text-crit' : msg.includes('ready') ? 'text-low' : '')}>{msg}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </Band>
 
         {/* Problem */}
-        <Section className="border-y border-line bg-panel py-20">
-          <SectionHead title={c.problemTitle} />
-          <div className="grid gap-8 md:grid-cols-3">
-            {c.problems.map((p) => (
-              <Feature key={p.title} icon={p.icon} title={p.title} body={p.body} />
+        <Band className="py-24 sm:py-32">
+          <Label n="01">{c.labels.problem}</Label>
+          <h2 className="mt-8 text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.problemTitle}</h2>
+          <div className="mt-16 grid border-t border-line md:grid-cols-3">
+            {c.problems.map((p, i) => (
+              <div key={p.title} className={cn('py-8 md:pr-8', i > 0 && 'border-t border-line md:border-l md:border-t-0 md:pl-8')}>
+                <p className="font-mono text-[11px] text-muted">0{i + 1}</p>
+                <h3 className="mt-4 text-xl font-semibold leading-7">{p.title}</h3>
+                <p className="mt-3 text-[15px] leading-7 text-muted">{p.body}</p>
+              </div>
             ))}
           </div>
-        </Section>
+        </Band>
 
         {/* How it works */}
-        <Section id="how" className="py-20">
-          <SectionHead title={c.howTitle} lead={c.howLead} />
-          <ol className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Band id="how" className="py-24 sm:py-32">
+          <Label n="02">{c.labels.how}</Label>
+          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
+            <h2 className="text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.howTitle}</h2>
+            <p className="text-[17px] leading-7 text-muted">{c.howLead}</p>
+          </div>
+          <ol className="mt-16 grid gap-px border border-line bg-line md:grid-cols-2 lg:grid-cols-4">
             {c.steps.map((s, i) => (
-              <li key={s.title} className="flex flex-col gap-3 rounded-lg border border-line bg-panel p-6">
-                <span className="tabular grid size-8 place-items-center rounded-full border border-line text-[13px] font-semibold text-muted">{i + 1}</span>
-                <h3 className="text-base font-semibold leading-6">{s.title}</h3>
-                <p className="text-sm leading-6 text-muted">{s.body}</p>
+              <li key={s.title} className="flex min-h-[260px] flex-col bg-bg p-7">
+                <span className="tabular font-mono text-[40px] font-light leading-none text-muted">0{i + 1}</span>
+                <h3 className="mt-auto pt-10 text-xl font-semibold leading-7">{s.title}</h3>
+                <p className="mt-3 text-[15px] leading-6 text-muted">{s.body}</p>
               </li>
             ))}
           </ol>
-        </Section>
+        </Band>
+
+        {/* The brief */}
+        <Band className="py-24 sm:py-32">
+          <Label n="03">{c.labels.product}</Label>
+          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
+            <h2 className="text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.productTitle2}</h2>
+            <p className="text-[17px] leading-7 text-muted">{c.productLead2}</p>
+          </div>
+          <div className="mt-16">
+            <BriefPreview c={c} />
+          </div>
+        </Band>
 
         {/* Leaders */}
-        <Section id="leaders" className="border-y border-line bg-panel py-20">
-          <SectionHead title={c.leadersTitle} lead={c.leadersLead} />
-          <div className="grid gap-4 md:grid-cols-2">
+        <Band id="leaders" className="py-24 sm:py-32">
+          <Label n="04">{c.labels.leaders}</Label>
+          <h2 className="mt-8 text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.leadersTitle}</h2>
+          <div className="mt-16 border-b border-line">
             {c.leaders.map((l) => (
-              <article key={l.role} className="flex flex-col gap-4 rounded-lg border border-line bg-bg p-6 sm:p-7">
-                <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.08em] text-muted">
-                  <l.icon className="size-4" strokeWidth={1.75} aria-hidden />
-                  {l.role}
-                </p>
-                <h3 className="text-xl font-semibold leading-7">{l.head}</h3>
-                <ul className="flex flex-col gap-2.5">
+              <article key={l.role} className="grid gap-4 border-t border-line py-10 lg:grid-cols-[220px_minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10">
+                <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted">{l.role}</p>
+                <h3 className="text-[26px] font-semibold leading-8 tracking-[-0.02em]">{l.head}</h3>
+                <ul className="flex flex-col gap-2">
                   {l.points.map((p) => (
-                    <li key={p} className="flex items-start gap-2.5 text-sm leading-6 text-muted">
-                      <ArrowRight className="mt-1 size-3.5 shrink-0" aria-hidden />
+                    <li key={p} className="flex gap-3 text-[15px] leading-6 text-muted">
+                      <span className="font-mono text-ink" aria-hidden>
+                        →
+                      </span>
                       {p}
                     </li>
                   ))}
@@ -370,110 +485,91 @@ export function Landing() {
               </article>
             ))}
           </div>
-        </Section>
+        </Band>
 
-        {/* Modules */}
-        <Section id="modules" className="py-20">
-          <SectionHead title={c.productTitle} lead={c.productLead} />
-          <div className="grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-            {MODULE_KEYS.map((k) => (
-              <Feature
-                key={k}
-                icon={MODULE[k].icon}
-                title={k === 'discovery' ? (lang === 'id' ? 'Penemuan aset' : 'Asset discovery') : (t.mod as Record<string, string>)[k]}
-                body={t.modDesc[k]}
-              />
+        {/* Capabilities */}
+        <Band id="modules" className="py-24 sm:py-32">
+          <Label n="05">{c.labels.modules}</Label>
+          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
+            <h2 className="text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.productTitle}</h2>
+            <p className="text-[17px] leading-7 text-muted">{c.productLead}</p>
+          </div>
+          <div className="mt-16 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+            {MODULE_KEYS.map((k, i) => (
+              <div key={k} className="flex min-h-[220px] flex-col bg-bg p-7 transition-colors hover:bg-panel">
+                <span className="font-mono text-[11px] text-muted">M.{String(i + 1).padStart(2, '0')}</span>
+                <h3 className="mt-auto pt-10 text-lg font-semibold leading-6">
+                  {k === 'discovery' ? (lang === 'id' ? 'Penemuan aset' : 'Asset discovery') : (t.mod as Record<string, string>)[k]}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-muted">{t.modDesc[k]}</p>
+              </div>
             ))}
           </div>
-        </Section>
+        </Band>
 
         {/* Trust */}
-        <Section id="trust" className="border-y border-line bg-panel py-20">
-          <SectionHead title={c.trustTitle} lead={c.trustLead} />
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-            <div className="rounded-lg border border-line bg-bg p-6 sm:p-7">
-              <h3 className="flex items-center gap-2 text-base font-semibold">
-                <ShieldCheck className="size-4 text-low" strokeWidth={1.75} aria-hidden />
-                {c.does}
-              </h3>
-              <ul className="mt-4 flex flex-col gap-3">
-                {c.doesList.map((d) => (
-                  <li key={d} className="flex items-start gap-2.5 text-sm leading-6">
-                    <CircleCheck className="mt-1 size-4 shrink-0 text-low" strokeWidth={1.75} aria-hidden />
-                    {d}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-lg border border-line bg-bg p-6 sm:p-7">
-              <h3 className="flex items-center gap-2 text-base font-semibold">
-                <Ban className="size-4 text-crit" strokeWidth={1.75} aria-hidden />
-                {c.never}
-              </h3>
-              <ul className="mt-4 flex flex-col gap-3">
-                {c.neverList.map((d) => (
-                  <li key={d} className="flex items-start gap-2.5 text-sm leading-6">
-                    <Ban className="mt-1 size-4 shrink-0 text-muted" strokeWidth={1.75} aria-hidden />
-                    {d}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <Band id="trust" className="py-24 sm:py-32">
+          <Label n="06">{c.labels.trust}</Label>
+          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
+            <h2 className="text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.trustTitle}</h2>
+            <p className="text-[17px] leading-7 text-muted">{c.trustLead}</p>
           </div>
-          <p className="mt-6 flex items-center gap-2 text-sm text-muted">
-            <Globe className="size-4" strokeWidth={1.75} aria-hidden />
-            {c.hosted}
-          </p>
-        </Section>
+          <div className="mt-16 grid gap-px border border-line bg-line lg:grid-cols-2">
+            {[
+              { title: c.does, items: c.doesList, mark: '+', color: 'text-low' },
+              { title: c.never, items: c.neverList, mark: '−', color: 'text-crit' },
+            ].map((col) => (
+              <div key={col.title} className="bg-bg p-7 sm:p-10">
+                <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-muted">{col.title}</h3>
+                <ul className="mt-6 flex flex-col">
+                  {col.items.map((d) => (
+                    <li key={d} className="flex gap-4 border-t border-line py-4 text-[15px] leading-6">
+                      <span className={cn('w-3 shrink-0 font-mono', col.color)} aria-hidden>
+                        {col.mark}
+                      </span>
+                      {d}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 font-mono text-xs uppercase tracking-[0.14em] text-muted">{c.hosted}</p>
+        </Band>
 
-        {/* Final CTA */}
-        <Section className="py-24">
-          <div className="flex flex-col items-start gap-6 rounded-xl border border-line bg-panel p-8 sm:p-12 lg:flex-row lg:items-center lg:justify-between">
+        {/* Closing */}
+        <Band className="py-28 sm:py-40">
+          <Label n="07">{c.labels.start}</Label>
+          <h2 className="mt-8 max-w-[18ch] text-[44px] font-semibold leading-[1] tracking-[-0.035em] sm:text-[72px]">{c.finalTitle}</h2>
+          <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h2 className="text-[28px] font-semibold leading-9 tracking-tight">{c.finalTitle}</h2>
-              <p className="mt-3 text-base leading-7 text-muted">{c.finalBody}</p>
-              <p className="mt-3 flex items-center gap-2 text-sm text-muted">
-                <Lock className="size-4" strokeWidth={1.75} aria-hidden />
-                {c.invite}
-              </p>
+              <p className="text-[17px] leading-7 text-muted">{c.finalBody}</p>
+              <p className="mt-2 text-sm text-muted">{c.invite}</p>
             </div>
-            <Link href="/login" className="inline-flex h-11 shrink-0 items-center gap-2 rounded-md border border-primary bg-primary px-5 text-[15px] font-medium text-white hover:brightness-110">
+            <Link href="/login" className={cn(btn, 'shrink-0 bg-ink text-bg hover:bg-white')}>
               {c.ctaPrimary}
               <ArrowRight className="size-4" aria-hidden />
             </Link>
           </div>
-        </Section>
+        </Band>
       </main>
 
-      <footer className="border-t border-line px-4 py-8 sm:px-6">
-        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 text-sm text-muted">
-          <span className="flex items-center gap-3">
-            <Wordmark />
-            <span className="hidden sm:inline">· {c.footer}</span>
+      <footer className="border-t border-line px-5 py-10 sm:px-8">
+        <div className="mx-auto flex max-w-[1280px] flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <span className="flex items-center gap-2.5">
+            <CratonMark className="size-4" />
+            <span className="text-xs font-semibold tracking-[0.22em]">CRATON</span>
+            <span className="text-xs text-muted">· {c.footer}</span>
           </span>
-          <span className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5">
-              <Network className="size-4" strokeWidth={1.75} aria-hidden />
-              security.digitalstrategy.id
-            </span>
+          <span className="flex flex-wrap items-center gap-6 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">
+            <span>security.digitalstrategy.id</span>
             <span>© 2026</span>
-            <Link href="/login" className="inline-flex items-center gap-1.5 hover:text-ink">
-              <FileText className="size-4" strokeWidth={1.75} aria-hidden />
+            <Link href="/login" className="hover:text-ink">
               {c.signIn}
             </Link>
           </span>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function Feature({ icon: Icon, title, body }: { icon: LucideIcon; title: string; body: string }) {
-  return (
-    <div className="flex flex-col gap-3">
-      <Icon className="size-6 text-muted" strokeWidth={1.5} aria-hidden />
-      <h3 className="text-base font-semibold leading-6">{title}</h3>
-      <p className="text-sm leading-6 text-muted">{body}</p>
     </div>
   );
 }
