@@ -249,14 +249,8 @@ function SurfaceMap() {
   );
 }
 
-function Label({ n, children }: { n: string; children: React.ReactNode }) {
-  return (
-    <p className="flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
-      <span className="text-ink">{n}</span>
-      <span className="h-px w-8 bg-line" aria-hidden />
-      {children}
-    </p>
-  );
+function Label({ children }: { children: React.ReactNode }) {
+  return <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">{children}</p>;
 }
 
 function Band({ id, className, children }: { id?: string; className?: string; children: React.ReactNode }) {
@@ -303,9 +297,8 @@ function BriefPreview({ c }: { c: (typeof COPY)['en'] }) {
         <p className="mt-4 text-[17px] leading-7">{c.preview.foundText}</p>
         <p className="mt-8 font-mono text-[11px] uppercase tracking-[0.14em] text-muted">{c.preview.fixes}</p>
         <ol className="mt-4 flex flex-col">
-          {c.preview.fixList.map((f, i) => (
-            <li key={f} className="flex gap-4 border-t border-line py-3 text-sm">
-              <span className="tabular font-mono text-xs text-muted">0{i + 1}</span>
+          {c.preview.fixList.map((f) => (
+            <li key={f} className="border-t border-line py-3 text-sm">
               {f}
             </li>
           ))}
@@ -381,7 +374,7 @@ export function Landing() {
             <SurfaceMap />
           </div>
           <div className="relative mx-auto flex w-full max-w-[1280px] flex-1 flex-col justify-center py-16">
-            <Label n="CRATON">{c.kicker}</Label>
+            <Label>{c.kicker}</Label>
             <h1 className="mt-8 max-w-[14ch] text-[48px] font-semibold leading-[0.98] tracking-[-0.035em] sm:text-[72px] lg:text-[96px]">{c.h1}</h1>
             <p className="mt-8 max-w-[58ch] text-[17px] leading-7 text-muted sm:text-lg sm:leading-8">{c.lead}</p>
             <div className="mt-10 flex flex-wrap gap-3">
@@ -397,8 +390,7 @@ export function Landing() {
           <dl className="relative mx-auto grid w-full max-w-[1280px] grid-cols-2 border-t border-line lg:grid-cols-4">
             {c.proof.map((p, i) => (
               <div key={p} className={cn('py-5 pr-4', i > 0 && 'lg:border-l lg:border-line lg:pl-6', i % 2 === 1 && 'max-lg:border-l max-lg:border-line max-lg:pl-4')}>
-                <dt className="font-mono text-[11px] text-muted">0{i + 1}</dt>
-                <dd className="mt-1.5 text-sm">{p}</dd>
+                <dd className="text-sm">{p}</dd>
               </div>
             ))}
           </dl>
@@ -422,13 +414,12 @@ export function Landing() {
 
         {/* Problem */}
         <Band className="py-24 sm:py-32">
-          <Label n="01">{c.labels.problem}</Label>
+          <Label>{c.labels.problem}</Label>
           <h2 className="mt-8 text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.problemTitle}</h2>
           <div className="mt-16 grid border-t border-line md:grid-cols-3">
             {c.problems.map((p, i) => (
               <div key={p.title} className={cn('py-8 md:pr-8', i > 0 && 'border-t border-line md:border-l md:border-t-0 md:pl-8')}>
-                <p className="font-mono text-[11px] text-muted">0{i + 1}</p>
-                <h3 className="mt-4 text-xl font-semibold leading-7">{p.title}</h3>
+                <h3 className="text-xl font-semibold leading-7">{p.title}</h3>
                 <p className="mt-3 text-[15px] leading-7 text-muted">{p.body}</p>
               </div>
             ))}
@@ -437,16 +428,15 @@ export function Landing() {
 
         {/* How it works */}
         <Band id="how" className="py-24 sm:py-32">
-          <Label n="02">{c.labels.how}</Label>
+          <Label>{c.labels.how}</Label>
           <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
             <h2 className="text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.howTitle}</h2>
             <p className="text-[17px] leading-7 text-muted">{c.howLead}</p>
           </div>
           <ol className="mt-16 grid gap-px border border-line bg-line md:grid-cols-2 lg:grid-cols-4">
-            {c.steps.map((s, i) => (
-              <li key={s.title} className="flex min-h-[260px] flex-col bg-bg p-7">
-                <span className="tabular font-mono text-[40px] font-light leading-none text-muted">0{i + 1}</span>
-                <h3 className="mt-auto pt-10 text-xl font-semibold leading-7">{s.title}</h3>
+            {c.steps.map((s) => (
+              <li key={s.title} className="flex flex-col bg-bg p-7">
+                <h3 className="text-xl font-semibold leading-7">{s.title}</h3>
                 <p className="mt-3 text-[15px] leading-6 text-muted">{s.body}</p>
               </li>
             ))}
@@ -455,7 +445,7 @@ export function Landing() {
 
         {/* The brief */}
         <Band className="py-24 sm:py-32">
-          <Label n="03">{c.labels.product}</Label>
+          <Label>{c.labels.product}</Label>
           <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
             <h2 className="text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.productTitle2}</h2>
             <p className="text-[17px] leading-7 text-muted">{c.productLead2}</p>
@@ -467,7 +457,7 @@ export function Landing() {
 
         {/* Leaders */}
         <Band id="leaders" className="py-24 sm:py-32">
-          <Label n="04">{c.labels.leaders}</Label>
+          <Label>{c.labels.leaders}</Label>
           <h2 className="mt-8 text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.leadersTitle}</h2>
           <div className="mt-16 border-b border-line">
             {c.leaders.map((l) => (
@@ -491,16 +481,15 @@ export function Landing() {
 
         {/* Capabilities */}
         <Band id="modules" className="py-24 sm:py-32">
-          <Label n="05">{c.labels.modules}</Label>
+          <Label>{c.labels.modules}</Label>
           <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
             <h2 className="text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.productTitle}</h2>
             <p className="text-[17px] leading-7 text-muted">{c.productLead}</p>
           </div>
           <div className="mt-16 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
-            {MODULE_KEYS.map((k, i) => (
-              <div key={k} className="flex min-h-[220px] flex-col bg-bg p-7 transition-colors hover:bg-panel">
-                <span className="font-mono text-[11px] text-muted">M.{String(i + 1).padStart(2, '0')}</span>
-                <h3 className="mt-auto pt-10 text-lg font-semibold leading-6">
+            {MODULE_KEYS.map((k) => (
+              <div key={k} className="flex flex-col bg-bg p-7 transition-colors hover:bg-panel">
+                <h3 className="text-lg font-semibold leading-6">
                   {k === 'discovery' ? (lang === 'id' ? 'Penemuan aset' : 'Asset discovery') : (t.mod as Record<string, string>)[k]}
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-muted">{t.modDesc[k]}</p>
@@ -511,7 +500,7 @@ export function Landing() {
 
         {/* Trust */}
         <Band id="trust" className="py-24 sm:py-32">
-          <Label n="06">{c.labels.trust}</Label>
+          <Label>{c.labels.trust}</Label>
           <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
             <h2 className="text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]">{c.trustTitle}</h2>
             <p className="text-[17px] leading-7 text-muted">{c.trustLead}</p>
@@ -541,7 +530,7 @@ export function Landing() {
 
         {/* Closing */}
         <Band className="py-28 sm:py-40">
-          <Label n="07">{c.labels.start}</Label>
+          <Label>{c.labels.start}</Label>
           <h2 className="mt-8 max-w-[18ch] text-[44px] font-semibold leading-[1] tracking-[-0.035em] sm:text-[72px]">{c.finalTitle}</h2>
           <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div>
