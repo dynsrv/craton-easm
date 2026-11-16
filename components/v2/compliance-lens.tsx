@@ -84,7 +84,7 @@ export function ComplianceLens({ scan, lang }: { scan: ScanDTO; lang: Lang }) {
           <CardTitle icon={MODULE.compliance.icon} className="mb-0">
             {u.rollTitle}
           </CardTitle>
-          <p className="mt-1 text-[13px] text-muted">{u.rulesFor(sectorLabel)}</p>
+          <p className="mt-1 pl-6 text-[13px] text-muted">{u.rulesFor(sectorLabel)}</p>
         </div>
         <ul key={sector} className="rise divide-y divide-line border-t border-line">
           {mine.map(({ reg, flagged, related }) => (

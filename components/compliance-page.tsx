@@ -62,14 +62,10 @@ function PublicBar({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }
 /** Same pattern as the landing page: a small labelled eyebrow over a large tight heading and a muted lead. */
 function SectionHead({ label, title, lead, children }: { label?: string; title: string; lead?: string; children?: React.ReactNode }) {
   return (
-    <div className="mb-8 grid gap-x-12 gap-y-3 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end">
-      <div>
-        {label && <p className="lbl mb-3">{label}</p>}
-        <h2 className="text-[28px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[36px]">
-          {title}
-        </h2>
-      </div>
-      {(lead || children) && <div className="max-w-[60ch] text-[15px] leading-6 text-muted">{lead ?? children}</div>}
+    <div className="mb-8 flex flex-col gap-3">
+      {label && <p className="lbl">{label}</p>}
+      <h2 className="text-[28px] font-semibold leading-[1.1] tracking-[-0.025em] sm:text-[36px]">{title}</h2>
+      {(lead || children) && <div className="mt-1 max-w-[72ch] text-[15px] leading-6 text-muted">{lead ?? children}</div>}
     </div>
   );
 }
@@ -302,14 +298,14 @@ export function CompliancePage({ email }: { email: string | null }) {
           <div className="grid gap-4 lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-6">
             <div key={sector} className="rise min-w-0">
               <ul className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-col lg:gap-0 lg:overflow-visible lg:px-0 lg:pb-0">
-                <li className="hidden px-3 pb-2 lg:block">
+                <li className="hidden pb-2 pl-3.5 pr-3 lg:block">
                   <p className="lbl">{u.appliesToYou}</p>
                 </li>
                 {mine.map((r) => (
                   <RailItem key={r.id} r={r} on={current?.id === r.id} lang={lang} onPick={() => openRule(r.id, false)} />
                 ))}
                 {others.length > 0 && (
-                  <li className="hidden px-3 pb-2 pt-6 lg:block">
+                  <li className="hidden pb-2 pl-3.5 pr-3 pt-6 lg:block">
                     <p className="lbl">{u.otherRules}</p>
                   </li>
                 )}
