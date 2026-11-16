@@ -68,6 +68,9 @@
 
 html {
   background: var(--color-bg);
+  /* Reserve the scrollbar's space so short and long tabs share one content width. */
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
 }
 
 body {
