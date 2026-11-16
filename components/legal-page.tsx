@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Gavel, Scale, ShieldCheck, ShieldAlert, MessageSquareWarning, type LucideIcon } from 'lucide-react';
 import { useLang } from '@/components/lang';
 import { SiteFooter, SiteHeader } from '@/components/site-chrome';
 import { CONTACT_EMAIL, LEGAL_SLUGS, LEGAL_UPDATED, type LegalSlug } from '@/lib/legal';
@@ -11,6 +12,14 @@ const UI = {
   en: { legal: 'Legal', updated: 'Last updated', questions: 'Questions about this page?', toc: 'On this page', review: 'This page is provided in English and Bahasa Indonesia. Use the language switch in the header.' },
   id: { legal: 'Hukum', updated: 'Diperbarui', questions: 'Ada pertanyaan tentang halaman ini?', toc: 'Di halaman ini', review: 'Halaman ini tersedia dalam bahasa Inggris dan Indonesia. Gunakan pengalih bahasa di header.' },
 } as const;
+
+const ICON: Record<LegalSlug, LucideIcon> = {
+  terms: Gavel,
+  privacy: ShieldCheck,
+  'acceptable-use': ShieldAlert,
+  liability: Scale,
+  complaints: MessageSquareWarning,
+};
 
 export function LegalPage({ slug }: { slug: LegalSlug }) {
   const [lang, setLang] = useLang();
@@ -24,20 +33,32 @@ export function LegalPage({ slug }: { slug: LegalSlug }) {
       <SiteHeader lang={lang} setLang={setLang} />
       <div className="mx-auto grid max-w-[1280px] gap-x-12 gap-y-8 px-5 pb-20 pt-24 sm:px-8 sm:pt-28 lg:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <p className="mb-3 text-[13px] font-medium text-muted">{u.legal}</p>
-          <nav aria-label={u.legal} className="flex flex-wrap gap-x-5 gap-y-2 lg:flex-col lg:gap-y-1">
-            {LEGAL_SLUGS.map((s) => (
-              <Link key={s} href={`/legal/${s}`} aria-current={s === slug ? 'page' : undefined} className={cn('text-[14px] leading-6 transition-colors hover:text-ink lg:border-l lg:pl-3', s === slug ? 'font-medium text-ink lg:border-ink' : 'text-muted lg:border-line')}>
-                {LEGAL[s].title[i]}
-              </Link>
-            ))}
+          <p className="mb-3 text-xs font-medium uppercase tracking-[0.08em] text-muted">{u.legal}</p>
+          <nav aria-label={u.legal} className="-mx-5 flex gap-1 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0">
+            {LEGAL_SLUGS.map((s) => {
+              const Icon = ICON[s];
+              const on = s === slug;
+              return (
+                <Link
+                  key={s}
+                  href={`/legal/${s}`}
+                  aria-current={on ? 'page' : undefined}
+                  className={cn(
+                    'group relative flex shrink-0 items-center gap-3 border border-transparent px-3 py-2.5 text-[14px] leading-5 transition-colors',
+                    on ? 'border-line bg-panel font-medium text-ink shadow-[inset_3px_0_0_var(--color-accent)]' : 'text-muted hover:bg-panel hover:text-ink',
+                  )}
+                >
+                  <Icon className={cn('size-4 shrink-0', on ? 'text-accent' : 'text-muted group-hover:text-ink')} strokeWidth={1.75} aria-hidden />
+                  <span className="whitespace-nowrap lg:whitespace-normal">{LEGAL[s].title[i]}</span>
+                </Link>
+              );
+            })}
           </nav>
         </aside>
 
         <main className="min-w-0 max-w-[860px]">
           <h1 className="text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[48px]">{doc.title[i]}</h1>
-          <p className="mt-5 text-[17px] leading-7 text-muted">{doc.summary[i]}</p>
-          <p className="mt-3 text-xs text-muted">
+          <p className="mt-4 text-xs text-muted">
             {u.updated} {date}
           </p>
 
