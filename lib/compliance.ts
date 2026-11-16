@@ -42,13 +42,16 @@ export interface Regulation {
   refs: RegRef[];
 }
 
-export const SECTORS: { id: Sector; label: Bilingual }[] = [
-  { id: 'any', label: { en: 'Any organisation', id: 'Semua organisasi' } },
-  { id: 'bank', label: { en: 'Commercial banks', id: 'Bank umum' } },
-  { id: 'payments', label: { en: 'Payments and fintech (Bank Indonesia)', id: 'Sistem pembayaran dan fintech (Bank Indonesia)' } },
-  { id: 'finance', label: { en: 'Financial service providers (OJK)', id: 'Pelaku usaha jasa keuangan (OJK)' } },
-  { id: 'cii', label: { en: 'Vital information infrastructure', id: 'Infrastruktur informasi vital' } },
+export const SECTORS: { id: Sector; label: Bilingual; hint: Bilingual }[] = [
+  { id: 'any', label: { en: 'Any organisation', id: 'Semua organisasi' }, hint: { en: 'Anyone who handles personal data or runs an electronic system', id: 'Siapa pun yang mengelola data pribadi atau sistem elektronik' } },
+  { id: 'bank', label: { en: 'Commercial bank', id: 'Bank umum' }, hint: { en: 'Licensed commercial banks, conventional and sharia', id: 'Bank umum berizin, konvensional dan syariah' } },
+  { id: 'payments', label: { en: 'Payments and fintech', id: 'Pembayaran dan fintech' }, hint: { en: 'Payment service providers and infrastructure under Bank Indonesia', id: 'Penyedia jasa dan infrastruktur pembayaran di bawah Bank Indonesia' } },
+  { id: 'finance', label: { en: 'Financial services', id: 'Jasa keuangan' }, hint: { en: 'Other OJK-regulated providers, such as lenders and insurers', id: 'Pelaku usaha jasa keuangan lain yang diawasi OJK' } },
+  { id: 'cii', label: { en: 'Vital infrastructure', id: 'Infrastruktur vital' }, hint: { en: 'Operators designated as vital information infrastructure', id: 'Penyelenggara yang ditetapkan sebagai infrastruktur informasi vital' } },
 ];
+
+/** True when a rule applies to a sector. Rules marked for everyone always apply. */
+export const appliesTo = (r: Regulation, sector: Sector): boolean => r.sectors.includes('any') || r.sectors.includes(sector);
 
 export const REGULATIONS: Regulation[] = [
   {
@@ -519,10 +522,14 @@ export const REVIEWED = { en: 'Reviewed 16 November 2026', id: 'Ditinjau 16 Nove
 
 export const UI: Record<Lang, {
   navTitle: string; pageTitle: string; lead: string; disclaimer: string;
-  whoTitle: string; whoHint: string; whatsNewTitle: string; whatsNew: { when: string; what: string }[];
+  whoTitle: string; whoHint: string; whatsNewTitle: string; whatsNew: { when: string; iso: string; what: string }[];
   regsTitle: string; points: string; checks: string; noChecks: string; official: string; secondary: string; ref: string; type: Record<Regulation['type'], string>;
   matrixTitle: string; matrixLead: string; colFinding: string; colRegs: string; colIso: string; colNist: string;
-  incidentTitle: string; incident: { who: string; what: string }[];
+  incidentTitle: string; incidentLead: string; incident: { big: string; who: string; what: string; sectors: Sector[] }[];
+  statRules: string; statSectors: string; statChecks: string;
+  subnav: { rules: string; map: string; incidents: string; limits: string; sources: string };
+  rulesLead: string; tileRules: (n: number) => string; appliesSummary: (n: number, label: string) => string; appliesToYou: string; otherRules: string;
+  rulebook: string; keyDatesTitle: string; inDays: (n: number) => string; inForce: string; mapHint: string; dimNote: string; sourcesCount: (n: number) => string; selectRule: string;
   limitsTitle: string; limits: string[]; sourcesTitle: string; fromPage: string; signIn: string; openGuide: string;
   lensTitle: string; lensLead: string; rollTitle: string; hitsTitle: string; clearTitle: string; none: string; findings: (n: number) => string; flagged: (a: number, b: number) => string; touches: string; seen: string; seenOn: string; noScan: string;
 }> = {
@@ -535,9 +542,27 @@ export const UI: Record<Lang, {
     whoHint: 'Pick your organisation type. The personal data and electronic system rules apply to everyone.',
     whatsNewTitle: 'Recent and upcoming',
     whatsNew: [
-      { when: '1 Mar 2026', what: 'OJK Board Member Regulation 1/2026 took effect for commercial banks. It replaced Circular Letter 21/2017.' },
-      { when: '16 Jan 2027', what: 'PP 33/2026, the implementing rules for the PDP Law, is reported to take effect. Confirm against the official text.' },
+      { when: '1 Mar 2026', iso: '2026-03-01', what: 'OJK Board Member Regulation 1/2026 for commercial banks. It replaced Circular Letter 21/2017.' },
+      { when: '16 Jan 2027', iso: '2027-01-16', what: 'PP 33/2026, the implementing rules for the PDP Law, is reported to take effect. Confirm against the official text.' },
     ],
+    rulebook: 'Rulebook',
+    keyDatesTitle: 'Key dates',
+    inDays: (n) => (n === 1 ? 'In 1 day' : `In ${n} days`),
+    inForce: 'In force',
+    statRules: 'Rules and standards',
+    statSectors: 'Sector views',
+    statChecks: 'Finding types mapped',
+    subnav: { rules: 'Your rules', map: 'Finding map', incidents: 'If exploited', limits: 'Limits', sources: 'Sources' },
+    rulesLead: 'Pick the closest match. The rules, the finding map and the incident duties below change to fit.',
+    tileRules: (n) => (n === 1 ? '1 rule' : `${n} rules`),
+    appliesSummary: (n, label) => `${label}: ${n} ${n === 1 ? 'rule applies' : 'rules apply'}`,
+    appliesToYou: 'Applies to you',
+    otherRules: 'Other rules, good to know',
+    mapHint: 'Dimmed rules do not apply to the sector you picked.',
+    dimNote: 'Not for your sector',
+    sourcesCount: (n) => `${n} sources`,
+    selectRule: 'Choose a rule',
+    incidentLead: 'These are the reporting clocks that start when something is exploited, not when it is found. Rules for other sectors are dimmed.',
     regsTitle: 'Regulations and standards',
     points: 'What it asks',
     checks: 'Craton checks that relate',
@@ -554,11 +579,11 @@ export const UI: Record<Lang, {
     colNist: 'NIST CSF',
     incidentTitle: 'If an exposure is actually exploited',
     incident: [
-      { who: 'Any organisation, PDP Law Art. 46', what: 'Written notice to the data subjects and the authority within 3 x 24 hours of a protection failure. Under PP 33/2026 the clock runs from when the failure is confirmed, and every incident must be recorded.' },
-      { who: 'Electronic system operators, PP 71/2019 Art. 24(3)', what: 'Secure the data and report at the first opportunity to law enforcement and the relevant ministry or agency.' },
-      { who: 'Commercial banks', what: 'Cyber incident reports to OJK under SEOJK 29/2022.' },
-      { who: 'Payment and market operators', what: 'Incident reports to Bank Indonesia under PBI 2/2024 and its reporting guideline.' },
-      { who: 'Vital information infrastructure', what: 'Follow the incident handling set by BSSN under Perpres 82/2022.' },
+      { big: '3 × 24 h', who: 'Tell people and the authority · PDP Law Art. 46', what: 'Written notice to the data subjects and the authority after a protection failure. Under PP 33/2026 the clock runs from when the failure is confirmed, and every incident must be recorded.', sectors: ['any'] },
+      { big: 'First chance', who: 'Report to law enforcement · PP 71/2019 Art. 24(3)', what: 'Secure the data and report at the first opportunity to law enforcement and the relevant ministry or agency.', sectors: ['any'] },
+      { big: 'OJK', who: 'Commercial banks · SEOJK 29/2022', what: 'Cyber incident reports to OJK as part of the cyber security reporting set.', sectors: ['bank'] },
+      { big: 'Bank Indonesia', who: 'Payments and markets · PBI 2/2024', what: 'Incident reports to Bank Indonesia, on top of the annual cyber security and resilience report.', sectors: ['payments'] },
+      { big: 'BSSN', who: 'Vital infrastructure · Perpres 82/2022', what: 'Follow the incident handling set by BSSN, with response teams at organisation, sector and national level.', sectors: ['cii'] },
     ],
     limitsTitle: 'What this page does not do',
     limits: [
@@ -592,9 +617,27 @@ export const UI: Record<Lang, {
     whoHint: 'Pilih jenis organisasi Anda. Aturan data pribadi dan sistem elektronik berlaku untuk semua.',
     whatsNewTitle: 'Terbaru dan akan datang',
     whatsNew: [
-      { when: '1 Mar 2026', what: 'PADK OJK 1/2026 berlaku bagi bank umum. Menggantikan SEOJK 21/2017.' },
-      { when: '16 Jan 2027', what: 'PP 33/2026, aturan pelaksana UU PDP, dilaporkan mulai berlaku. Pastikan dengan naskah resmi.' },
+      { when: '1 Mar 2026', iso: '2026-03-01', what: 'PADK OJK 1/2026 bagi bank umum. Menggantikan SEOJK 21/2017.' },
+      { when: '16 Jan 2027', iso: '2027-01-16', what: 'PP 33/2026, aturan pelaksana UU PDP, dilaporkan mulai berlaku. Pastikan dengan naskah resmi.' },
     ],
+    rulebook: 'Buku aturan',
+    keyDatesTitle: 'Tanggal penting',
+    inDays: (n) => `${n} hari lagi`,
+    inForce: 'Sudah berlaku',
+    statRules: 'Peraturan dan standar',
+    statSectors: 'Tampilan sektor',
+    statChecks: 'Jenis temuan terpetakan',
+    subnav: { rules: 'Aturan Anda', map: 'Peta temuan', incidents: 'Bila dieksploitasi', limits: 'Batasan', sources: 'Sumber' },
+    rulesLead: 'Pilih yang paling sesuai. Aturan, peta temuan, dan kewajiban insiden di bawah akan menyesuaikan.',
+    tileRules: (n) => `${n} aturan`,
+    appliesSummary: (n, label) => `${label}: ${n} aturan berlaku`,
+    appliesToYou: 'Berlaku bagi Anda',
+    otherRules: 'Aturan lain, baik diketahui',
+    mapHint: 'Aturan yang redup tidak berlaku untuk sektor yang Anda pilih.',
+    dimNote: 'Bukan untuk sektor Anda',
+    sourcesCount: (n) => `${n} sumber`,
+    selectRule: 'Pilih aturan',
+    incidentLead: 'Ini batas waktu pelaporan yang mulai berjalan saat sesuatu dieksploitasi, bukan saat ditemukan. Aturan sektor lain ditampilkan redup.',
     regsTitle: 'Peraturan dan standar',
     points: 'Isi yang diminta',
     checks: 'Pemeriksaan Craton yang terkait',
@@ -611,11 +654,11 @@ export const UI: Record<Lang, {
     colNist: 'NIST CSF',
     incidentTitle: 'Jika paparan benar-benar dieksploitasi',
     incident: [
-      { who: 'Semua organisasi, UU PDP Pasal 46', what: 'Pemberitahuan tertulis kepada subjek data dan lembaga paling lambat 3 x 24 jam setelah kegagalan pelindungan. Menurut PP 33/2026 batas waktu dihitung sejak kegagalan dipastikan, dan setiap insiden wajib dicatat.' },
-      { who: 'Penyelenggara sistem elektronik, PP 71/2019 Pasal 24 ayat (3)', what: 'Amankan data dan segera laporkan kepada aparat penegak hukum serta kementerian atau lembaga terkait.' },
-      { who: 'Bank umum', what: 'Laporan insiden siber kepada OJK sesuai SEOJK 29/2022.' },
-      { who: 'Penyelenggara sistem pembayaran dan pasar', what: 'Laporan insiden kepada Bank Indonesia sesuai PBI 2/2024 dan petunjuk teknis pelaporannya.' },
-      { who: 'Infrastruktur informasi vital', what: 'Ikuti penanganan insiden yang ditetapkan BSSN berdasarkan Perpres 82/2022.' },
+      { big: '3 × 24 jam', who: 'Beri tahu subjek data dan lembaga · UU PDP Pasal 46', what: 'Pemberitahuan tertulis kepada subjek data dan lembaga setelah kegagalan pelindungan. Menurut PP 33/2026 batas waktu dihitung sejak kegagalan dipastikan, dan setiap insiden wajib dicatat.', sectors: ['any'] },
+      { big: 'Segera', who: 'Lapor ke penegak hukum · PP 71/2019 Pasal 24 ayat (3)', what: 'Amankan data dan segera laporkan kepada aparat penegak hukum serta kementerian atau lembaga terkait.', sectors: ['any'] },
+      { big: 'OJK', who: 'Bank umum · SEOJK 29/2022', what: 'Laporan insiden siber kepada OJK sebagai bagian dari laporan keamanan siber.', sectors: ['bank'] },
+      { big: 'Bank Indonesia', who: 'Pembayaran dan pasar · PBI 2/2024', what: 'Laporan insiden kepada Bank Indonesia, di samping laporan tahunan keamanan dan ketahanan siber.', sectors: ['payments'] },
+      { big: 'BSSN', who: 'Infrastruktur vital · Perpres 82/2022', what: 'Ikuti penanganan insiden yang ditetapkan BSSN, dengan tim tanggap di tingkat organisasi, sektoral, dan nasional.', sectors: ['cii'] },
     ],
     limitsTitle: 'Yang tidak dilakukan halaman ini',
     limits: [
