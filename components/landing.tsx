@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { CratonMark } from '@/components/brand';
-import { NIGHT, SiteFooter, SiteHeader } from '@/components/site-chrome';
+import { SiteFooter, SiteHeader } from '@/components/site-chrome';
 import { useLang } from '@/components/lang';
 import { SEV_VAR } from '@/lib/i18n';
 import type { Lang, Severity } from '@/lib/types';
@@ -437,7 +437,7 @@ export function Landing() {
   const c = COPY[lang];
 
   return (
-    <div style={NIGHT} className="min-h-dvh bg-bg text-ink antialiased">
+    <div className="min-h-dvh bg-bg text-ink antialiased">
       <SiteHeader lang={lang} setLang={setLang} onLanding />
 
       <main>

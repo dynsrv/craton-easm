@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { PUBLIC_THEME_SCRIPT } from '@/lib/public-theme';
 import { notFound } from 'next/navigation';
 import { LegalPage } from '@/components/legal-page';
 import { LEGAL_SLUGS, type LegalSlug } from '@/lib/legal';
@@ -26,7 +27,7 @@ export default async function Legal({ params }: { params: Promise<{ slug: string
   return (
     <>
       {/* Same always-dark look as the landing page, set before first paint. */}
-      <script dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.theme='dark'" }} />
+      <script dangerouslySetInnerHTML={{ __html: PUBLIC_THEME_SCRIPT }} />
       <LegalPage slug={slug} />
     </>
   );

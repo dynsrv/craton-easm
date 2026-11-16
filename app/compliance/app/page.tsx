@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { PUBLIC_THEME_SCRIPT } from '@/lib/public-theme';
 import { CompliancePage } from '@/components/compliance-page';
 import { currentUser } from '@/lib/auth/guard';
 import { isAdminRole } from '@/lib/auth/roles';
@@ -17,7 +18,7 @@ export default async function ComplianceApp() {
   const email = user?.session.email ?? null;
   return (
     <>
-      {!email && <script dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.theme='dark'" }} />}
+      {!email && <script dangerouslySetInnerHTML={{ __html: PUBLIC_THEME_SCRIPT }} />}
       <CompliancePage email={email} isAdmin={isAdminRole(user?.role)} />
     </>
   );

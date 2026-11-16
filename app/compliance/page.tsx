@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { PUBLIC_THEME_SCRIPT } from '@/lib/public-theme';
 import { CompliancePage } from '@/components/compliance-page';
 
 // Static: served from the edge with no session lookup. Signed-in users are rewritten to /compliance/app by middleware.
@@ -15,7 +16,7 @@ export default function Compliance() {
   return (
     <>
       {/* Visitors always get the dark theme, set before first paint. */}
-      <script dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.theme='dark'" }} />
+      <script dangerouslySetInnerHTML={{ __html: PUBLIC_THEME_SCRIPT }} />
       <CompliancePage email={null} />
     </>
   );

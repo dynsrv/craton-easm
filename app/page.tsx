@@ -3,6 +3,7 @@ import { Dashboard } from '@/components/dashboard';
 import { Landing } from '@/components/landing';
 import { currentUser, getSession } from '@/lib/auth/guard';
 import { isAdminRole } from '@/lib/auth/roles';
+import { PUBLIC_THEME_SCRIPT } from '@/lib/public-theme';
 import { listScans, loadScanDTO } from '@/lib/run-scan';
 
 export const dynamic = 'force-dynamic';
@@ -19,7 +20,14 @@ export async function generateMetadata(): Promise<Metadata> {
  */
 export default async function Home({ searchParams }: { searchParams: Promise<{ scan?: string }> }) {
   const user = await currentUser();
-  if (!user) return <Landing />;
+  if (!user)
+    return (
+      <>
+        {/* Visitors get their saved theme, or dark the first time, before first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: PUBLIC_THEME_SCRIPT }} />
+        <Landing />
+      </>
+    );
   const admin = isAdminRole(user.role);
   const [{ scan: wanted }, recent] = await Promise.all([searchParams, listScans(admin ? {} : { ownerId: user.session.userId })]);
   const id = wanted && recent.some((s) => s.id === wanted) ? wanted : recent[0]?.id;

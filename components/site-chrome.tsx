@@ -4,31 +4,11 @@ import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { CratonMark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { BUILD, CONTACT_EMAIL, LEGAL_SLUGS, OPERATOR, PRODUCT, VERSION } from '@/lib/legal';
 import { LEGAL } from '@/lib/legal-content';
 import type { Lang } from '@/lib/types';
 import { cn } from '@/lib/utils';
-
-/** The landing page is always dark, independent of the workspace theme. */
-export const NIGHT = {
-  '--color-bg': '#000000',
-  '--color-panel': '#0a0a0a',
-  '--color-panel2': '#161616',
-  '--color-line': '#262626',
-  '--color-ink': '#f5f5f5',
-  '--color-primary': '#f5f5f5',
-  '--color-accent': '#8ab4ff',
-  '--color-muted': '#8f8f8f',
-  '--color-field': '#000000',
-  '--color-inverse': '#000000',
-  '--color-crit': '#ff5a5f',
-  '--color-high': '#ff8a3d',
-  '--color-med': '#f2b233',
-  '--color-low': '#f0e052',
-  '--color-ok': '#4fd18b',
-  '--color-info': '#8f8f8f',
-  colorScheme: 'dark',
-} as React.CSSProperties;
 
 const STR = {
   en: { framework: 'Framework', brief: 'The Brief', leaders: 'For Leaders', trust: 'Trust', compliance: 'Compliance', signIn: 'Sign in', footer: 'External attack surface management', complianceLink: 'Indonesian compliance guide' },
@@ -64,6 +44,7 @@ export function SiteHeader({ lang, setLang, onLanding = false, active }: { lang:
         </nav>
         <div className="ml-auto flex items-center gap-3">
           <LangToggle lang={lang} setLang={setLang} />
+          <ThemeToggle />
           <Link href="/login" className="inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap bg-ink px-3.5 text-[13px] font-medium text-bg hover:bg-white">
             {s.signIn}
             <ArrowUpRight className="size-3.5" aria-hidden />

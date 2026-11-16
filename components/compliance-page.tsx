@@ -4,7 +4,7 @@ import { useSector } from '@/components/use-sector';
 import { ArrowUpRight, Banknote, Building2, Check, CreditCard, ExternalLink, Factory, Landmark, Scale, TriangleAlert, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { NIGHT, SiteFooter, SiteHeader } from '@/components/site-chrome';
+import { SiteFooter, SiteHeader } from '@/components/site-chrome';
 import { NumBadge } from '@/components/ui/num-badge';
 import { Wordmark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
@@ -121,20 +121,6 @@ function Reader({ r, lang, applies }: { r: Regulation; lang: Lang; applies: bool
 export function CompliancePage({ email, isAdmin = false }: { email: string | null; isAdmin?: boolean }) {
   const [lang, setLang] = useLang();
   const u = UI[lang];
-  // Signed-out visitors see the dark theme and have no switch; on leaving, the saved or system theme returns.
-  useEffect(() => {
-    if (email) return;
-    const root = document.documentElement;
-    root.dataset.theme = 'dark';
-    return () => {
-      let t: string | null = null;
-      try {
-        t = localStorage.getItem('craton-theme');
-      } catch {}
-      if (t !== 'light' && t !== 'dark') t = window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      root.dataset.theme = t;
-    };
-  }, [email]);
   const [sector, setSector] = useSector();
   const [selected, setSelected] = useState<string>('uu-pdp');
   const [days, setDays] = useState<Record<string, number>>({});
@@ -180,7 +166,7 @@ export function CompliancePage({ email, isAdmin = false }: { email: string | nul
   const SHELL = email ? APP_SHELL : PUBLIC_SHELL;
   return (
     <ShellCtx.Provider value={SHELL}>
-    <div style={email ? undefined : NIGHT} className={cn(!email && 'min-h-dvh bg-bg text-ink antialiased')}>
+    <div className={cn(!email && 'min-h-dvh bg-bg text-ink antialiased')}>
       {email ? (
         <TopBar active="compliance" email={email} isAdmin={isAdmin}>
           <LangToggle lang={lang} setLang={setLang} />
