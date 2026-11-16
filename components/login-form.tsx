@@ -44,7 +44,7 @@ export function LoginForm({ problems }: { problems: string[] }) {
               ['Report', 'A one-page brief for leadership, in English or Bahasa Indonesia.'],
             ].map(([k, v]) => (
               <li key={k} className="flex items-start gap-3 text-sm leading-6">
-                <CircleCheck className="mt-1 size-4 shrink-0 text-low" strokeWidth={1.75} aria-hidden />
+                <CircleCheck className="mt-1 size-4 shrink-0 text-ok" strokeWidth={1.75} aria-hidden />
                 <span>
                   <b className="font-semibold">{k}.</b> <span className="text-muted">{v}</span>
                 </span>

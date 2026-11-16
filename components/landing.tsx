@@ -333,9 +333,10 @@ const NIGHT = {
   '--color-field': '#000000',
   '--color-inverse': '#000000',
   '--color-crit': '#ff5a5f',
-  '--color-high': '#f5a14a',
-  '--color-med': '#e6c34a',
-  '--color-low': '#4fd18b',
+  '--color-high': '#ff8a3d',
+  '--color-med': '#f2b233',
+  '--color-low': '#f0e052',
+  '--color-ok': '#4fd18b',
   '--color-info': '#8f8f8f',
   colorScheme: 'dark',
 } as React.CSSProperties;
@@ -437,10 +438,10 @@ function BriefPreview({ c }: { c: (typeof COPY)['en'] }) {
           {c.preview.nodes.map((n, i) => (
             <li key={n} className="relative flex gap-4 pb-8 last:pb-0">
               {i < c.preview.nodes.length - 1 && <span className="absolute left-[5px] top-4 h-full w-px bg-line" aria-hidden />}
-              <span className={cn('relative mt-1.5 size-[11px] shrink-0 border', i === 1 ? 'border-low bg-low' : 'border-muted bg-bg')} />
+              <span className={cn('relative mt-1.5 size-[11px] shrink-0 border', i === 1 ? 'border-ok bg-ok' : 'border-muted bg-bg')} />
               <div>
                 <p className={cn('text-[15px]', i === 1 && 'font-semibold')}>{n}</p>
-                {i === 1 && <p className="mt-1 text-sm font-medium text-low">{c.preview.breakHere}</p>}
+                {i === 1 && <p className="mt-1 text-sm font-medium text-ok">{c.preview.breakHere}</p>}
               </div>
             </li>
           ))}
@@ -538,7 +539,7 @@ export function Landing() {
                 <li key={time} className="grid grid-cols-[72px_80px_minmax(0,1fr)] gap-3 sm:grid-cols-[88px_96px_minmax(0,1fr)]">
                   <span className="text-muted">{time}</span>
                   <span className="text-muted">{src}</span>
-                  <span className={cn('truncate', msg.includes('KEV') || msg.includes('credentials') ? 'text-crit' : msg.includes('ready') ? 'text-low' : '')}>{msg}</span>
+                  <span className={cn('truncate', msg.includes('KEV') || msg.includes('credentials') ? 'text-crit' : msg.includes('ready') ? 'text-ok' : '')}>{msg}</span>
                 </li>
               ))}
             </ol>
@@ -644,7 +645,7 @@ export function Landing() {
           <Head title={c.trustTitle} lead={c.trustLead} cols="lg:grid-cols-2" gap="" indent="lg:pl-10" />
           <div className="mt-16 grid gap-px border border-line bg-line lg:grid-cols-2">
             {[
-              { title: c.does, items: c.doesList, icon: Check, color: 'text-low' },
+              { title: c.does, items: c.doesList, icon: Check, color: 'text-ok' },
               { title: c.never, items: c.neverList, icon: Ban, color: 'text-crit' },
             ].map((col) => (
               <div key={col.title} className="bg-bg p-7 sm:p-10">

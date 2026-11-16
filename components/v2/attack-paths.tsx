@@ -71,7 +71,7 @@ function Step({
         <span
           className={cn(
             'grid size-7 shrink-0 place-items-center rounded-full border text-xs font-semibold tabular',
-            choke ? 'border-low bg-low text-[var(--color-inverse)]' : 'border-line bg-panel text-muted',
+            choke ? 'border-ok bg-ok text-[var(--color-inverse)]' : 'border-line bg-panel text-muted',
           )}
         >
           {choke ? <Scissors className="size-3.5" /> : index + 1}
@@ -86,13 +86,13 @@ function Step({
         )}
       </div>
 
-      <div className={cn('mb-4 flex min-w-0 flex-1 flex-col gap-2 rounded-md border bg-bg p-4 lg:mb-0', choke ? 'border-low' : 'border-line')}>
+      <div className={cn('mb-4 flex min-w-0 flex-1 flex-col gap-2 rounded-md border bg-bg p-4 lg:mb-0', choke ? 'border-ok' : 'border-line')}>
         <div className="flex items-center justify-between gap-2 lbl">
           <span className="flex items-center gap-1.5">
             <Kind className="size-3.5" strokeWidth={1.75} aria-hidden />
             {t.nodeKind[node.kind]}
           </span>
-          {choke && <span className="text-low">{t.breakHere}</span>}
+          {choke && <span className="text-ok">{t.breakHere}</span>}
         </div>
         <p className="text-sm font-semibold leading-5">{node.label[lang]}</p>
         {node.hostname && (

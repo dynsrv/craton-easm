@@ -310,7 +310,7 @@ function ServiceSettings() {
                       className="field !h-9 font-mono"
                     />
                     <p className="hint mt-1.5 flex items-center gap-1.5">
-                      <span className={cn('size-1.5', s?.source === 'none' ? 'bg-line' : 'bg-low')} aria-hidden />
+                      <span className={cn('size-1.5', s?.source === 'none' ? 'bg-line' : 'bg-ok')} aria-hidden />
                       {SOURCE_LABEL[s?.source ?? 'none']}
                     </p>
                   </div>
@@ -336,7 +336,7 @@ function ServiceSettings() {
               <BellRing />
               Send test alert
             </Button>
-            {note && <span role="status" className={cn('text-[13px]', note.ok ? 'text-low' : 'text-crit')}>{note.text}</span>}
+            {note && <span role="status" className={cn('text-[13px]', note.ok ? 'text-ok' : 'text-crit')}>{note.text}</span>}
           </div>
         </form>
       )}
@@ -420,10 +420,10 @@ function Users() {
           <tbody>
             {users.map((u) => (
               <tr key={u.id} className="border-b border-line [&>td]:h-12 [&>td]:px-5">
-                <td className="truncate font-mono text-[13px]"><span className={cn('mr-2 inline-block size-1.5 sm:hidden', u.mustChangePassword ? 'bg-med' : 'bg-low')} aria-hidden />{u.email}{u.id === me && <span className="ml-2 font-sans text-xs text-muted">(you)</span>}</td>
+                <td className="truncate font-mono text-[13px]"><span className={cn('mr-2 inline-block size-1.5 sm:hidden', u.mustChangePassword ? 'bg-med' : 'bg-ok')} aria-hidden />{u.email}{u.id === me && <span className="ml-2 font-sans text-xs text-muted">(you)</span>}</td>
                 <td className="hidden text-[13px] sm:table-cell">
                   <span className="inline-flex items-center gap-2">
-                    <span className={cn('size-1.5', u.mustChangePassword ? 'bg-med' : 'bg-low')} aria-hidden />
+                    <span className={cn('size-1.5', u.mustChangePassword ? 'bg-med' : 'bg-ok')} aria-hidden />
                     {u.mustChangePassword ? 'Password change pending' : 'Active'}
                   </span>
                 </td>
@@ -454,7 +454,7 @@ function Users() {
         <p className="hint">A one-time password is shown once. They must change it at first sign-in.</p>
         {error && <p role="alert" className="text-[13px] text-crit">{error}</p>}
         {created && (
-          <div role="status" className="border border-low bg-bg p-3">
+          <div role="status" className="border border-ok bg-bg p-3">
             <p className="text-[13px] leading-5">
               One-time password for <b>{created.email}</b>. Pass it on through a private channel.
             </p>

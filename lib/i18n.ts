@@ -12,9 +12,9 @@ export const SEV_VAR: Record<Severity, string> = {
 /** Darker severity colours that stay readable on white paper. */
 export const SEV_PRINT: Record<Severity, string> = {
   Critical: '#ac2f33',
-  High: '#935610',
-  Medium: '#866103',
-  Low: '#1c6e42',
+  High: '#c4520c',
+  Medium: '#9a5e00',
+  Low: '#8a7600',
   Info: '#5f6b7c',
 };
 

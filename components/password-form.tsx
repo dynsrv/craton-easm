@@ -54,7 +54,7 @@ export function PasswordForm({ onDone, currentLabel = 'Current password', classN
         <input id="pw-confirm" type="password" autoComplete="new-password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} className="field !h-9" />
       </div>
       {error && <p role="alert" className="text-[13px] text-crit">{error}</p>}
-      {saved && <p role="status" className="text-[13px] text-low">Password changed.</p>}
+      {saved && <p role="status" className="text-[13px] text-ok">Password changed.</p>}
       <div>
         <Button type="submit" disabled={busy}>
           {busy && <Loader2 className="animate-spin" />}

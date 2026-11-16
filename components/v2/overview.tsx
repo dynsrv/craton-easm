@@ -75,8 +75,8 @@ export function Overview({ scan, assets, counts, lang, t, setTab, filterAssets }
               `${t.unchanged} ${t.since(fmt(scan.baseline!.date))}`
             ) : (
               <>
-                {delta > 0 ? <TrendingUp className="size-4 text-low" aria-hidden /> : <TrendingDown className="size-4 text-crit" aria-hidden />}
-                <b className={cn('tabular font-semibold', delta > 0 ? 'text-low' : 'text-crit')}>
+                {delta > 0 ? <TrendingUp className="size-4 text-ok" aria-hidden /> : <TrendingDown className="size-4 text-crit" aria-hidden />}
+                <b className={cn('tabular font-semibold', delta > 0 ? 'text-ok' : 'text-crit')}>
                   {delta > 0 ? '+' : ''}
                   {delta}
                 </b>

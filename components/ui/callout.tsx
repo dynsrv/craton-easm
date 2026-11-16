@@ -2,7 +2,7 @@ import { Info, TriangleAlert, Wrench, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const TONES: Record<'fix' | 'warn' | 'info', { color: string; icon: LucideIcon }> = {
-  fix: { color: 'var(--color-low)', icon: Wrench },
+  fix: { color: 'var(--color-ok)', icon: Wrench },
   warn: { color: 'var(--color-high)', icon: TriangleAlert },
   info: { color: 'var(--color-accent)', icon: Info },
 };

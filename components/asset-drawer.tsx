@@ -46,7 +46,7 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
       a.visualClass ? `Looks like: ${a.visualClass}${a.visualProduct ? ` (${a.visualProduct})` : ''}` : '',
     ].filter(Boolean),
   };
-  const yn = (v: boolean) => <span className={v ? 'text-low' : 'text-crit'}>{v ? t.yes : t.no}</span>;
+  const yn = (v: boolean) => <span className={v ? 'text-ok' : 'text-crit'}>{v ? t.yes : t.no}</span>;
 
   const copy = async () => {
     const text = [

@@ -27,7 +27,7 @@ export function ModuleOverview({ scan, t, onOpen }: { scan: ScanDTO; t: Dict; on
   const driftNow = scan.driftEvents.filter((e) => e.scanId === scan.id);
 
     const grade = emailGrade(scan.emailSecurity);
-  const gradeColor = grade === 'strong' ? 'var(--color-low)' : grade === 'weak' ? SEV_VAR[worst(of('email')) === 'Critical' || worst(of('email')) === 'High' ? worst(of('email'))! : 'Medium'] : undefined;
+  const gradeColor = grade === 'strong' ? 'var(--color-ok)' : grade === 'weak' ? SEV_VAR[worst(of('email')) === 'Critical' || worst(of('email')) === 'High' ? worst(of('email'))! : 'Medium'] : undefined;
 
   const tiles: { key: string; tab: Tab; value: string | number; sub: string; sev?: Severity; color?: string }[] = [
     { key: 'takeover', tab: 'exposures', value: of('takeover').length, sub: t.modSub.takeover(of('takeover').length), sev: worst(of('takeover')) },

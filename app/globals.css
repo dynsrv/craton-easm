@@ -16,9 +16,10 @@
   --color-inverse: #000000;
   --color-field: #000000;
   --color-crit: #ff5a5f;
-  --color-high: #f5a14a;
-  --color-med: #e6c34a;
-  --color-low: #4fd18b;
+  --color-high: #ff8a3d;
+  --color-med: #f2b233;
+  --color-low: #f0e052;
+  --color-ok: #4fd18b;
   --color-info: #8f8f8f;
   --color-tone-rose: #f17a8c;
   --color-tone-violet: #b39af5;
@@ -53,9 +54,10 @@
   --color-inverse: #ffffff;
   --color-field: #ffffff;
   --color-crit: #c4262e;
-  --color-high: #a85b0b;
-  --color-med: #866103;
-  --color-low: #157347;
+  --color-high: #d4590a;
+  --color-med: #a86400;
+  --color-low: #a38a00;
+  --color-ok: #157347;
   --color-info: #6b6b6b;
   --color-tone-rose: #c2375a;
   --color-tone-violet: #6b4fc9;
@@ -272,5 +274,15 @@ select {
   * {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* iOS Safari zooms the page when a focused field has a font size under 16px. On touch devices every text
+   field is at least 16px, which stops the zoom without disabling pinch-zoom. Unlayered, so it beats utilities. */
+@media (pointer: coarse) {
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px;
   }
 }
