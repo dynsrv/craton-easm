@@ -9,7 +9,6 @@ import { trustedPorts } from '../ports';
 import { findCnameOnlyRecords, type DanglingCandidate } from './takeover';
 import { gatherOsintNames, type OsintSourceResult } from './osint';
 
-export const MAX_HOSTS = 200;
 export const PROBE_CONCURRENCY = 12;
 export const PROBE_TIMEOUT_MS = 5000;
 
@@ -37,7 +36,7 @@ export interface DiscoveryResult {
 export async function discover(
   domain: string,
   onProgress: (p: DiscoveryProgress) => void | Promise<void> = () => {},
-  options: { shodanKey?: string | null; otxKey?: string | null } = {},
+  options: { shodanKey?: string | null; otxKey?: string | null; maxHosts?: number } = {},
 ): Promise<DiscoveryResult> {
   // 1. Certificate Transparency, with DNS fallback
   let source: DiscoveryResult['source'] = 'crt.sh';
@@ -86,8 +85,9 @@ export async function discover(
   const cnameOnly = await findCnameOnlyRecords(deadNames);
   if (cnameOnly.length) await onProgress({ phase: 1, message: `  ${cnameOnly.length} name(s) with a CNAME but no address (checked for dangling DNS)` });
 
-  const targets = prioritize(live, MAX_HOSTS);
-  if (live.length > MAX_HOSTS) await onProgress({ phase: 1, message: `  capped at the ${MAX_HOSTS} most interesting hosts` });
+  const maxHosts = options.maxHosts ?? 200;
+  const targets = prioritize(live, maxHosts);
+  if (live.length > maxHosts) await onProgress({ phase: 1, message: `  capped at the ${maxHosts} most interesting hosts (of ${live.length} live)` });
 
   // 3. HTTP / TLS probing
   await onProgress({ phase: 2, message: `Probing ${targets.length} hosts (GET /, ${PROBE_TIMEOUT_MS / 1000}s timeout)` });

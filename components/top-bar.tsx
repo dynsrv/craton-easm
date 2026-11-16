@@ -13,7 +13,7 @@ const NAV = [
   { id: 'admin', href: '/admin', label: 'Admin' },
 ] as const;
 
-export function TopBar({ active, email, children }: { active: 'dashboard' | 'compliance' | 'admin' | null; email?: string; children?: React.ReactNode }) {
+export function TopBar({ active, email, isAdmin = false, children }: { active: 'dashboard' | 'compliance' | 'admin' | null; email?: string; isAdmin?: boolean; children?: React.ReactNode }) {
   const signOut = async () => {
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     window.location.href = '/';
@@ -36,7 +36,7 @@ export function TopBar({ active, email, children }: { active: 'dashboard' | 'com
           <Wordmark compact />
         </Link>
         <nav className="order-last -mx-2.5 flex h-10 w-full items-stretch sm:order-none sm:mx-0 sm:h-full sm:w-auto" aria-label="Main">
-          {NAV.map((n) => (
+          {NAV.filter((n) => n.id !== 'admin' || isAdmin).map((n) => (
             <Link
               key={n.id}
               href={n.href}

@@ -31,12 +31,16 @@ model Scan {
   emailSecurity  String? // JSON EmailSecurity
   baselineScanId String? // previous scan this one was compared with
 
+  /// Owner (User.id). Customers only see their own scans; null = legacy or system scan, visible to admins.
+  ownerId     String?
+
   assets      Asset[]
   exposures   Exposure[]
   snapshot    ScanSnapshot?
   driftEvents DriftEvent[]
 
   @@index([domain, createdAt])
+  @@index([ownerId])
 }
 
 model Asset {
@@ -146,6 +150,7 @@ model Monitor {
   domain    String    @id
   enabled   Boolean   @default(true)
   createdBy String?
+  ownerId   String?
   lastRunAt DateTime?
   createdAt DateTime  @default(now())
 }
@@ -154,7 +159,10 @@ model User {
   id                 String    @id @default(cuid())
   email              String    @unique
   passwordHash       String
-  role               String    @default("admin")
+  role               String    @default("user") // admin (super admin) | user (customer)
+  /// Per-user cap on hosts probed per scan; null = use the global default from /admin.
+  maxHosts           Int?
+  disabled           Boolean   @default(false)
   mustChangePassword Boolean   @default(true)
   failedLogins       Int       @default(0)
   lockedUntil        DateTime?

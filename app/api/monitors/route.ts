@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { requireUser } from '@/lib/auth/guard';
+import { ownedBy, requireUser } from '@/lib/auth/guard';
 import { prisma } from '@/lib/db';
 import { normalizeDomain } from '@/lib/scanner/domain';
 
@@ -10,7 +10,7 @@ export const runtime = 'nodejs';
 export async function GET() {
   const auth = await requireUser();
   if ('response' in auth) return auth.response;
-  return NextResponse.json({ monitors: await prisma.monitor.findMany({ orderBy: { domain: 'asc' } }) });
+  return NextResponse.json({ monitors: await prisma.monitor.findMany({ where: ownedBy(auth.session), orderBy: { domain: 'asc' } }) });
 }
 
 /** POST /api/monitors { domain, enabled } -> turn daily monitoring on or off */
@@ -25,9 +25,13 @@ export async function POST(req: Request) {
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 400 });
   }
+  const existing = await prisma.monitor.findUnique({ where: { domain } });
+  if (existing && existing.ownerId !== auth.session.userId && auth.session.role !== 'admin') {
+    return NextResponse.json({ error: 'That domain is already monitored by another account.' }, { status: 409 });
+  }
   const monitor = await prisma.monitor.upsert({
     where: { domain },
-    create: { domain, enabled: parsed.data.enabled, createdBy: auth.session.email },
+    create: { domain, enabled: parsed.data.enabled, createdBy: auth.session.email, ownerId: auth.session.userId },
     update: { enabled: parsed.data.enabled },
   });
   return NextResponse.json({ monitor });

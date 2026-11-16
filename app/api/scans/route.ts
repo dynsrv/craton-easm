@@ -1,6 +1,6 @@
 import { after, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { requireUser } from '@/lib/auth/guard';
+import { ownedBy, requireUser } from '@/lib/auth/guard';
 import { prisma } from '@/lib/db';
 import { listScans, runScan } from '@/lib/run-scan';
 import { normalizeDomain } from '@/lib/scanner/domain';
@@ -32,11 +32,11 @@ export async function POST(req: Request) {
 
   // One scan per domain at a time keeps us polite towards crt.sh and the target.
   const active = await prisma.scan.findFirst({
-    where: { domain, status: { in: ['queued', 'running'] }, createdAt: { gt: new Date(Date.now() - 10 * 60_000) } },
+    where: { ...ownedBy(auth.session), domain, status: { in: ['queued', 'running'] }, createdAt: { gt: new Date(Date.now() - 10 * 60_000) } },
   });
   if (active) return NextResponse.json({ id: active.id, reused: true });
 
-  const scan = await prisma.scan.create({ data: { domain } });
+  const scan = await prisma.scan.create({ data: { domain, ownerId: auth.session.userId } });
   // Run after the response is sent. Works on `next dev` / `next start`; on serverless hosts
   // the function stays alive up to maxDuration. For heavier use, move this to a queue worker.
   after(() => runScan(scan.id));
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
 
 /** GET /api/scans  ->  the 20 most recent scans (without assets) */
 export async function GET() {
-  const [auth, scans] = await Promise.all([requireUser(), listScans()]);
+  const auth = await requireUser();
   if ('response' in auth) return auth.response;
-  return NextResponse.json({ scans });
+  return NextResponse.json({ scans: await listScans(ownedBy(auth.session)) });
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireUser } from '@/lib/auth/guard';
+import { requireAdmin } from '@/lib/auth/guard';
 import { isPublicIPv4 } from '@/lib/scanner/domain';
 import { getRuntimeConfig } from '@/lib/settings';
 import { lookup } from 'node:dns/promises';
@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 
 /** POST /api/admin/settings/test-webhook -> sends one sample drift alert to ALERT_WEBHOOK_URL */
 export async function POST() {
-  const auth = await requireUser();
+  const auth = await requireAdmin();
   if ('response' in auth) return auth.response;
   const { alertWebhookUrl } = await getRuntimeConfig();
   if (!alertWebhookUrl) return NextResponse.json({ ok: false, message: 'No alert webhook URL is saved.' });

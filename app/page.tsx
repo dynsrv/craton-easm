@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Dashboard } from '@/components/dashboard';
 import { Landing } from '@/components/landing';
-import { getSession } from '@/lib/auth/guard';
+import { currentUser, getSession } from '@/lib/auth/guard';
+import { isAdminRole } from '@/lib/auth/roles';
 import { listScans, loadScanDTO } from '@/lib/run-scan';
 
 export const dynamic = 'force-dynamic';
@@ -17,10 +18,11 @@ export async function generateMetadata(): Promise<Metadata> {
  * so the browser does not wait for JavaScript and two more API calls before showing anything.
  */
 export default async function Home({ searchParams }: { searchParams: Promise<{ scan?: string }> }) {
-  const session = await getSession();
-  if (!session) return <Landing />;
-  const [{ scan: wanted }, recent] = await Promise.all([searchParams, listScans()]);
+  const user = await currentUser();
+  if (!user) return <Landing />;
+  const admin = isAdminRole(user.role);
+  const [{ scan: wanted }, recent] = await Promise.all([searchParams, listScans(admin ? {} : { ownerId: user.session.userId })]);
   const id = wanted && recent.some((s) => s.id === wanted) ? wanted : recent[0]?.id;
   const scan = id ? await loadScanDTO(id) : null;
-  return <Dashboard userEmail={session.email} initialScan={scan} initialRecent={recent} />;
+  return <Dashboard userEmail={user.session.email} isAdmin={admin} initialScan={scan} initialRecent={recent} />;
 }

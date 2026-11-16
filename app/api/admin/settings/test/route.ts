@@ -1,7 +1,7 @@
 import { generateText } from 'ai';
 import { NextResponse } from 'next/server';
 import { getModel } from '@/lib/ai/triage';
-import { requireUser } from '@/lib/auth/guard';
+import { requireAdmin } from '@/lib/auth/guard';
 import { getRuntimeConfig } from '@/lib/settings';
 
 export const runtime = 'nodejs';
@@ -9,7 +9,7 @@ export const maxDuration = 30;
 
 /** POST /api/admin/settings/test -> makes one tiny LLM call with the saved configuration */
 export async function POST() {
-  const auth = await requireUser();
+  const auth = await requireAdmin();
   if ('response' in auth) return auth.response;
 
   const llm = getModel(await getRuntimeConfig());

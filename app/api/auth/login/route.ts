@@ -28,6 +28,7 @@ export async function POST(req: Request) {
     if (user?.lockedUntil && user.lockedUntil > new Date()) {
       return NextResponse.json({ error: `Too many attempts. Try again in ${LOCK_MINUTES} minutes.` }, { status: 429 });
     }
+    if (user?.disabled) return NextResponse.json({ error: 'This account is disabled. Contact your administrator.' }, { status: 403 });
     const ok = verifyPassword(parsed.data.password, user?.passwordHash ?? DUMMY_HASH) && Boolean(user);
     if (!user || !ok) {
       if (user) {

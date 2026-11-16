@@ -23,16 +23,17 @@ interface SelectProps {
   /** Text shown in the closed trigger, when it should differ from the option label. */
   renderValue?: (option: SelectOption | undefined) => React.ReactNode;
   mono?: boolean;
+  disabled?: boolean;
 }
 
 /**
  * Themed dropdown built on Radix Select: keyboard navigation, type-ahead, focus return and
  * screen-reader roles come from the primitive; the look follows the app's theme tokens.
  */
-export function Select({ id, value, onValueChange, options, placeholder, className, renderValue, mono, ...aria }: SelectProps) {
+export function Select({ id, value, onValueChange, options, placeholder, className, renderValue, mono, disabled, ...aria }: SelectProps) {
   const current = options.find((o) => o.value === value);
   return (
-    <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
+    <SelectPrimitive.Root value={value} onValueChange={onValueChange} disabled={disabled}>
       <SelectPrimitive.Trigger
         id={id}
         aria-label={aria['aria-label']}
@@ -42,6 +43,7 @@ export function Select({ id, value, onValueChange, options, placeholder, classNa
           'focus-visible:border-transparent focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-accent',
           'data-[state=open]:border-transparent data-[state=open]:outline-2 data-[state=open]:outline-offset-0 data-[state=open]:outline-accent',
           'data-[placeholder]:text-muted',
+          'disabled:cursor-not-allowed disabled:opacity-60',
           mono && 'font-mono',
           className,
         )}

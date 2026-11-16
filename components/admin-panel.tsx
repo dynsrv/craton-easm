@@ -1,6 +1,6 @@
 'use client';
 
-import { BellRing, Bot, Check, Copy, Gauge, GitBranch, KeyRound, Loader2, Plug, Radar, ServerCog, Sparkles, Trash2, UserPlus, Users as UsersIcon, Webhook, type LucideIcon } from 'lucide-react';
+import { BellRing, Bot, Check, Copy, Gauge, GitBranch, KeyRound, Loader2, Plug, Radar, ServerCog, Sparkles, Trash2, UserCheck, UserPlus, UserX, Users as UsersIcon, Webhook, type LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { PasswordForm } from '@/components/password-form';
 import { TopBar } from '@/components/top-bar';
@@ -19,6 +19,9 @@ interface UserRow {
   id: string;
   email: string;
   role: string;
+  maxHosts: number | null;
+  disabled: boolean;
+  scans: number;
   mustChangePassword: boolean;
   lastLoginAt: string | null;
   createdAt: string;
@@ -54,7 +57,7 @@ const TABS = [
   { id: 'services', label: 'Services', icon: ServerCog },
   { id: 'usage', label: 'AI usage', icon: Gauge },
   { id: 'sources', label: 'Data sources', icon: Plug },
-  { id: 'access', label: 'Access', icon: UsersIcon },
+  { id: 'access', label: 'Users & access', icon: UsersIcon },
 ] as const;
 type TabId = (typeof TABS)[number]['id'];
 
@@ -82,9 +85,15 @@ const TH = 'lbl';
 
 export function AdminPanel({ email }: { email: string }) {
   const [tab, setTab] = useState<TabId>('services');
+  const [defaultHosts, setDefaultHosts] = useState(200);
+  useEffect(() => {
+    api<{ settings: SettingView[] }>('/api/admin/settings')
+      .then((r) => setDefaultHosts(Number(r.settings.find((x) => x.key === 'MAX_HOSTS')?.display) || 200))
+      .catch(() => {});
+  }, [tab]);
   return (
     <div>
-      <TopBar active="admin" email={email} />
+      <TopBar active="admin" email={email} isAdmin />
       <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-20 pt-8 sm:px-6">
         <div>
           <p className={TH}>Craton EASM</p>
@@ -119,9 +128,9 @@ export function AdminPanel({ email }: { email: string }) {
         <div role="tabpanel" id="admin-panel-sources" aria-labelledby="admin-tab-sources" hidden={tab !== 'sources'}>
           <DataSources />
         </div>
-        <div role="tabpanel" id="admin-panel-access" aria-labelledby="admin-tab-access" hidden={tab !== 'access'} className="grid items-start gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <Users />
-          <Section title="Your password" icon={KeyRound} desc="Use at least 12 characters. You stay signed in on this device.">
+        <div role="tabpanel" id="admin-panel-access" aria-labelledby="admin-tab-access" hidden={tab !== 'access'} className="grid items-start gap-5">
+          <Users defaultHosts={defaultHosts} />
+          <Section title="Your password" icon={KeyRound} desc="Use at least 12 characters. You stay signed in on this device." className="max-w-xl">
             <div className="p-5">
               <PasswordForm className="max-w-none" />
             </div>
@@ -136,6 +145,7 @@ function ServiceSettings() {
   const [settings, setSettings] = useState<SettingView[] | null>(null);
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
+  const [maxHosts, setMaxHosts] = useState('');
   const [models, setModels] = useState<string[]>([]);
   const [modelSource, setModelSource] = useState<'live' | 'fallback' | null>(null);
   const [customModel, setCustomModel] = useState(false);
@@ -148,6 +158,7 @@ function ServiceSettings() {
     const get = (k: string) => list.find((s) => s.key === k);
     setProvider(get('AI_PROVIDER')?.display ?? '');
     setModel(get('TRIAGE_MODEL')?.display ?? '');
+    setMaxHosts(get('MAX_HOSTS')?.display ?? '');
     setKeys({});
   }, []);
 
@@ -189,7 +200,7 @@ function ServiceSettings() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     // Only send keys the admin typed; untouched secrets stay as they are.
-    const values: Record<string, string | null> = { AI_PROVIDER: provider || null, TRIAGE_MODEL: model || null };
+    const values: Record<string, string | null> = { AI_PROVIDER: provider || null, TRIAGE_MODEL: model || null, MAX_HOSTS: maxHosts.trim() || null };
     for (const [k, v] of Object.entries(keys)) if (v.trim()) values[k] = v.trim();
     save(values);
   };
@@ -280,6 +291,16 @@ function ServiceSettings() {
             </div>
           </div>
 
+          <div className="border-b border-line px-5 py-5">
+            <label htmlFor="max-hosts" className="label">Hosts per scan</label>
+            <div className="flex flex-wrap items-center gap-3">
+              <input id="max-hosts" type="number" inputMode="numeric" min={10} max={500} value={maxHosts} onChange={(e) => setMaxHosts(e.target.value)} placeholder="200" className="field tabular !h-9 w-32" />
+              <p className="hint min-w-0 flex-1">
+                Most hosts probed in one scan, from 10 to 500 (default 200). A user&apos;s own limit under Users &amp; access overrides this. Higher limits take longer and use more compute; scans stop at 5 minutes.
+              </p>
+            </div>
+          </div>
+
           <div className="hidden grid-cols-[minmax(0,5fr)_minmax(0,6fr)_92px] gap-x-5 border-b border-line px-5 py-2.5 sm:grid">
             <span className={TH}>Service</span>
             <span className={TH}>Credential</span>
@@ -344,14 +365,24 @@ function ServiceSettings() {
   );
 }
 
-function Users() {
+type Created = { email: string; password: string; reset?: boolean };
+
+const ROLE_OPTIONS = [
+  { value: 'admin', label: 'Super admin', hint: 'Full access' },
+  { value: 'user', label: 'Customer', hint: 'Own scans only' },
+];
+
+function Users({ defaultHosts }: { defaultHosts: number }) {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [me, setMe] = useState('');
   const [email, setEmail] = useState('');
-  const [created, setCreated] = useState<{ email: string; password: string } | null>(null);
+  const [role, setRole] = useState('user');
+  const [hosts, setHosts] = useState('');
+  const [created, setCreated] = useState<Created | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
     api<{ users: UserRow[]; me: string }>('/api/admin/users')
@@ -362,31 +393,37 @@ function Users() {
       .catch((e: Error) => setError(e.message));
   }, []);
 
-  const add = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setBusy(true);
+  const hostsValue = (v: string) => (v.trim() === '' ? null : Number(v));
+
+  const call = async (key: string, url: string, init: RequestInit) => {
+    setBusy(key);
     setError(null);
-    setCreated(null);
     try {
-      const r = await api<{ users: UserRow[]; created: { email: string; password: string } }>('/api/admin/users', { method: 'POST', body: JSON.stringify({ email }) });
+      const r = await api<{ users: UserRow[]; created?: Created }>(url, init);
       setUsers(r.users);
-      setCreated(r.created);
-      setEmail('');
+      setCreated(r.created ?? null);
+      return true;
     } catch (err) {
       setError((err as Error).message);
+      return false;
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
-  const remove = async (id: string) => {
-    setError(null);
-    try {
-      const r = await api<{ users: UserRow[] }>(`/api/admin/users?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-      setUsers(r.users);
-    } catch (err) {
-      setError((err as Error).message);
+  const add = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (await call('add', '/api/admin/users', { method: 'POST', body: JSON.stringify({ email, role, maxHosts: hostsValue(hosts) }) })) {
+      setEmail('');
+      setHosts('');
     }
+  };
+
+  const patch = (id: string, change: Record<string, unknown>, key = id) => call(key, '/api/admin/users', { method: 'PATCH', body: JSON.stringify({ id, ...change }) });
+
+  const remove = async (id: string) => {
+    setConfirmDelete(null);
+    await call(id, `/api/admin/users?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
   };
 
   const copy = async () => {
@@ -399,64 +436,126 @@ function Users() {
   };
 
   const date = (iso: string | null) => (iso ? new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : 'Never');
+  const admins = users.filter((u) => u.role === 'admin').length;
 
   return (
-    <Section title={`Administrators · ${users.length}`} icon={UsersIcon} desc="Everyone listed can sign in and change these settings.">
+    <Section
+      title={`Users · ${users.length}`}
+      icon={UsersIcon}
+      desc="Super admins manage the site and see every scan. Customers sign in to scan their own domains and see only their own results. A host limit overrides the default for that person."
+      aside={<span className="tabular text-xs text-muted">{admins} super admin{admins === 1 ? '' : 's'} · {users.length - admins} customer{users.length - admins === 1 ? '' : 's'}</span>}
+    >
       <div className="overflow-x-auto">
-        <table className="w-full table-fixed border-collapse">
+        <table className="w-full min-w-[820px] table-fixed border-collapse">
           <colgroup>
             <col />
-            <col className="hidden w-[200px] sm:table-column" />
-            <col className="hidden w-[170px] sm:table-column" />
-            <col className="w-[112px]" />
+            <col className="w-[150px]" />
+            <col className="w-[110px]" />
+            <col className="w-[130px]" />
+            <col className="w-[150px]" />
+            <col className="w-[96px]" />
           </colgroup>
           <thead>
             <tr className="border-b border-line">
-              {['Email', 'Status', 'Last sign-in', ''].map((h, i) => (
-                <th key={i} className={cn(TH, 'px-5 py-2.5 text-left', (i === 1 || i === 2) && 'hidden sm:table-cell', i === 3 && 'text-right')}>{h}</th>
+              {['Email', 'Role', 'Host limit', 'Status', 'Last sign-in', ''].map((h, i) => (
+                <th key={i} className={cn(TH, 'px-3 py-2.5 text-left first:pl-5 last:pr-5', i === 5 && 'text-right')}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
-              <tr key={u.id} className="border-b border-line [&>td]:h-12 [&>td]:px-5">
-                <td className="truncate font-mono text-[13px]"><span className={cn('mr-2 inline-block size-1.5 sm:hidden', u.mustChangePassword ? 'bg-med' : 'bg-ok')} aria-hidden />{u.email}{u.id === me && <span className="ml-2 font-sans text-xs text-muted">(you)</span>}</td>
-                <td className="hidden text-[13px] sm:table-cell">
-                  <span className="inline-flex items-center gap-2">
-                    <span className={cn('size-1.5', u.mustChangePassword ? 'bg-med' : 'bg-ok')} aria-hidden />
-                    {u.mustChangePassword ? 'Password change pending' : 'Active'}
-                  </span>
-                </td>
-                <td className="tabular hidden text-[13px] text-muted sm:table-cell">{date(u.lastLoginAt)}</td>
-                <td className="text-right">
-                  {u.id !== me && (
-                    <Button variant="ghost" size="sm" onClick={() => remove(u.id)} aria-label={`Remove ${u.email}`}>
-                      <Trash2 />
-                      Remove
-                    </Button>
-                  )}
-                </td>
-              </tr>
-            ))}
+            {users.map((u) => {
+              const self = u.id === me;
+              const working = busy === u.id;
+              return (
+                <tr key={u.id} className={cn('border-b border-line [&>td]:h-14 [&>td]:px-3 [&>td:first-child]:pl-5 [&>td:last-child]:pr-5', u.disabled && 'opacity-60')}>
+                  <td className="min-w-0">
+                    <p className="truncate font-mono text-[13px]">{u.email}{self && <span className="ml-2 font-sans text-xs text-muted">(you)</span>}</p>
+                    <p className="tabular text-xs text-muted">{u.scans} scan{u.scans === 1 ? '' : 's'}</p>
+                  </td>
+                  <td>
+                    <Select
+                      aria-label={`Role for ${u.email}`}
+                      value={u.role}
+                      disabled={self || working}
+                      onValueChange={(v) => patch(u.id, { role: v })}
+                      className="w-full"
+                      options={ROLE_OPTIONS.map(({ value, label }) => ({ value, label }))}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      min={10}
+                      max={500}
+                      key={`${u.id}:${u.maxHosts ?? ''}`}
+                      defaultValue={u.maxHosts ?? ''}
+                      placeholder={String(defaultHosts)}
+                      aria-label={`Host limit for ${u.email}`}
+                      className="field tabular !h-9 w-full"
+                      onBlur={(e) => {
+                        const next = hostsValue(e.target.value);
+                        if (next !== u.maxHosts) patch(u.id, { maxHosts: next });
+                      }}
+                    />
+                  </td>
+                  <td className="text-[13px]">
+                    <span className="inline-flex items-center gap-2">
+                      <span className={cn('size-1.5 shrink-0', u.disabled ? 'bg-crit' : u.mustChangePassword ? 'bg-med' : 'bg-ok')} aria-hidden />
+                      {u.disabled ? 'Disabled' : u.mustChangePassword ? 'Password pending' : 'Active'}
+                    </span>
+                  </td>
+                  <td className="tabular text-[13px] text-muted">{date(u.lastLoginAt)}</td>
+                  <td className="text-right">
+                    {working ? (
+                      <Loader2 className="ml-auto size-4 animate-spin text-muted" aria-label="Saving" />
+                    ) : confirmDelete === u.id ? (
+                      <span className="inline-flex gap-1">
+                        <Button variant="outline" size="sm" onClick={() => remove(u.id)} aria-label={`Confirm removing ${u.email}`}>Remove</Button>
+                        <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(null)}>No</Button>
+                      </span>
+                    ) : (
+                      <span className="inline-flex gap-0.5">
+                        <Button variant="ghost" size="sm" onClick={() => patch(u.id, { resetPassword: true })} title="Issue a new one-time password" aria-label={`Reset password for ${u.email}`}>
+                          <KeyRound />
+                        </Button>
+                        {!self && (
+                          <Button variant="ghost" size="sm" onClick={() => patch(u.id, { disabled: !u.disabled })} title={u.disabled ? 'Enable account' : 'Disable account'} aria-label={`${u.disabled ? 'Enable' : 'Disable'} ${u.email}`}>
+                            {u.disabled ? <UserCheck /> : <UserX />}
+                          </Button>
+                        )}
+                        {!self && (
+                          <Button variant="ghost" size="sm" onClick={() => setConfirmDelete(u.id)} aria-label={`Remove ${u.email}`}>
+                            <Trash2 />
+                          </Button>
+                        )}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       <form onSubmit={add} className="flex flex-col gap-3 p-5">
-        <label htmlFor="new-user" className="label !mb-0">Add administrator</label>
-        <div className="flex flex-col gap-2.5 sm:flex-row">
-          <input id="new-user" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.co.id" className="field !h-9 min-w-0 sm:flex-1" />
-          <Button type="submit" variant="outline" className="h-9" disabled={busy}>
-            {busy ? <Loader2 className="animate-spin" /> : <UserPlus />}
-            Create with one-time password
+        <p className="label !mb-0">Add user</p>
+        <div className="grid gap-2.5 sm:grid-cols-[minmax(0,1fr)_170px_130px_auto]">
+          <input id="new-user" type="email" required aria-label="Email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.co.id" className="field !h-9 min-w-0" />
+          <Select aria-label="Role" value={role} onValueChange={setRole} className="w-full" options={ROLE_OPTIONS.map(({ value, label }) => ({ value, label }))} />
+          <input type="number" inputMode="numeric" min={10} max={500} aria-label="Host limit" value={hosts} onChange={(e) => setHosts(e.target.value)} placeholder={`Limit ${defaultHosts}`} className="field tabular !h-9" />
+          <Button type="submit" variant="outline" className="h-9" disabled={busy === 'add'}>
+            {busy === 'add' ? <Loader2 className="animate-spin" /> : <UserPlus />}
+            Create
           </Button>
         </div>
-        <p className="hint">A one-time password is shown once. They must change it at first sign-in.</p>
+        <p className="hint">A one-time password is shown once. They must change it at first sign-in. Leave the host limit empty to use the default ({defaultHosts}).</p>
         {error && <p role="alert" className="text-[13px] text-crit">{error}</p>}
         {created && (
           <div role="status" className="border border-ok bg-bg p-3">
             <p className="text-[13px] leading-5">
-              One-time password for <b>{created.email}</b>. Pass it on through a private channel.
+              {created.reset ? 'New one-time password' : 'One-time password'} for <b>{created.email}</b>. Pass it on through a private channel.
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <code className="border border-line bg-panel px-2 py-1 font-mono text-[13px]">{created.password}</code>

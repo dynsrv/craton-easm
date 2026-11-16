@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireUser } from '@/lib/auth/guard';
+import { requireAdmin } from '@/lib/auth/guard';
 import { getRuntimeConfig } from '@/lib/settings';
 import { MODEL_CATALOG } from '@/lib/ai/pricing';
 
@@ -32,7 +32,7 @@ async function liveModels(provider: 'openai' | 'anthropic', key: string): Promis
 
 /** GET /api/admin/models?provider=openai|anthropic -> { models, source } */
 export async function GET(req: Request) {
-  const auth = await requireUser();
+  const auth = await requireAdmin();
   if ('response' in auth) return auth.response;
 
   const cfg = await getRuntimeConfig();

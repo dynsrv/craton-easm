@@ -1,4 +1,5 @@
 import type { Asset, DriftEvent, Exposure, Scan } from '@prisma/client';
+import { clampHosts } from '@/lib/auth/roles';
 import { generateAttackPaths } from './ai/attack-paths';
 import { generateBrief, triageAssets } from './ai/triage';
 import { prisma } from './db';
@@ -50,7 +51,10 @@ export async function runScan(scanId: string): Promise<void> {
     const cfg = await getRuntimeConfig();
 
     // PHASE A: discovery
-    const result = await discover(domain, (p) => progress(p.phase, p.message), { shodanKey: cfg.shodanKey, otxKey: cfg.otxKey });
+    // The owner's own limit wins over the global default.
+    const owner = scan.ownerId ? await prisma.user.findUnique({ where: { id: scan.ownerId }, select: { maxHosts: true } }) : null;
+    const maxHosts = owner?.maxHosts ? clampHosts(owner.maxHosts) : cfg.maxHosts;
+    const result = await discover(domain, (p) => progress(p.phase, p.message), { shodanKey: cfg.shodanKey, otxKey: cfg.otxKey, maxHosts });
     await writes;
     await prisma.asset.createMany({
       data: result.assets.map((a) => ({
@@ -348,8 +352,9 @@ export function toScanDTO(scan: Scan & { assets: Asset[]; exposures?: Exposure[]
 }
 
 /** The 20 most recent scans for the scan picker. */
-export async function listScans(): Promise<ScanListItem[]> {
+export async function listScans(where: { ownerId?: string } = {}): Promise<ScanListItem[]> {
   const scans = await prisma.scan.findMany({
+    where,
     orderBy: { createdAt: 'desc' },
     take: 20,
     select: { id: true, domain: true, status: true, score: true, createdAt: true, _count: { select: { assets: true } } },

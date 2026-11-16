@@ -130,7 +130,7 @@ function Reader({ r, lang, applies }: { r: Regulation; lang: Lang; applies: bool
   );
 }
 
-export function CompliancePage({ email }: { email: string | null }) {
+export function CompliancePage({ email, isAdmin = false }: { email: string | null; isAdmin?: boolean }) {
   const [lang, setLang] = useLang();
   const u = UI[lang];
   // Signed-out visitors see the dark theme and have no switch; on leaving, the saved or system theme returns.
@@ -194,7 +194,7 @@ export function CompliancePage({ email }: { email: string | null }) {
     <ShellCtx.Provider value={SHELL}>
     <div style={email ? undefined : NIGHT} className={cn(!email && 'min-h-dvh bg-bg text-ink antialiased')}>
       {email ? (
-        <TopBar active="compliance" email={email}>
+        <TopBar active="compliance" email={email} isAdmin={isAdmin}>
           <LangToggle lang={lang} setLang={setLang} />
         </TopBar>
       ) : (

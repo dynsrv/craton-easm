@@ -37,7 +37,7 @@ export async function verifySession(token: string | undefined): Promise<Session 
   try {
     const { payload } = await jwtVerify(token, key(secret), { algorithms: ['HS256'] });
     if (!payload.sub || typeof payload.email !== 'string') return null;
-    return { userId: payload.sub, email: payload.email, role: String(payload.role ?? 'admin'), mustChangePassword: payload.mcp === true };
+    return { userId: payload.sub, email: payload.email, role: String(payload.role ?? 'user'), mustChangePassword: payload.mcp === true };
   } catch {
     return null;
   }

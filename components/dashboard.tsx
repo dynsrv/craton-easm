@@ -36,7 +36,7 @@ type Tab = (typeof TABS)[number];
 export { LangToggle, useLang } from '@/components/lang';
 import { LangToggle, useLang } from '@/components/lang';
 
-export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }: { userEmail?: string; initialScan?: ScanDTO | null; initialRecent?: ScanListItem[] }) {
+export function Dashboard({ userEmail, isAdmin = false, initialScan = null, initialRecent = [] }: { userEmail?: string; isAdmin?: boolean; initialScan?: ScanDTO | null; initialRecent?: ScanListItem[] }) {
   const [lang, setLang] = useLang();
   const t = T[lang];
   const [domain, setDomain] = useState('');
@@ -222,7 +222,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
 
   return (
     <div>
-      <TopBar active="dashboard" email={userEmail}>
+      <TopBar active="dashboard" email={userEmail} isAdmin={isAdmin}>
         <LangToggle lang={lang} setLang={setLang} />
       </TopBar>
       <ScanBar

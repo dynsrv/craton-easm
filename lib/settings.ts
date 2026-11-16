@@ -1,9 +1,10 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { authSecret } from './auth/session';
+import { clampHosts, DEFAULT_MAX_HOSTS } from './auth/roles';
 import { prisma } from './db';
 
 /** Backend settings an admin can change at /admin. Database values override environment variables. */
-export const SETTING_KEYS = ['AI_PROVIDER', 'TRIAGE_MODEL', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'SHODAN_API_KEY', 'OTX_API_KEY', 'GITHUB_TOKEN', 'ALERT_WEBHOOK_URL'] as const;
+export const SETTING_KEYS = ['AI_PROVIDER', 'TRIAGE_MODEL', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'SHODAN_API_KEY', 'OTX_API_KEY', 'GITHUB_TOKEN', 'ALERT_WEBHOOK_URL', 'MAX_HOSTS'] as const;
 export type SettingKey = (typeof SETTING_KEYS)[number];
 export const SECRET_KEYS: ReadonlySet<SettingKey> = new Set(['OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'SHODAN_API_KEY', 'OTX_API_KEY', 'GITHUB_TOKEN', 'ALERT_WEBHOOK_URL']);
 
@@ -69,6 +70,13 @@ export interface RuntimeConfig {
   otxKey: string | null;
   githubToken: string | null;
   alertWebhookUrl: string | null;
+  /** Default cap on hosts probed per scan (a user's own limit overrides it). */
+  maxHosts: number;
+}
+
+function parseHosts(v: string | null | undefined): number {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? clampHosts(n) : DEFAULT_MAX_HOSTS;
 }
 
 export async function getRuntimeConfig(): Promise<RuntimeConfig> {
@@ -83,6 +91,7 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
     otxKey: s.OTX_API_KEY.value,
     githubToken: s.GITHUB_TOKEN.value,
     alertWebhookUrl: s.ALERT_WEBHOOK_URL.value,
+    maxHosts: parseHosts(s.MAX_HOSTS.value),
   };
 }
 
@@ -98,5 +107,6 @@ export function envRuntimeConfig(): RuntimeConfig {
     otxKey: process.env.OTX_API_KEY || null,
     githubToken: process.env.GITHUB_TOKEN || null,
     alertWebhookUrl: process.env.ALERT_WEBHOOK_URL || null,
+    maxHosts: parseHosts(process.env.MAX_HOSTS),
   };
 }

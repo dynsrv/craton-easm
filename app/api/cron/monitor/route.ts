@@ -38,7 +38,7 @@ export async function GET(req: Request) {
   for (const m of due) {
     const running = await prisma.scan.findFirst({ where: { domain: m.domain, status: { in: ['queued', 'running'] } } });
     if (running) continue;
-    scans.push(await prisma.scan.create({ data: { domain: m.domain } }));
+    scans.push(await prisma.scan.create({ data: { domain: m.domain, ownerId: m.ownerId } }));
     await prisma.monitor.update({ where: { domain: m.domain }, data: { lastRunAt: new Date() } });
   }
 
