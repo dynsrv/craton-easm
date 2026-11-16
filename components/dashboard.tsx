@@ -384,8 +384,8 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
                 <input id="q" type="search" aria-label={t.search} placeholder={t.search} value={q} onChange={(e) => setQ(e.target.value)} className="field sm:w-[220px]" />
               </div>
 
-              <div className="overflow-x-auto border-t border-line">
-                {/* The screenshot column only appears when this scan captured any */}
+              <div className="hidden overflow-x-auto border-t border-line md:block">
+                {/* Desktop: full table. Mobile uses the card list below. The screenshot column only appears when this scan captured any */}
                 <table className="w-full min-w-[960px] border-collapse">
                   <thead>
                     <tr>
@@ -458,6 +458,62 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile: tappable cards instead of a sideways-scrolling table */}
+              <ul className="flex flex-col border-t border-line md:hidden">
+                {rows.map((a) => {
+                  const tls = tlsLabel(a.tlsDaysLeft, t);
+                  return (
+                    <li key={a.id}>
+                      <button
+                        onClick={() => setSelected(a)}
+                        className="flex w-full flex-col gap-2 border-b border-line p-4 text-left hover:bg-panel2"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          {a.severity ? <SeverityBadge severity={a.severity} label={sevName(a.severity, lang)} /> : <span className="text-[13px] text-muted">{t.pending}</span>}
+                          <span className="tabular font-mono text-xs text-muted">{a.httpStatus ?? ''}</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 font-mono text-[13px] font-medium leading-5 [overflow-wrap:anywhere]">
+                          {a.hostname}
+                          {takeoverHosts.has(a.hostname) && (
+                            <span className="inline-flex items-center gap-1 rounded-sm border border-crit px-1.5 font-sans text-[11px] font-medium text-crit">
+                              <Link2Off className="size-3" aria-hidden />
+                              {t.takeoverBadge}
+                            </span>
+                          )}
+                        </div>
+                        {a.title && (
+                          <div className="flex items-center gap-1.5 text-xs leading-4 text-muted">
+                            {a.hasLoginForm && <Lock className="size-3 shrink-0" aria-label={t.login} />}
+                            <span className="truncate">{a.title}</span>
+                          </div>
+                        )}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs leading-4 text-muted">
+                          {a.category && <span>{catName(a.category, lang)}</span>}
+                          <span aria-hidden>·</span>
+                          <span>{a.provider}</span>
+                          {a.ips[0] && (
+                            <>
+                              <span aria-hidden>·</span>
+                              <span className="tabular font-mono">{a.ips[0]}</span>
+                            </>
+                          )}
+                        </div>
+                        {(a.ports.length > 0 || a.cves.length > 0 || tls.text) && (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {a.ports.map((p) => (
+                              <PortChip key={p} port={p} risky={p in SENSITIVE_PORTS} />
+                            ))}
+                            {a.cves.length > 0 && <span className="tabular text-xs font-medium text-crit">{a.cves.length} CVE</span>}
+                            {tls.text && <span className={cn('tabular ml-auto font-mono text-xs', TONE_CLASS[tls.tone])}>{tls.text}</span>}
+                          </div>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
               {rows.length === 0 && <p className="border-t border-line py-10 text-center text-muted">{running ? t.scanning : t.none}</p>}
             </Card>
           </section>
