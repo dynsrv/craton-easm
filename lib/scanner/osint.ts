@@ -100,11 +100,26 @@ export async function fromOtx(domain: string, key: string, timeoutMs = 12_000): 
 }
 
 /**
+ * Anubis (jldc.me) — a free aggregated subdomain database, no API key.
+ * Returns a plain JSON array of subdomains.
+ */
+export async function fromAnubis(domain: string, timeoutMs = 10_000): Promise<OsintSourceResult> {
+  const text = await getText(`https://jldc.me/anubis/subdomains/${encodeURIComponent(domain)}`, timeoutMs);
+  if (text == null) return { source: 'anubis', names: [], ok: false };
+  try {
+    const rows = JSON.parse(text) as string[];
+    return { source: 'anubis', names: clean(Array.isArray(rows) ? rows : [], domain), ok: true };
+  } catch {
+    return { source: 'anubis', names: [], ok: false };
+  }
+}
+
+/**
  * Query every configured passive source in parallel and merge the hostnames.
  * All sources are best-effort: a slow or rate-limited source contributes nothing and never fails the scan.
  */
 export async function gatherOsintNames(domain: string, opts: { otxKey?: string | null } = {}): Promise<{ names: string[]; sources: OsintSourceResult[] }> {
-  const jobs = [fromCertSpotter(domain), fromHackerTarget(domain), fromWayback(domain)];
+  const jobs = [fromCertSpotter(domain), fromHackerTarget(domain), fromWayback(domain), fromAnubis(domain)];
   if (opts.otxKey) jobs.push(fromOtx(domain, opts.otxKey));
   const sources = await Promise.all(jobs);
   const names = new Set<string>();

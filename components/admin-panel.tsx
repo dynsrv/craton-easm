@@ -501,6 +501,7 @@ const DATA_SOURCES = [
   { name: 'Cert Spotter (SSLMate)', provides: 'Second CT source, often broader', key: 'No key' },
   { name: 'HackerTarget', provides: 'Passive DNS host records', key: 'No key · ~free daily quota' },
   { name: 'Wayback Machine', provides: 'Historical hosts from the web archive', key: 'No key' },
+  { name: 'Anubis (jldc.me)', provides: 'Aggregated subdomain database', key: 'No key' },
   { name: 'Shodan InternetDB', provides: 'Open ports & CVEs per IP', key: 'Optional Shodan key for the full API' },
   { name: 'Shodan CVEDB', provides: 'CVE severity, KEV & EPSS', key: 'No key' },
   { name: 'AlienVault OTX', provides: 'Passive-DNS subdomains (threat intel)', key: 'Optional free key' },

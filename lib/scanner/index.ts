@@ -43,7 +43,7 @@ export async function discover(
   let names: string[] = [];
   let live: DnsRecord[];
 
-  await onProgress({ phase: 0, message: `Querying crt.sh, Cert Spotter, HackerTarget${options.otxKey ? ', OTX' : ''} and the Wayback archive` });
+  await onProgress({ phase: 0, message: `Querying crt.sh, Cert Spotter, HackerTarget, Anubis${options.otxKey ? ', OTX' : ''} and the Wayback archive` });
   // Certificate Transparency (crt.sh) and the other passive sources run in parallel.
   const [ct, osint] = await Promise.all([
     fetchCtSubdomains(domain).catch((err: Error) => err),
