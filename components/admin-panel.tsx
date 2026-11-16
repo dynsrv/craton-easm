@@ -85,10 +85,10 @@ const TH = 'lbl';
 
 export function AdminPanel({ email }: { email: string }) {
   const [tab, setTab] = useState<TabId>('services');
-  const [defaultHosts, setDefaultHosts] = useState(200);
+  const [defaultHosts, setDefaultHosts] = useState(50);
   useEffect(() => {
     api<{ settings: SettingView[] }>('/api/admin/settings')
-      .then((r) => setDefaultHosts(Number(r.settings.find((x) => x.key === 'MAX_HOSTS')?.display) || 200))
+      .then((r) => setDefaultHosts(Number(r.settings.find((x) => x.key === 'MAX_HOSTS')?.display) || 50))
       .catch(() => {});
   }, [tab]);
   return (
@@ -294,9 +294,9 @@ function ServiceSettings() {
           <div className="border-b border-line px-5 py-5">
             <label htmlFor="max-hosts" className="label">Hosts per scan</label>
             <div className="flex flex-wrap items-center gap-3">
-              <input id="max-hosts" type="number" inputMode="numeric" min={10} max={500} value={maxHosts} onChange={(e) => setMaxHosts(e.target.value)} placeholder="200" className="field tabular !h-9 w-32" />
+              <input id="max-hosts" type="number" inputMode="numeric" min={10} max={500} value={maxHosts} onChange={(e) => setMaxHosts(e.target.value)} placeholder="50" className="field tabular !h-9 w-32" />
               <p className="hint min-w-0 flex-1">
-                Most hosts probed in one scan, from 10 to 500 (default 200). A user&apos;s own limit under Users &amp; access overrides this. Higher limits take longer and use more compute; scans stop at 5 minutes.
+                Most hosts probed in one scan, from 10 to 500 (default 50). A user&apos;s own limit under Users &amp; access overrides this. Higher limits take longer and use more compute; scans stop at 5 minutes.
               </p>
             </div>
           </div>

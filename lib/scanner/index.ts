@@ -85,7 +85,7 @@ export async function discover(
   const cnameOnly = await findCnameOnlyRecords(deadNames);
   if (cnameOnly.length) await onProgress({ phase: 1, message: `  ${cnameOnly.length} name(s) with a CNAME but no address (checked for dangling DNS)` });
 
-  const maxHosts = options.maxHosts ?? 200;
+  const maxHosts = options.maxHosts ?? 50;
   const targets = prioritize(live, maxHosts);
   if (live.length > maxHosts) await onProgress({ phase: 1, message: `  capped at the ${maxHosts} most interesting hosts (of ${live.length} live)` });
 
