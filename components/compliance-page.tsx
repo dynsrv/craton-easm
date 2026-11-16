@@ -5,6 +5,7 @@ import { ArrowUpRight, Banknote, Building2, Check, CreditCard, ExternalLink, Fac
 import Link from 'next/link';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { NIGHT, SiteFooter, SiteHeader } from '@/components/site-chrome';
+import { NumBadge } from '@/components/ui/num-badge';
 import { Wordmark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
 import { TopBar } from '@/components/top-bar';
@@ -27,19 +28,6 @@ function Section({ id, className, children, first, ...rest }: { id: string; clas
     <section id={id} className={cn('scroll-mt-28', !first && 'border-t border-line')} {...rest}>
       <div className={cn(SHELL, 'py-12 sm:py-16', className)}>{children}</div>
     </section>
-  );
-}
-
-/** Number in a soft circle tinted with the theme accent, so lists read as steps. */
-function NumBadge({ n, className }: { n: number; className?: string }) {
-  return (
-    <span
-      className={cn('tabular grid size-7 shrink-0 place-items-center rounded-full text-xs font-semibold text-accent', className)}
-      style={{ background: 'color-mix(in srgb, var(--color-accent) 16%, transparent)' }}
-      aria-hidden
-    >
-      {n}
-    </span>
   );
 }
 

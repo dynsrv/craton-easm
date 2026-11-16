@@ -129,7 +129,7 @@ export function AttackPaths({ paths, lang, t, onHost }: { paths: AttackPath[]; l
               <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 lbl">
-                    {lang === 'id' ? 'Jalur' : 'Path'} {String(i + 1).padStart(2, '0')}
+                    {lang === 'id' ? 'Jalur' : 'Path'} {i + 1}
                     {p.source === 'heuristic' && <span className="rounded-sm border border-line px-1.5 py-px font-normal">{t.ruleBased}</span>}
                   </p>
                   <h2 className="mt-1 text-lg font-semibold leading-7">{p.title[lang]}</h2>
