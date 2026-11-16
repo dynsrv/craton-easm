@@ -80,7 +80,7 @@ export function ScanBar({
               required
               disabled={running}
               aria-describedby={error || authErr ? 'scan-error' : undefined}
-              className="h-full min-w-0 flex-1 border-0 bg-transparent pr-3 font-mono text-[13px] text-ink outline-none placeholder:text-muted/70 disabled:opacity-60"
+              className="h-full min-w-0 flex-1 border-0 bg-transparent pr-3 font-mono text-[13px] text-ink outline-none focus-visible:outline-none placeholder:text-muted/70 disabled:opacity-60"
             />
           </div>
           <Button type="submit" disabled={running} className="h-11 w-full px-5 sm:w-auto">

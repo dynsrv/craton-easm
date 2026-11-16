@@ -3,11 +3,12 @@
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 const MIN = 12;
 
 /** Change-password form, used on the forced first-login screen and in Admin > Account. */
-export function PasswordForm({ onDone, currentLabel = 'Current password' }: { onDone?: () => void; currentLabel?: string }) {
+export function PasswordForm({ onDone, currentLabel = 'Current password', className }: { onDone?: () => void; currentLabel?: string; className?: string }) {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -39,18 +40,18 @@ export function PasswordForm({ onDone, currentLabel = 'Current password' }: { on
   };
 
   return (
-    <form onSubmit={submit} className="flex max-w-[380px] flex-col gap-4">
+    <form onSubmit={submit} className={cn('flex max-w-[380px] flex-col gap-4', className)}>
       <div>
         <label htmlFor="pw-current" className="label">{currentLabel}</label>
-        <input id="pw-current" type="password" autoComplete="current-password" required value={current} onChange={(e) => setCurrent(e.target.value)} className="field" />
+        <input id="pw-current" type="password" autoComplete="current-password" required value={current} onChange={(e) => setCurrent(e.target.value)} className="field !h-9" />
       </div>
       <div>
         <label htmlFor="pw-next" className="label">New password (at least {MIN} characters)</label>
-        <input id="pw-next" type="password" autoComplete="new-password" required value={next} onChange={(e) => setNext(e.target.value)} className="field" />
+        <input id="pw-next" type="password" autoComplete="new-password" required value={next} onChange={(e) => setNext(e.target.value)} className="field !h-9" />
       </div>
       <div>
         <label htmlFor="pw-confirm" className="label">Repeat new password</label>
-        <input id="pw-confirm" type="password" autoComplete="new-password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} className="field" />
+        <input id="pw-confirm" type="password" autoComplete="new-password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} className="field !h-9" />
       </div>
       {error && <p role="alert" className="text-[13px] text-crit">{error}</p>}
       {saved && <p role="status" className="text-[13px] text-low">Password changed.</p>}

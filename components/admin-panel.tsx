@@ -1,14 +1,13 @@
 'use client';
 
-import { BellRing, Bot, Check, Copy, GitBranch, KeyRound, Loader2, Plug, Radar, ServerCog, Sparkles, Trash2, UserPlus, Users as UsersIcon, Webhook, type LucideIcon } from 'lucide-react';
-import { IconTile } from '@/components/ui/icon-tile';
+import { BellRing, Bot, Check, Copy, Gauge, GitBranch, KeyRound, Loader2, Plug, Radar, ServerCog, Sparkles, Trash2, UserPlus, Users as UsersIcon, Webhook, type LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { PasswordForm } from '@/components/password-form';
 import { TopBar } from '@/components/top-bar';
 import { Button } from '@/components/ui/button';
-import { Card, CardTitle } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import type { UsageSummary } from '@/lib/ai/usage';
+import { cn } from '@/lib/utils';
 
 interface SettingView {
   key: string;
@@ -26,13 +25,13 @@ interface UserRow {
 }
 
 const SOURCE_LABEL = { database: 'Saved here', env: 'From environment variable', none: 'Not set' } as const;
-const SERVICE_ICON: Record<string, { icon: LucideIcon; tone: string }> = {
-  OPENAI_API_KEY: { icon: Bot, tone: 'var(--color-tone-teal)' },
-  ANTHROPIC_API_KEY: { icon: Sparkles, tone: 'var(--color-tone-amber)' },
-  SHODAN_API_KEY: { icon: Radar, tone: 'var(--color-tone-rose)' },
-  OTX_API_KEY: { icon: Radar, tone: 'var(--color-tone-teal)' },
-  GITHUB_TOKEN: { icon: GitBranch, tone: 'var(--color-tone-violet)' },
-  ALERT_WEBHOOK_URL: { icon: Webhook, tone: 'var(--color-tone-sky)' },
+const SERVICE_ICON: Record<string, LucideIcon> = {
+  OPENAI_API_KEY: Bot,
+  ANTHROPIC_API_KEY: Sparkles,
+  SHODAN_API_KEY: Radar,
+  OTX_API_KEY: Radar,
+  GITHUB_TOKEN: GitBranch,
+  ALERT_WEBHOOK_URL: Webhook,
 };
 
 const SECRETS = [
@@ -51,23 +50,83 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
   return body;
 }
 
+const TABS = [
+  { id: 'services', label: 'Services', icon: ServerCog },
+  { id: 'usage', label: 'AI usage', icon: Gauge },
+  { id: 'sources', label: 'Data sources', icon: Plug },
+  { id: 'access', label: 'Access', icon: UsersIcon },
+] as const;
+type TabId = (typeof TABS)[number]['id'];
+
+/** One bordered panel: a mono label, an optional description, then ruled content that runs edge to edge. */
+function Section({ title, icon: Icon, desc, aside, children, className }: { title: string; icon: LucideIcon; desc?: string; aside?: React.ReactNode; children: React.ReactNode; className?: string }) {
+  return (
+    <section className={cn('flex min-w-0 flex-col border border-line bg-panel', className)}>
+      <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-1 border-b border-line px-5 py-4">
+        <div className="min-w-0">
+          <h2 className="flex items-center gap-2.5 font-mono text-[11px] font-medium uppercase leading-4 tracking-[0.16em] text-muted">
+            <Icon className="size-3.5 shrink-0 text-ink" strokeWidth={1.75} aria-hidden />
+            {title}
+          </h2>
+          {desc && <p className="mt-1.5 text-[13px] leading-5 text-muted">{desc}</p>}
+        </div>
+        {aside}
+      </header>
+      {children}
+    </section>
+  );
+}
+
+/** Column header row used by every table-like list so labels share one style. */
+const TH = 'font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted';
+
 export function AdminPanel({ email }: { email: string }) {
+  const [tab, setTab] = useState<TabId>('services');
   return (
     <div>
       <TopBar active="admin" email={email} />
       <main className="mx-auto flex max-w-[1360px] flex-col gap-5 px-4 pb-20 pt-8 sm:px-6">
         <div>
-          <h1 className="text-2xl font-semibold leading-8 tracking-tight">Administration</h1>
-          <p className="mt-0.5 text-muted">Backend services, operator accounts and your own password.</p>
+          <p className={TH}>Craton EASM</p>
+          <h1 className="mt-1.5 text-2xl font-semibold leading-8 tracking-tight">Administration</h1>
+          <p className="mt-0.5 text-muted">Backend services, AI spend, data sources and operator access.</p>
         </div>
-        <ServiceSettings />
-        <UsageSummaryCard />
-        <DataSources />
-        <Users />
-        <Card>
-          <CardTitle icon={KeyRound} tone="var(--color-tone-amber)">Your password</CardTitle>
-          <PasswordForm />
-        </Card>
+
+        <nav className="-mb-1 flex gap-1 overflow-x-auto border-b border-line" role="tablist" aria-label="Administration">
+          {TABS.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              role="tab"
+              id={`admin-tab-${id}`}
+              aria-selected={tab === id}
+              aria-controls={`admin-panel-${id}`}
+              onClick={() => setTab(id)}
+              className={cn('-mb-px flex h-10 shrink-0 items-center gap-2 border-b-2 px-3 text-sm text-muted hover:text-ink', tab === id ? 'border-primary font-medium text-ink' : 'border-transparent')}
+            >
+              <Icon className="size-4" strokeWidth={1.75} aria-hidden />
+              {label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Panels stay mounted so a half-typed key or a loaded list survives a tab switch. */}
+        <div role="tabpanel" id="admin-panel-services" aria-labelledby="admin-tab-services" hidden={tab !== 'services'}>
+          <ServiceSettings />
+        </div>
+        <div role="tabpanel" id="admin-panel-usage" aria-labelledby="admin-tab-usage" hidden={tab !== 'usage'}>
+          <UsageSummaryCard />
+        </div>
+        <div role="tabpanel" id="admin-panel-sources" aria-labelledby="admin-tab-sources" hidden={tab !== 'sources'}>
+          <DataSources />
+        </div>
+        <div role="tabpanel" id="admin-panel-access" aria-labelledby="admin-tab-access" hidden={tab !== 'access'} className="grid items-start gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <Users />
+          <Section title="Your password" icon={KeyRound} desc="Use at least 12 characters. You stay signed in on this device.">
+            <div className="p-5">
+              <PasswordForm className="max-w-none" />
+            </div>
+          </Section>
+        </div>
       </main>
     </div>
   );
@@ -164,13 +223,12 @@ function ServiceSettings() {
   const bySecret = (k: string) => settings?.find((s) => s.key === k);
 
   return (
-    <Card>
-      <CardTitle icon={ServerCog} tone="var(--color-accent)">AI, data and alert services</CardTitle>
+    <Section title="AI, data and alert services" icon={ServerCog} desc="Keys are encrypted before they are stored and are never sent back to the browser. A key saved here overrides the matching environment variable.">
       {!settings ? (
-        <p className="py-4 text-muted">{note ? note.text : 'Loading…'}</p>
+        <p className="px-5 py-8 text-muted">{note ? note.text : 'Loading…'}</p>
       ) : (
-        <form onSubmit={submit} className="flex flex-col gap-5">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <form onSubmit={submit} className="flex flex-col">
+          <div className="grid gap-x-5 gap-y-5 border-b border-line px-5 py-5 sm:grid-cols-2">
             <div>
               <label htmlFor="provider" className="label">AI provider</label>
               <Select
@@ -185,6 +243,7 @@ function ServiceSettings() {
                 ]}
                 renderValue={(o) => (o?.hint ? <>{o.label} <span className="text-muted">· {o.hint}</span></> : o?.label)}
               />
+              <p className="hint mt-1.5">Runs triage, the executive brief, attack paths and exploit analysis.</p>
             </div>
             <div>
               <label htmlFor="model" className="label">Model</label>
@@ -195,7 +254,7 @@ function ServiceSettings() {
                   onChange={(e) => setModel(e.target.value)}
                   placeholder="gpt-5-mini / claude-haiku-5-5"
                   spellCheck={false}
-                  className="field font-mono"
+                  className="field !h-9 font-mono"
                   autoFocus
                 />
               ) : (
@@ -212,28 +271,34 @@ function ServiceSettings() {
                   renderValue={(o) => (o?.value === 'default' ? <>Default <span className="text-muted">· recommended</span></> : o?.label)}
                 />
               )}
-              <p className="hint mt-1.5 flex items-center justify-between gap-2">
-                <span>{modelSource === 'live' ? 'Live list from your API key' : modelSource === 'fallback' ? 'Common models (add a key for the live list)' : ' '}</span>
-                <button type="button" className="text-accent hover:underline" onClick={() => setCustomModel((v) => !v)}>
+              <p className="hint mt-1.5 flex items-center justify-between gap-3">
+                <span>{modelSource === 'live' ? 'Live list from your API key' : modelSource === 'fallback' ? 'Common models. Add a key for the live list.' : 'Model used for AI calls.'}</span>
+                <button type="button" className="shrink-0 text-ink underline underline-offset-4 hover:no-underline" onClick={() => setCustomModel((v) => !v)}>
                   {customModel ? 'Pick from list' : 'Custom ID'}
                 </button>
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col divide-y divide-line border-y border-line">
+          <div className="hidden grid-cols-[minmax(0,5fr)_minmax(0,6fr)_92px] gap-x-5 border-b border-line px-5 py-2.5 sm:grid">
+            <span className={TH}>Service</span>
+            <span className={TH}>Credential</span>
+            <span aria-hidden />
+          </div>
+          <div className="flex flex-col divide-y divide-line">
             {SECRETS.map(({ key, label, help }) => {
               const s = bySecret(key);
+              const Icon = SERVICE_ICON[key];
               return (
-                <div key={key} className="grid items-start gap-x-5 gap-y-2 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto]">
-                  <div className="flex gap-3">
-                    <IconTile icon={SERVICE_ICON[key].icon} tone={SERVICE_ICON[key].tone} />
-                    <div>
+                <div key={key} className="grid items-start gap-x-5 gap-y-3 px-5 py-4 sm:grid-cols-[minmax(0,5fr)_minmax(0,6fr)_92px]">
+                  <div className="flex min-w-0 gap-3">
+                    <Icon className="mt-0.5 size-4 shrink-0 text-muted" strokeWidth={1.75} aria-hidden />
+                    <div className="min-w-0">
                       <label htmlFor={key} className="block text-[13px] font-medium leading-5">{label}</label>
-                      <p className="hint mt-0.5">{help}</p>
+                      <p className="hint mt-0.5 leading-5">{help}</p>
                     </div>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <input
                       id={key}
                       type="password"
@@ -242,14 +307,14 @@ function ServiceSettings() {
                       onChange={(e) => setKeys({ ...keys, [key]: e.target.value })}
                       placeholder={s?.display ? `${s.display}  (enter a new value to replace)` : key === 'ALERT_WEBHOOK_URL' ? 'https://hooks.slack.com/services/…' : 'Paste key'}
                       spellCheck={false}
-                      className="field font-mono"
+                      className="field !h-9 font-mono"
                     />
                     <p className="hint mt-1.5 flex items-center gap-1.5">
-                      <span className={`size-1.5 rounded-full ${s?.source === 'none' ? 'bg-line' : 'bg-low'}`} />
+                      <span className={cn('size-1.5', s?.source === 'none' ? 'bg-line' : 'bg-low')} aria-hidden />
                       {SOURCE_LABEL[s?.source ?? 'none']}
                     </p>
                   </div>
-                  <Button type="button" variant="outline" disabled={s?.source !== 'database' || busy !== null} onClick={() => save({ [key]: null }, `${label} removed.`)}>
+                  <Button type="button" variant="outline" className="h-9 w-full" disabled={s?.source !== 'database' || busy !== null} onClick={() => save({ [key]: null }, `${label} removed.`)}>
                     <Trash2 />
                     Remove
                   </Button>
@@ -258,25 +323,24 @@ function ServiceSettings() {
             })}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <Button type="submit" disabled={busy !== null}>
+          <div className="flex flex-wrap items-center gap-2.5 border-t border-line px-5 py-4">
+            <Button type="submit" className="h-9" disabled={busy !== null}>
               {busy === 'save' && <Loader2 className="animate-spin" />}
               Save changes
             </Button>
-            <Button type="button" variant="outline" disabled={busy !== null} onClick={test}>
+            <Button type="button" variant="outline" className="h-9" disabled={busy !== null} onClick={test}>
               {busy === 'test' ? <Loader2 className="animate-spin" /> : <Plug />}
               Test AI connection
             </Button>
-            <Button type="button" variant="outline" disabled={busy !== null || bySecret('ALERT_WEBHOOK_URL')?.source === 'none'} onClick={testWebhook}>
+            <Button type="button" variant="outline" className="h-9" disabled={busy !== null || bySecret('ALERT_WEBHOOK_URL')?.source === 'none'} onClick={testWebhook}>
               <BellRing />
               Send test alert
             </Button>
-            {note && <span role="status" className={note.ok ? 'text-low' : 'text-crit'}>{note.text}</span>}
+            {note && <span role="status" className={cn('text-[13px]', note.ok ? 'text-low' : 'text-crit')}>{note.text}</span>}
           </div>
-          <p className="hint">Keys are encrypted before they are stored and are never sent back to the browser. A key saved here overrides the matching environment variable.</p>
         </form>
       )}
-    </Card>
+    </Section>
   );
 }
 
@@ -337,23 +401,33 @@ function Users() {
   const date = (iso: string | null) => (iso ? new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : 'Never');
 
   return (
-    <Card>
-      <CardTitle icon={UsersIcon} tone="var(--color-tone-teal)">Administrators · {users.length}</CardTitle>
+    <Section title={`Administrators · ${users.length}`} icon={UsersIcon} desc="Everyone listed can sign in and change these settings.">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] border-collapse">
+        <table className="w-full table-fixed border-collapse">
+          <colgroup>
+            <col />
+            <col className="hidden w-[200px] sm:table-column" />
+            <col className="hidden w-[170px] sm:table-column" />
+            <col className="w-[112px]" />
+          </colgroup>
           <thead>
-            <tr>
-              {['Email', 'Status', 'Last sign-in', ''].map((h) => (
-                <th key={h} className="border-b border-line px-3 py-2.5 text-left font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted first:pl-0">{h}</th>
+            <tr className="border-b border-line">
+              {['Email', 'Status', 'Last sign-in', ''].map((h, i) => (
+                <th key={i} className={cn(TH, 'px-5 py-2.5 text-left', (i === 1 || i === 2) && 'hidden sm:table-cell', i === 3 && 'text-right')}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {users.map((u) => (
-              <tr key={u.id} className="[&>td]:border-b [&>td]:border-line [&>td]:px-3 [&>td]:py-2.5 [&>td:first-child]:pl-0 [&>td:last-child]:pr-0">
-                <td className="font-mono text-[13px]">{u.email}{u.id === me && <span className="ml-2 font-sans text-xs text-muted">(you)</span>}</td>
-                <td className={u.mustChangePassword ? 'text-med' : 'text-low'}>{u.mustChangePassword ? 'One-time password pending' : 'Active'}</td>
-                <td className="tabular text-muted">{date(u.lastLoginAt)}</td>
+              <tr key={u.id} className="border-b border-line [&>td]:h-12 [&>td]:px-5">
+                <td className="truncate font-mono text-[13px]"><span className={cn('mr-2 inline-block size-1.5 sm:hidden', u.mustChangePassword ? 'bg-med' : 'bg-low')} aria-hidden />{u.email}{u.id === me && <span className="ml-2 font-sans text-xs text-muted">(you)</span>}</td>
+                <td className="hidden text-[13px] sm:table-cell">
+                  <span className="inline-flex items-center gap-2">
+                    <span className={cn('size-1.5', u.mustChangePassword ? 'bg-med' : 'bg-low')} aria-hidden />
+                    {u.mustChangePassword ? 'Password change pending' : 'Active'}
+                  </span>
+                </td>
+                <td className="tabular hidden text-[13px] text-muted sm:table-cell">{date(u.lastLoginAt)}</td>
                 <td className="text-right">
                   {u.id !== me && (
                     <Button variant="ghost" size="sm" onClick={() => remove(u.id)} aria-label={`Remove ${u.email}`}>
@@ -368,32 +442,33 @@ function Users() {
         </table>
       </div>
 
-      <form onSubmit={add} className="mt-5 flex flex-wrap items-end gap-2.5">
-        <div className="min-w-[240px] flex-1">
-          <label htmlFor="new-user" className="label">Add administrator</label>
-          <input id="new-user" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.co.id" className="field" />
+      <form onSubmit={add} className="flex flex-col gap-3 p-5">
+        <label htmlFor="new-user" className="label !mb-0">Add administrator</label>
+        <div className="flex flex-col gap-2.5 sm:flex-row">
+          <input id="new-user" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.co.id" className="field !h-9 min-w-0 sm:flex-1" />
+          <Button type="submit" variant="outline" className="h-9" disabled={busy}>
+            {busy ? <Loader2 className="animate-spin" /> : <UserPlus />}
+            Create with one-time password
+          </Button>
         </div>
-        <Button type="submit" variant="outline" disabled={busy}>
-          {busy ? <Loader2 className="animate-spin" /> : <UserPlus />}
-          Create with one-time password
-        </Button>
-      </form>
-      {error && <p role="alert" className="mt-2 text-[12.5px] text-crit">{error}</p>}
-      {created && (
-        <div role="status" className="mt-3 rounded-md border border-low bg-bg p-3">
-          <p className="text-[13px]">
-            One-time password for <b>{created.email}</b>. It is shown only now; pass it on through a private channel. They must change it at first sign-in.
-          </p>
-          <div className="mt-2 flex items-center gap-2">
-            <code className="rounded-md border border-line bg-panel px-2 py-1 font-mono text-[13px]">{created.password}</code>
-            <Button variant="outline" size="sm" onClick={copy}>
-              {copied ? <Check /> : <Copy />}
-              {copied ? 'Copied' : 'Copy'}
-            </Button>
+        <p className="hint">A one-time password is shown once. They must change it at first sign-in.</p>
+        {error && <p role="alert" className="text-[13px] text-crit">{error}</p>}
+        {created && (
+          <div role="status" className="border border-low bg-bg p-3">
+            <p className="text-[13px] leading-5">
+              One-time password for <b>{created.email}</b>. Pass it on through a private channel.
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <code className="border border-line bg-panel px-2 py-1 font-mono text-[13px]">{created.password}</code>
+              <Button variant="outline" size="sm" onClick={copy}>
+                {copied ? <Check /> : <Copy />}
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
-    </Card>
+        )}
+      </form>
+    </Section>
   );
 }
 
@@ -411,9 +486,44 @@ const OP_LABEL: Record<string, string> = {
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="bg-panel p-5">
-      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">{label}</p>
+      <p className={TH}>{label}</p>
       <p className="tabular mt-2 text-[28px] font-semibold leading-none tracking-tight">{value}</p>
-      {sub && <p className="mt-1.5 text-xs text-muted">{sub}</p>}
+      {sub && <p className="mt-2 text-xs text-muted">{sub}</p>}
+    </div>
+  );
+}
+
+/** Same column widths on both breakdown tables so their numbers line up side by side. */
+function Breakdown({ title, head, rows }: { title: string; head: [string, string, string]; rows: { key: string; name: React.ReactNode; calls: number; extra?: string; cost: number }[] }) {
+  return (
+    <div className="min-w-0">
+      <p className={cn(TH, 'mb-2')}>{title}</p>
+      <table className="w-full table-fixed border-collapse text-[13px]">
+        <colgroup>
+          <col />
+          <col className="w-[64px]" />
+          <col className="w-[104px]" />
+          <col className="w-[72px]" />
+        </colgroup>
+        <thead>
+          <tr className="border-b border-line text-muted">
+            <th className="py-2 text-left text-xs font-normal">{head[0]}</th>
+            <th className="py-2 text-right text-xs font-normal">Calls</th>
+            <th className="py-2 text-right text-xs font-normal">{head[1]}</th>
+            <th className="py-2 text-right text-xs font-normal">{head[2]}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.key} className="border-b border-line last:border-b-0">
+              <td className="truncate py-2.5 pr-3">{r.name}</td>
+              <td className="tabular py-2.5 text-right text-muted">{fmtInt(r.calls)}</td>
+              <td className="tabular py-2.5 text-right font-mono text-xs text-muted">{r.extra ?? ''}</td>
+              <td className="tabular py-2.5 text-right font-medium">{fmtUsd(r.cost)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -429,70 +539,56 @@ function UsageSummaryCard() {
   }, []);
 
   const maxDay = u ? Math.max(0.0001, ...u.daily.map((d) => d.costUsd)) : 1;
+  const shortDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 
   return (
-    <Card>
-      <CardTitle icon={ServerCog} tone="var(--color-tone-teal)">AI usage & cost</CardTitle>
-      {err && <p className="py-4 text-[13px] text-crit">{err}</p>}
-      {!u && !err && <p className="py-4 text-muted">Loading…</p>}
-      {u && u.totals.calls === 0 && <p className="py-4 text-[13px] text-muted">No AI calls recorded yet. Run a scan or an exploit analysis to see usage here.</p>}
+    <Section title="AI usage and cost" icon={Gauge} desc="Token counts are exact, as reported by the provider. Costs are estimated from built-in list prices and may differ from your invoice.">
+      {err && <p className="px-5 py-6 text-[13px] text-crit">{err}</p>}
+      {!u && !err && <p className="px-5 py-8 text-muted">Loading…</p>}
+      {u && u.totals.calls === 0 && <p className="px-5 py-8 text-[13px] text-muted">No AI calls recorded yet. Run a scan or an exploit analysis to see usage here.</p>}
       {u && u.totals.calls > 0 && (
-        <div className="flex flex-col gap-6">
-          <div className="grid gap-px border border-line bg-line sm:grid-cols-3">
+        <>
+          <div className="grid gap-px border-b border-line bg-line sm:grid-cols-3">
             <Stat label="Est. cost, all time" value={fmtUsd(u.totals.costUsd)} sub={`${fmtInt(u.totals.calls)} calls`} />
             <Stat label="Today" value={fmtUsd(u.today.costUsd)} sub={`${fmtInt(u.today.calls)} calls`} />
             <Stat label="Last 30 days" value={fmtUsd(u.last30d.costUsd)} sub={`${fmtInt(u.last30d.calls)} calls`} />
           </div>
 
           {u.daily.length > 1 && (
-            <div>
-              <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">Daily cost · last 30 days</p>
-              <div className="flex h-24 items-end gap-1" role="img" aria-label="Daily AI cost for the last 30 days">
+            <div className="border-b border-line p-5">
+              <div className="mb-3 flex items-baseline justify-between gap-4">
+                <p className={TH}>Daily cost · last 30 days</p>
+                <p className="tabular text-xs text-muted">Peak {fmtUsd(maxDay)}</p>
+              </div>
+              <div className="flex h-24 items-end gap-1 border-b border-line" role="img" aria-label="Daily AI cost for the last 30 days">
                 {u.daily.map((d) => (
-                  <div key={d.date} className="group relative flex-1" title={`${d.date}: ${fmtUsd(d.costUsd)} · ${d.calls} calls`}>
-                    <div className="w-full bg-ink/80 transition-colors group-hover:bg-ink" style={{ height: `${Math.max(2, (d.costUsd / maxDay) * 96)}px` }} />
+                  <div key={d.date} className="flex-1" title={`${d.date}: ${fmtUsd(d.costUsd)} · ${d.calls} calls`}>
+                    <div className="w-full bg-ink/80 transition-colors hover:bg-ink" style={{ height: `${Math.max(2, (d.costUsd / maxDay) * 96)}px` }} />
                   </div>
                 ))}
+              </div>
+              <div className="mt-1.5 flex justify-between text-xs text-muted">
+                <span>{shortDate(u.daily[0].date)}</span>
+                <span>{shortDate(u.daily[u.daily.length - 1].date)}</span>
               </div>
             </div>
           )}
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <div>
-              <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">By operation</p>
-              <table className="w-full text-[13px]">
-                <tbody>
-                  {u.byOperation.map((o) => (
-                    <tr key={o.operation} className="border-t border-line first:border-t-0">
-                      <td className="py-2 pr-3">{OP_LABEL[o.operation] ?? o.operation}</td>
-                      <td className="tabular py-2 pr-3 text-right text-muted">{fmtInt(o.calls)}</td>
-                      <td className="tabular py-2 pr-3 text-right font-mono text-xs text-muted">{fmtTok(o.inputTokens)}/{fmtTok(o.outputTokens)}</td>
-                      <td className="tabular py-2 text-right font-medium">{fmtUsd(o.costUsd)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div>
-              <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">By model</p>
-              <table className="w-full text-[13px]">
-                <tbody>
-                  {u.byModel.map((m) => (
-                    <tr key={`${m.provider}/${m.model}`} className="border-t border-line first:border-t-0">
-                      <td className="py-2 pr-3 font-mono text-xs">{m.model}</td>
-                      <td className="py-2 pr-3 text-xs text-muted">{m.provider}</td>
-                      <td className="tabular py-2 pr-3 text-right text-muted">{fmtInt(m.calls)}</td>
-                      <td className="tabular py-2 text-right font-medium">{fmtUsd(m.costUsd)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="grid gap-x-10 gap-y-8 p-5 lg:grid-cols-2">
+            <Breakdown
+              title="By operation"
+              head={['Operation', 'Tokens in / out', 'Cost']}
+              rows={u.byOperation.map((o) => ({ key: o.operation, name: OP_LABEL[o.operation] ?? o.operation, calls: o.calls, extra: `${fmtTok(o.inputTokens)} / ${fmtTok(o.outputTokens)}`, cost: o.costUsd }))}
+            />
+            <Breakdown
+              title="By model"
+              head={['Model', 'Provider', 'Cost']}
+              rows={u.byModel.map((m) => ({ key: `${m.provider}/${m.model}`, name: <span className="font-mono text-xs">{m.model}</span>, calls: m.calls, extra: m.provider, cost: m.costUsd }))}
+            />
           </div>
-          <p className="text-xs leading-5 text-muted">Token counts are exact (reported by the provider). Costs are estimated from built-in list prices and may differ from your invoice.</p>
-        </div>
+        </>
       )}
-    </Card>
+    </Section>
   );
 }
 
@@ -510,18 +606,21 @@ const DATA_SOURCES = [
 
 function DataSources() {
   return (
-    <Card>
-      <CardTitle icon={Plug} tone="var(--color-tone-sky)">Passive data sources</CardTitle>
-      <p className="mb-4 text-[13px] text-muted">Every scan reads these public OSINT sources. All are passive — Craton never touches the target directly.</p>
-      <div className="flex flex-col divide-y divide-line border-y border-line">
+    <Section title="Passive data sources" icon={Plug} desc="Every scan reads these public OSINT sources. All are passive: Craton never touches the target directly.">
+      <div className="hidden grid-cols-[minmax(0,5fr)_minmax(0,6fr)_minmax(0,5fr)] gap-x-5 border-b border-line px-5 py-2.5 sm:grid">
+        <span className={TH}>Source</span>
+        <span className={TH}>Provides</span>
+        <span className={cn(TH, 'text-right')}>Access</span>
+      </div>
+      <ul className="divide-y divide-line">
         {DATA_SOURCES.map((d) => (
-          <div key={d.name} className="grid gap-x-4 gap-y-0.5 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center">
+          <li key={d.name} className="grid gap-x-5 gap-y-0.5 px-5 py-3.5 sm:grid-cols-[minmax(0,5fr)_minmax(0,6fr)_minmax(0,5fr)] sm:items-center">
             <span className="text-[13px] font-medium">{d.name}</span>
             <span className="text-[13px] text-muted">{d.provides}</span>
-            <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">{d.key}</span>
-          </div>
+            <span className="text-xs text-muted sm:text-right">{d.key}</span>
+          </li>
         ))}
-      </div>
-    </Card>
+      </ul>
+    </Section>
   );
 }
