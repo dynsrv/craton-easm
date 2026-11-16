@@ -48,9 +48,9 @@ export function ComplianceLens({ scan, lang }: { scan: ScanDTO; lang: Lang }) {
           { big: clear.length, of: hits.length, label: u.sumClear(clear.length), color: clear.length ? 'var(--color-ok)' : 'var(--color-muted)' },
           { big: inPlay, of: mine.length, label: u.sumRules(inPlay), color: inPlay ? 'var(--color-tone-teal)' : 'var(--color-muted)' },
         ].map((c, i) => (
-          <div key={i} className="flex items-baseline gap-3 bg-panel px-5 py-4">
-            <span className="tabular text-2xl font-semibold leading-none" style={{ color: c.color }}>{c.big}</span>
-            <span className="text-[13px] leading-5 text-muted">{c.label}</span>
+          <div key={i} className="flex items-baseline gap-2 bg-panel px-5 py-4 text-[15px] leading-6">
+            <span className="tabular font-semibold" style={{ color: c.color }}>{c.big}</span>
+            <span className="text-muted">{c.label}</span>
           </div>
         ))}
       </div>
