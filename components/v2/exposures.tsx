@@ -9,6 +9,8 @@ import { SeverityBadge } from '@/components/ui/badge';
 import { Card, Eyebrow } from '@/components/ui/card';
 import { sevName, type Dict } from '@/lib/i18n';
 import type { EmailSecurity, ExposureDTO, ExposureKind, Lang } from '@/lib/types';
+import { ExploitPanel } from '@/components/v2/exploit-panel';
+import type { ExploitInput } from '@/lib/ai/exploit';
 
 const ORDER: ExposureKind[] = ['takeover', 'bucket', 'code_leak', 'email'];
 
@@ -32,8 +34,25 @@ function ExposureRow({ e, lang, t }: { e: ExposureDTO; lang: Lang; t: Dict }) {
           </Callout>
           <div>
             <Eyebrow>{t.evidenceLabel}</Eyebrow>
-            <pre className="max-h-48 overflow-auto whitespace-pre-wrap [overflow-wrap:anywhere] rounded-md border border-line bg-bg p-3 font-mono text-xs leading-5 text-muted">{e.evidence}</pre>
+            <pre className="max-h-48 overflow-auto whitespace-pre-wrap [overflow-wrap:anywhere] border border-line bg-bg p-3 font-mono text-xs leading-5 text-muted">{e.evidence}</pre>
           </div>
+          <ExploitPanel
+            input={{
+              kind: 'exposure',
+              title: e.title[lang === 'id' ? 'en' : lang],
+              severity: e.severity,
+              facts: [
+                `Finding type: ${e.kind}`,
+                e.hostname ? `Host: ${e.hostname}` : '',
+                e.provider ? `Provider: ${e.provider}` : '',
+                `Target checked: ${e.target}`,
+                `Evidence: ${e.evidence}`,
+                `Why it matters: ${e.reasoning.en}`,
+              ].filter(Boolean),
+            }}
+            lang={lang}
+            t={t}
+          />
         </div>
       )}
     </li>

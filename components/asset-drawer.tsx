@@ -4,6 +4,8 @@ import { Check, ClipboardCopy, ScanEye, X } from 'lucide-react';
 import { Callout } from '@/components/ui/callout';
 import { Shot } from '@/components/ui/shot';
 import { CveList } from '@/components/v2/cve-list';
+import { ExploitPanel } from '@/components/v2/exploit-panel';
+import type { ExploitInput } from '@/lib/ai/exploit';
 import { useEffect, useRef, useState } from 'react';
 import { PortChip, SeverityBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -24,6 +26,26 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
   }, [onClose]);
 
   const tls = tlsLabel(a.tlsDaysLeft, t);
+  const exploitInput: ExploitInput = {
+    kind: 'asset',
+    title: `${a.hostname}${a.category ? ` — ${a.category}` : ''}`,
+    severity: a.severity ?? undefined,
+    facts: [
+      `Hosting: ${a.provider}${a.ips.length ? ` (${a.ips.join(', ')})` : ''}`,
+      a.httpStatus != null ? `HTTP ${a.httpStatus} over ${a.scheme}` : 'No HTTP response',
+      a.title ? `Page title: ${a.title}` : '',
+      a.hasLoginForm ? 'Has a login form' : '',
+      a.server ? `Server: ${a.server}` : '',
+      a.poweredBy ? `X-Powered-By: ${a.poweredBy}` : '',
+      a.httpStatus != null ? `HSTS ${a.hsts ? 'on' : 'off'}, CSP ${a.csp ? 'on' : 'off'}` : '',
+      a.tlsDaysLeft != null ? `TLS cert ${a.tlsDaysLeft} days left${a.tlsIssuer ? `, issuer ${a.tlsIssuer}` : ''}` : '',
+      a.tlsError ? `TLS error: ${a.tlsError}` : '',
+      a.ports.length ? `Open ports (Shodan): ${a.ports.join(', ')}` : '',
+      a.cves.length ? `Known CVEs: ${a.cves.slice(0, 8).join(', ')}` : '',
+      a.cpes.length ? `Software seen: ${a.cpes.slice(0, 4).join(', ')}` : '',
+      a.visualClass ? `Looks like: ${a.visualClass}${a.visualProduct ? ` (${a.visualProduct})` : ''}` : '',
+    ].filter(Boolean),
+  };
   const yn = (v: boolean) => <span className={v ? 'text-low' : 'text-crit'}>{v ? t.yes : t.no}</span>;
 
   const copy = async () => {
@@ -117,6 +139,8 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
         </Callout>
 
         {a.cves.length > 0 && <CveList asset={a} lang={lang} t={t} />}
+
+        <ExploitPanel input={exploitInput} lang={lang} t={t} />
 
         <section>
           <Eyebrow>{t.evidence}</Eyebrow>

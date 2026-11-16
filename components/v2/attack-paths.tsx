@@ -5,6 +5,7 @@ import { Callout } from '@/components/ui/callout';
 import { Card } from '@/components/ui/card';
 import { sevName, SEV_VAR, type Dict } from '@/lib/i18n';
 import type { AttackPath, AttackPathNode, Lang, Severity } from '@/lib/types';
+import { ExploitPanel } from '@/components/v2/exploit-panel';
 import { cn } from '@/lib/utils';
 
 const KIND: Record<AttackPathNode['kind'], { icon: LucideIcon }> = {
@@ -165,6 +166,20 @@ export function AttackPaths({ paths, lang, t, onHost }: { paths: AttackPath[]; l
             <Callout tone="fix" icon={Scissors} title={chokeIndex >= 0 ? t.breakAtStep(chokeIndex + 1) : t.breakChain}>
               <p>{p.chokePoint.action[lang]}</p>
             </Callout>
+            <ExploitPanel
+              input={{
+                kind: 'path',
+                title: p.title.en,
+                severity: p.impact,
+                facts: [
+                  `Summary: ${p.summary.en}`,
+                  `Likelihood: ${p.likelihood}, Impact: ${p.impact}`,
+                  ...nodes.map((n, i) => `Step ${i + 1} (${n.kind}): ${n.label.en}${n.hostname ? ` [${n.hostname}]` : ''} — ${n.evidence}`),
+                ],
+              }}
+              lang={lang}
+              t={t}
+            />
           </Card>
         );
       })}
