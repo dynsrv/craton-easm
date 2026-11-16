@@ -56,22 +56,22 @@ export function ModuleOverview({ scan, t, onOpen }: { scan: ScanDTO; t: Dict; on
             <button
               key={m.key}
               onClick={() => onOpen(m.tab)}
-              className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 bg-panel px-4 py-3 text-left transition-colors hover:bg-panel2 sm:content-start sm:items-start sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-y-1.5 sm:p-5"
+              className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0 bg-panel px-4 py-3 text-left transition-colors hover:bg-panel2 sm:content-start sm:items-start sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-y-1.5 sm:p-5"
             >
-              <span className="row-span-2 sm:row-span-1 sm:pt-px">
+              <span className="flex items-center sm:pt-px">
                 <IconTile icon={mod.icon} tone={mod.tone} />
               </span>
-              <span className="self-end truncate text-[13px] font-medium leading-5 sm:self-start sm:overflow-visible sm:whitespace-normal">{t.mod[m.key]}</span>
+              <span className="truncate text-[13px] font-medium leading-5 sm:self-start sm:overflow-visible sm:whitespace-normal">{t.mod[m.key]}</span>
               <span
                 className={cn(
-                  'col-start-3 row-span-2 row-start-1 text-right sm:col-span-2 sm:col-start-1 sm:row-span-1 sm:row-start-2 sm:text-left',
+                  'col-start-3 row-start-1 text-right sm:col-span-2 sm:col-start-1 sm:row-start-2 sm:text-left',
                   typeof m.value === 'number' ? 'tabular text-2xl font-semibold leading-7' : 'truncate text-lg font-semibold leading-7 sm:text-xl',
                 )}
                 style={{ color: m.color ?? (m.sev && m.sev !== 'Info' ? SEV_VAR[m.sev] : undefined) }}
               >
                 {m.value}
               </span>
-              <span className="col-start-2 self-start text-xs leading-4 text-muted sm:col-span-2 sm:col-start-1">{m.sub}</span>
+              <span className="col-span-3 col-start-1 mt-1 text-xs leading-4 text-muted sm:col-span-2 sm:mt-0">{m.sub}</span>
             </button>
           );
         })}
