@@ -513,6 +513,34 @@ export function rollUp(hits: SignalHit[]): { reg: Regulation; flagged: number; r
   });
 }
 
+/** Everyday name for each rule, so a reader does not have to decode "PP 71/2019". */
+export const PLAIN: Record<string, Bilingual> = {
+  'uu-pdp': A('Personal data protection law', 'Hukum pelindungan data pribadi'),
+  'pp-33-2026': A('Personal data law: how to apply it', 'Pelaksanaan hukum data pribadi'),
+  'pp-71-2019': A('Rules for running online systems', 'Aturan mengelola sistem elektronik'),
+  'perpres-82-2022': A('Protecting vital digital infrastructure', 'Pelindungan infrastruktur digital vital'),
+  'pojk-11-2022': A('Bank IT and security rules', 'Aturan TI dan keamanan bank'),
+  'padk-1-2026': A('Bank IT rules, 2026 update', 'Aturan TI bank, pembaruan 2026'),
+  'seojk-29-2022': A('Bank cyber resilience guidance', 'Pedoman ketahanan siber bank'),
+  'pojk-22-2023': A('Customer and data protection in finance', 'Pelindungan konsumen dan data di jasa keuangan'),
+  'pbi-2-2024': A('Payment system security rules', 'Aturan keamanan sistem pembayaran'),
+};
+
+/** One practical next step per finding type, in plain words. */
+export const FIX: Record<SignalId, Bilingual> = {
+  tls: A('Renew or replace the certificate and turn on automatic renewal.', 'Perbarui atau ganti sertifikat dan aktifkan pembaruan otomatis.'),
+  headers: A('Redirect all traffic to HTTPS and add the missing security headers at the web server.', 'Alihkan semua lalu lintas ke HTTPS dan tambahkan header keamanan yang belum ada di server web.'),
+  ports: A('Close the port to the internet, or put it behind a VPN or an allow-list.', 'Tutup port dari internet, atau letakkan di belakang VPN atau daftar IP yang diizinkan.'),
+  cve: A('Update the software to a fixed version, starting with the vulnerabilities marked as exploited.', 'Perbarui perangkat lunak ke versi yang sudah diperbaiki, mulai dari kerentanan yang ditandai sudah dieksploitasi.'),
+  admin: A('Restrict the page to your network or add strong login with two-factor authentication.', 'Batasi halaman ke jaringan Anda atau pasang login kuat dengan autentikasi dua faktor.'),
+  nonprod: A('Take test systems offline or put them behind a login, and make sure they hold no real data.', 'Matikan sistem uji atau beri login, dan pastikan tidak menyimpan data nyata.'),
+  shadow: A('Find the owner. Either bring the host under management or decommission it.', 'Cari pemiliknya. Masukkan ke dalam pengelolaan atau nonaktifkan.'),
+  takeover: A('Remove the dangling DNS record, or reclaim the service it points to.', 'Hapus catatan DNS yang menggantung, atau ambil kembali layanan yang ditunjuknya.'),
+  bucket: A('Make the bucket private and review what was exposed.', 'Jadikan bucket privat dan tinjau apa saja yang sempat terbuka.'),
+  code_leak: A('Revoke and rotate the exposed secret first, then remove it from the repository.', 'Cabut dan ganti rahasia yang terbuka lebih dulu, lalu hapus dari repositori.'),
+  email: A('Publish SPF and DKIM, then set DMARC to quarantine or reject.', 'Terbitkan SPF dan DKIM, lalu atur DMARC ke quarantine atau reject.'),
+};
+
 export const regById = (id: string): Regulation | undefined => REGULATIONS.find((r) => r.id === id);
 
 /* ---------- Interface copy shared by the scan tab and the guide page ---------- */
@@ -531,7 +559,7 @@ export const UI: Record<Lang, {
   rulesLead: string; tileRules: (n: number) => string; appliesSummary: (n: number, label: string) => string; appliesToYou: string; otherRules: string;
   rulebook: string; keyDatesTitle: string; inDays: (n: number) => string; inForce: string; mapHint: string; dimNote: string; sourcesCount: (n: number) => string; selectRule: string;
   limitsTitle: string; limits: string[]; sourcesTitle: string; fromPage: string; signIn: string; openGuide: string;
-  lensTitle: string; lensLead: string; rollTitle: string; hitsTitle: string; clearTitle: string; none: string; findings: (n: number) => string; flagged: (a: number, b: number) => string; touches: string; seen: string; seenOn: string; noScan: string;
+  lensTitle: string; lensLead: string; sumFlagged: (n: number, m: number) => string; sumClear: (n: number) => string; sumRules: (n: number) => string; sumRulesLabel: string; nextStep: string; techRefs: string; yourSector: string; rulesFor: (label: string) => string; noRelated: string; howToRead: string[]; rollTitle: string; hitsTitle: string; clearTitle: string; none: string; findings: (n: number) => string; flagged: (a: number, b: number) => string; touches: string; seen: string; seenOn: string; noScan: string;
 }> = {
   en: {
     navTitle: 'Compliance',
@@ -595,6 +623,16 @@ export const UI: Record<Lang, {
     fromPage: 'Compliance guide',
     signIn: 'Sign in',
     openGuide: 'Open the full guide',
+    sumFlagged: (_n, m) => `of ${m} check types found something`,
+    sumClear: () => 'checked and clear',
+    sumRules: () => 'rules may be relevant to your findings',
+    sumRulesLabel: 'Rules in play',
+    nextStep: 'What to do first',
+    techRefs: 'Technical references (ISO 27001, NIST CSF)',
+    yourSector: 'Your organisation type',
+    rulesFor: (label) => `Rules for: ${label}`,
+    noRelated: 'No findings relate to this rule',
+    howToRead: ['A finding is something we saw from outside.', 'The rules show which duties it may touch.', 'It is a pointer for your team, not a verdict.'],
     lensTitle: 'Compliance lens',
     lensLead: 'What this scan found, and the duties and controls it may touch. These are indicators from outside, not an audit result.',
     rollTitle: 'Where findings land',
@@ -670,6 +708,16 @@ export const UI: Record<Lang, {
     fromPage: 'Panduan kepatuhan',
     signIn: 'Masuk',
     openGuide: 'Buka panduan lengkap',
+    sumFlagged: (_n, m) => `dari ${m} jenis pemeriksaan menemukan sesuatu`,
+    sumClear: () => 'diperiksa dan aman',
+    sumRules: () => 'aturan mungkin relevan dengan temuan Anda',
+    sumRulesLabel: 'Aturan terkait',
+    nextStep: 'Langkah pertama',
+    techRefs: 'Rujukan teknis (ISO 27001, NIST CSF)',
+    yourSector: 'Jenis organisasi Anda',
+    rulesFor: (label) => `Aturan untuk: ${label}`,
+    noRelated: 'Tidak ada temuan yang terkait aturan ini',
+    howToRead: ['Temuan adalah hal yang terlihat dari luar.', 'Aturan menunjukkan kewajiban yang mungkin tersentuh.', 'Ini petunjuk bagi tim Anda, bukan vonis.'],
     lensTitle: 'Lensa kepatuhan',
     lensLead: 'Apa yang ditemukan pemindaian ini, serta kewajiban dan kontrol yang mungkin tersentuh. Ini indikator dari luar, bukan hasil audit.',
     rollTitle: 'Ke mana temuan mengarah',

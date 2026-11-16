@@ -1,5 +1,6 @@
 'use client';
 
+import { useSector } from '@/components/use-sector';
 import { ArrowUpRight, Banknote, Building2, Check, CreditCard, ExternalLink, Factory, Landmark, Scale, TriangleAlert, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -7,7 +8,7 @@ import { Wordmark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { TopBar } from '@/components/top-bar';
-import { appliesTo, REGULATIONS, REVIEWED, SECTORS, SIGNALS, STANDARDS, UI, regById, type Regulation, type Sector } from '@/lib/compliance';
+import { appliesTo, PLAIN, REGULATIONS, REVIEWED, SECTORS, SIGNALS, STANDARDS, UI, regById, type Regulation, type Sector } from '@/lib/compliance';
 import type { Lang } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -152,7 +153,7 @@ function Reader({ r, lang, applies }: { r: Regulation; lang: Lang; applies: bool
 export function CompliancePage({ email }: { email: string | null }) {
   const [lang, setLang] = useLang();
   const u = UI[lang];
-  const [sector, setSector] = useState<Sector>('any');
+  const [sector, setSector] = useSector();
   const [selected, setSelected] = useState<string>('uu-pdp');
   const [days, setDays] = useState<Record<string, number>>({});
 
@@ -446,7 +447,7 @@ function RailItem({ r, on, dim, lang, onPick }: { r: Regulation; on: boolean; di
         )}
       >
         <span className="whitespace-nowrap text-[13px] font-medium leading-5">{r.short}</span>
-        <span className="hidden text-xs leading-4 text-muted lg:block">{u.type[r.type]}</span>
+        <span className="hidden text-xs leading-4 text-muted lg:block">{PLAIN[r.id]?.[lang] ?? u.type[r.type]}</span>
       </button>
     </li>
   );
