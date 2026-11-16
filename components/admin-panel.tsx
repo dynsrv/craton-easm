@@ -8,6 +8,7 @@ import { TopBar } from '@/components/top-bar';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
+import type { UsageSummary } from '@/lib/ai/usage';
 
 interface SettingView {
   key: string;
@@ -29,6 +30,7 @@ const SERVICE_ICON: Record<string, { icon: LucideIcon; tone: string }> = {
   OPENAI_API_KEY: { icon: Bot, tone: 'var(--color-tone-teal)' },
   ANTHROPIC_API_KEY: { icon: Sparkles, tone: 'var(--color-tone-amber)' },
   SHODAN_API_KEY: { icon: Radar, tone: 'var(--color-tone-rose)' },
+  OTX_API_KEY: { icon: Radar, tone: 'var(--color-tone-teal)' },
   GITHUB_TOKEN: { icon: GitBranch, tone: 'var(--color-tone-violet)' },
   ALERT_WEBHOOK_URL: { icon: Webhook, tone: 'var(--color-tone-sky)' },
 };
@@ -37,6 +39,7 @@ const SECRETS = [
   { key: 'OPENAI_API_KEY', label: 'OpenAI API key', help: 'Primary model for triage and the executive brief.' },
   { key: 'ANTHROPIC_API_KEY', label: 'Anthropic API key', help: 'Used when no OpenAI key is set, or when the provider is Anthropic.' },
   { key: 'SHODAN_API_KEY', label: 'Shodan API key', help: 'Optional. Without it the free InternetDB is used for ports and CVEs.' },
+  { key: 'OTX_API_KEY', label: 'AlienVault OTX key', help: 'Optional. Adds passive-DNS subdomains from OTX threat intelligence. Free key at otx.alienvault.com.' },
   { key: 'GITHUB_TOKEN', label: 'GitHub token', help: 'Enables the public code check. A fine-grained token with no repository access is enough for code search.' },
   { key: 'ALERT_WEBHOOK_URL', label: 'Alert webhook URL', help: 'HTTPS endpoint that receives high-severity drift as JSON. Slack and Teams incoming webhooks work as-is.' },
 ] as const;
@@ -58,6 +61,8 @@ export function AdminPanel({ email }: { email: string }) {
           <p className="mt-0.5 text-muted">Backend services, operator accounts and your own password.</p>
         </div>
         <ServiceSettings />
+        <UsageSummaryCard />
+        <DataSources />
         <Users />
         <Card>
           <CardTitle icon={KeyRound} tone="var(--color-tone-amber)">Your password</CardTitle>
@@ -72,6 +77,9 @@ function ServiceSettings() {
   const [settings, setSettings] = useState<SettingView[] | null>(null);
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
+  const [models, setModels] = useState<string[]>([]);
+  const [modelSource, setModelSource] = useState<'live' | 'fallback' | null>(null);
+  const [customModel, setCustomModel] = useState(false);
   const [keys, setKeys] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<'save' | 'test' | null>(null);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
@@ -89,6 +97,21 @@ function ServiceSettings() {
       .then((r) => apply(r.settings))
       .catch((e: Error) => setNote({ ok: false, text: e.message }));
   }, [apply]);
+
+  useEffect(() => {
+    let live = true;
+    const q = provider ? `?provider=${provider}` : '';
+    api<{ models: string[]; source: 'live' | 'fallback' }>(`/api/admin/models${q}`)
+      .then((r) => {
+        if (!live) return;
+        setModels(r.models);
+        setModelSource(r.source);
+      })
+      .catch(() => live && setModelSource(null));
+    return () => {
+      live = false;
+    };
+  }, [provider]);
 
   const save = async (values: Record<string, string | null>, done = 'Settings saved.') => {
     setBusy('save');
@@ -164,8 +187,37 @@ function ServiceSettings() {
               />
             </div>
             <div>
-              <label htmlFor="model" className="label">Model ID (blank = default)</label>
-              <input id="model" value={model} onChange={(e) => setModel(e.target.value)} placeholder="gpt-5-mini / claude-haiku-5-5" spellCheck={false} className="field font-mono" />
+              <label htmlFor="model" className="label">Model</label>
+              {customModel ? (
+                <input
+                  id="model"
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder="gpt-5-mini / claude-haiku-5-5"
+                  spellCheck={false}
+                  className="field font-mono"
+                  autoFocus
+                />
+              ) : (
+                <Select
+                  id="model"
+                  value={model || 'default'}
+                  onValueChange={(v) => setModel(v === 'default' ? '' : v)}
+                  className="w-full font-mono"
+                  options={[
+                    { value: 'default', label: 'Default', hint: 'recommended' },
+                    ...(model && !models.includes(model) ? [{ value: model, label: model }] : []),
+                    ...models.map((m) => ({ value: m, label: m })),
+                  ]}
+                  renderValue={(o) => (o?.value === 'default' ? <>Default <span className="text-muted">· recommended</span></> : o?.label)}
+                />
+              )}
+              <p className="hint mt-1.5 flex items-center justify-between gap-2">
+                <span>{modelSource === 'live' ? 'Live list from your API key' : modelSource === 'fallback' ? 'Common models (add a key for the live list)' : ' '}</span>
+                <button type="button" className="text-accent hover:underline" onClick={() => setCustomModel((v) => !v)}>
+                  {customModel ? 'Pick from list' : 'Custom ID'}
+                </button>
+              </p>
             </div>
           </div>
 
@@ -341,6 +393,134 @@ function Users() {
           </div>
         </div>
       )}
+    </Card>
+  );
+}
+
+const fmtUsd = (n: number) => (n < 0.01 && n > 0 ? '<$0.01' : `$${n.toFixed(n < 10 ? 2 : n < 1000 ? 2 : 0)}`);
+const fmtInt = (n: number) => n.toLocaleString('en-US');
+const fmtTok = (n: number) => (n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
+
+const OP_LABEL: Record<string, string> = {
+  triage: 'Asset triage',
+  brief: 'Executive brief',
+  'attack-paths': 'Attack paths',
+  exploit: 'Exploit analysis',
+};
+
+function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="bg-panel p-5">
+      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">{label}</p>
+      <p className="tabular mt-2 text-[28px] font-semibold leading-none tracking-tight">{value}</p>
+      {sub && <p className="mt-1.5 text-xs text-muted">{sub}</p>}
+    </div>
+  );
+}
+
+function UsageSummaryCard() {
+  const [u, setU] = useState<UsageSummary | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    api<{ summary: UsageSummary }>('/api/admin/usage')
+      .then((r) => setU(r.summary))
+      .catch((e: Error) => setErr(e.message));
+  }, []);
+
+  const maxDay = u ? Math.max(0.0001, ...u.daily.map((d) => d.costUsd)) : 1;
+
+  return (
+    <Card>
+      <CardTitle icon={ServerCog} tone="var(--color-tone-teal)">AI usage & cost</CardTitle>
+      {err && <p className="py-4 text-[13px] text-crit">{err}</p>}
+      {!u && !err && <p className="py-4 text-muted">Loading…</p>}
+      {u && u.totals.calls === 0 && <p className="py-4 text-[13px] text-muted">No AI calls recorded yet. Run a scan or an exploit analysis to see usage here.</p>}
+      {u && u.totals.calls > 0 && (
+        <div className="flex flex-col gap-6">
+          <div className="grid gap-px border border-line bg-line sm:grid-cols-3">
+            <Stat label="Est. cost, all time" value={fmtUsd(u.totals.costUsd)} sub={`${fmtInt(u.totals.calls)} calls`} />
+            <Stat label="Today" value={fmtUsd(u.today.costUsd)} sub={`${fmtInt(u.today.calls)} calls`} />
+            <Stat label="Last 30 days" value={fmtUsd(u.last30d.costUsd)} sub={`${fmtInt(u.last30d.calls)} calls`} />
+          </div>
+
+          {u.daily.length > 1 && (
+            <div>
+              <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">Daily cost · last 30 days</p>
+              <div className="flex h-24 items-end gap-1" role="img" aria-label="Daily AI cost for the last 30 days">
+                {u.daily.map((d) => (
+                  <div key={d.date} className="group relative flex-1" title={`${d.date}: ${fmtUsd(d.costUsd)} · ${d.calls} calls`}>
+                    <div className="w-full bg-ink/80 transition-colors group-hover:bg-ink" style={{ height: `${Math.max(2, (d.costUsd / maxDay) * 96)}px` }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div>
+              <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">By operation</p>
+              <table className="w-full text-[13px]">
+                <tbody>
+                  {u.byOperation.map((o) => (
+                    <tr key={o.operation} className="border-t border-line first:border-t-0">
+                      <td className="py-2 pr-3">{OP_LABEL[o.operation] ?? o.operation}</td>
+                      <td className="tabular py-2 pr-3 text-right text-muted">{fmtInt(o.calls)}</td>
+                      <td className="tabular py-2 pr-3 text-right font-mono text-xs text-muted">{fmtTok(o.inputTokens)}/{fmtTok(o.outputTokens)}</td>
+                      <td className="tabular py-2 text-right font-medium">{fmtUsd(o.costUsd)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div>
+              <p className="mb-3 font-mono text-[11px] font-medium uppercase tracking-[0.16em] text-muted">By model</p>
+              <table className="w-full text-[13px]">
+                <tbody>
+                  {u.byModel.map((m) => (
+                    <tr key={`${m.provider}/${m.model}`} className="border-t border-line first:border-t-0">
+                      <td className="py-2 pr-3 font-mono text-xs">{m.model}</td>
+                      <td className="py-2 pr-3 text-xs text-muted">{m.provider}</td>
+                      <td className="tabular py-2 pr-3 text-right text-muted">{fmtInt(m.calls)}</td>
+                      <td className="tabular py-2 text-right font-medium">{fmtUsd(m.costUsd)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <p className="text-xs leading-5 text-muted">Token counts are exact (reported by the provider). Costs are estimated from built-in list prices and may differ from your invoice.</p>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+const DATA_SOURCES = [
+  { name: 'crt.sh', provides: 'Certificate Transparency subdomains', key: 'No key' },
+  { name: 'Cert Spotter (SSLMate)', provides: 'Second CT source, often broader', key: 'No key' },
+  { name: 'HackerTarget', provides: 'Passive DNS host records', key: 'No key · ~free daily quota' },
+  { name: 'Wayback Machine', provides: 'Historical hosts from the web archive', key: 'No key' },
+  { name: 'Shodan InternetDB', provides: 'Open ports & CVEs per IP', key: 'Optional Shodan key for the full API' },
+  { name: 'Shodan CVEDB', provides: 'CVE severity, KEV & EPSS', key: 'No key' },
+  { name: 'AlienVault OTX', provides: 'Passive-DNS subdomains (threat intel)', key: 'Optional free key' },
+  { name: 'GitHub code search', provides: 'Leaked secrets & references in public code', key: 'Optional GitHub token' },
+];
+
+function DataSources() {
+  return (
+    <Card>
+      <CardTitle icon={Plug} tone="var(--color-tone-sky)">Passive data sources</CardTitle>
+      <p className="mb-4 text-[13px] text-muted">Every scan reads these public OSINT sources. All are passive — Craton never touches the target directly.</p>
+      <div className="flex flex-col divide-y divide-line border-y border-line">
+        {DATA_SOURCES.map((d) => (
+          <div key={d.name} className="grid gap-x-4 gap-y-0.5 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] sm:items-center">
+            <span className="text-[13px] font-medium">{d.name}</span>
+            <span className="text-[13px] text-muted">{d.provides}</span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.1em] text-muted">{d.key}</span>
+          </div>
+        ))}
+      </div>
     </Card>
   );
 }

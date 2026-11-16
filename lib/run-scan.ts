@@ -49,7 +49,7 @@ export async function runScan(scanId: string): Promise<void> {
     const cfg = await getRuntimeConfig();
 
     // PHASE A: discovery
-    const result = await discover(domain, (p) => progress(p.phase, p.message), { shodanKey: cfg.shodanKey });
+    const result = await discover(domain, (p) => progress(p.phase, p.message), { shodanKey: cfg.shodanKey, otxKey: cfg.otxKey });
     await writes;
     await prisma.asset.createMany({
       data: result.assets.map((a) => ({

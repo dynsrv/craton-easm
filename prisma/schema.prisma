@@ -169,3 +169,17 @@ model Setting {
   updatedBy String?
   updatedAt DateTime @updatedAt
 }
+
+/// One recorded AI API call, for the admin usage and cost dashboard.
+model AiUsage {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  provider     String
+  model        String
+  operation    String // triage | brief | attack-paths | exploit
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  costUsd      Float    @default(0)
+
+  @@index([createdAt])
+}

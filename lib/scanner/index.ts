@@ -6,6 +6,7 @@ import { probeHost } from './http-probe';
 import { cveRank, getCveDetails } from '../cve';
 import { lookupIp, type IpIntel } from './internetdb';
 import { findCnameOnlyRecords, type DanglingCandidate } from './takeover';
+import { gatherOsintNames, type OsintSourceResult } from './osint';
 
 export const MAX_HOSTS = 50;
 export const PROBE_CONCURRENCY = 8;
@@ -24,6 +25,8 @@ export interface DiscoveryResult {
   records: DnsRecord[];
   /** Names with a CNAME but no address: candidates for dangling DNS. */
   cnameOnly: DanglingCandidate[];
+  /** Which passive OSINT sources answered, and how many names each contributed. */
+  osintSources: OsintSourceResult[];
 }
 
 /**
@@ -33,22 +36,37 @@ export interface DiscoveryResult {
 export async function discover(
   domain: string,
   onProgress: (p: DiscoveryProgress) => void | Promise<void> = () => {},
-  options: { shodanKey?: string | null } = {},
+  options: { shodanKey?: string | null; otxKey?: string | null } = {},
 ): Promise<DiscoveryResult> {
   // 1. Certificate Transparency, with DNS fallback
   let source: DiscoveryResult['source'] = 'crt.sh';
   let names: string[] = [];
   let live: DnsRecord[];
 
-  await onProgress({ phase: 0, message: `GET crt.sh/?q=%.${domain}&output=json` });
-  try {
-    names = await fetchCtSubdomains(domain);
-    if (!names.includes(domain)) names.unshift(domain);
-    await onProgress({ phase: 0, message: `  ${names.length} unique names in certificate logs` });
-  } catch (err) {
-    source = 'dns-fallback';
-    await onProgress({ phase: 0, message: `  crt.sh unavailable (${(err as Error).message}); falling back to common prefixes` });
+  await onProgress({ phase: 0, message: `Querying crt.sh, Cert Spotter, HackerTarget${options.otxKey ? ', OTX' : ''} and the Wayback archive` });
+  // Certificate Transparency (crt.sh) and the other passive sources run in parallel.
+  const [ct, osint] = await Promise.all([
+    fetchCtSubdomains(domain).catch((err: Error) => err),
+    gatherOsintNames(domain, { otxKey: options.otxKey }),
+  ]);
+
+  const merged = new Set<string>([domain]);
+  if (ct instanceof Error) {
+    await onProgress({ phase: 0, message: `  crt.sh unavailable (${ct.message})` });
+  } else {
+    for (const n of ct) merged.add(n);
+    await onProgress({ phase: 0, message: `  crt.sh: ${ct.length} names in certificate logs` });
   }
+  for (const srcResult of osint.sources) {
+    for (const n of srcResult.names) merged.add(n);
+    if (srcResult.ok) await onProgress({ phase: 0, message: `  ${srcResult.source}: ${srcResult.names.length} names` });
+  }
+
+  const osintSources = osint.sources;
+  names = [...merged].sort();
+  // Fall back to prefix brute force only if every passive source came up empty.
+  if (names.length <= 1) source = 'dns-fallback';
+  await onProgress({ phase: 0, message: `  ${names.length} unique names after merging sources` });
 
   // 2. DNS resolution
   if (source === 'crt.sh' && names.length > 1) {
@@ -109,5 +127,5 @@ export async function discover(
   }
   await onProgress({ phase: 3, message: `  ${assets.filter((a) => a.ports.length).length} hosts with port data, ${withCves} with known CVEs` });
 
-  return { source, namesFound: names.length, assets, records: targets, cnameOnly };
+  return { source, namesFound: names.length, assets, records: targets, cnameOnly, osintSources };
 }

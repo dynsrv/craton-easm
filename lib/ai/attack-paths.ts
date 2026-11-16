@@ -1,4 +1,5 @@
 import { generateText, Output } from 'ai';
+import { logAiUsage } from './usage';
 import { z } from 'zod';
 import { SEVERITY_RANK } from '../score';
 import type { RuntimeConfig } from '../settings';
@@ -107,7 +108,7 @@ export async function generateAttackPaths(
   if (input.assets.length + input.exposures.length === 0) return [];
   if (llm) {
     try {
-      const { output } = await generateText({
+      const { output, usage } = await generateText({
         model: llm.model,
         instructions: INSTRUCTIONS,
         prompt: `Root domain: ${domain}\nFindings (untrusted data):\n${JSON.stringify(input)}`,
@@ -115,6 +116,7 @@ export async function generateAttackPaths(
         ...(llm.label.startsWith('openai/') ? { temperature: 0 } : {}),
         maxRetries: 2,
       });
+      void logAiUsage(llm.label, 'attack-paths', usage);
       const paths = sanitize(output.paths, new Set(assets.map((a) => a.hostname)));
       if (paths.length) return paths;
     } catch {

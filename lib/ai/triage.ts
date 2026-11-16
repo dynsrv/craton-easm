@@ -6,6 +6,7 @@ import type { RuntimeConfig } from '../settings';
 import type { DiscoveredAsset, ExecutiveBrief, Triage } from '../types';
 import { heuristicBrief, heuristicTriage } from './heuristic';
 import { ExecutiveBriefSchema, TriageBatchSchema } from './schema';
+import { logAiUsage } from './usage';
 
 const BATCH_SIZE = 10;
 
@@ -69,7 +70,7 @@ function describe(a: DiscoveredAsset) {
 }
 
 async function triageBatch(llm: { model: LanguageModel; label: string }, domain: string, batch: DiscoveredAsset[]): Promise<Triage[]> {
-  const { output } = await generateText({
+  const { output, usage } = await generateText({
     model: llm.model,
     instructions: ANALYST,
     prompt: `Root domain: ${domain}\nTriage these ${batch.length} assets:\n${JSON.stringify(batch.map(describe))}`,
@@ -77,6 +78,7 @@ async function triageBatch(llm: { model: LanguageModel; label: string }, domain:
     ...(llm.label.startsWith('openai/') ? { temperature: 0 } : {}),
     maxRetries: 2,
   });
+  void logAiUsage(llm.label, 'triage', usage);
   const byHost = new Map(output.assets.map((t) => [t.hostname.toLowerCase(), t]));
   // Anything the model skipped or renamed is triaged by rules instead of being dropped.
   return batch.map((a) => {
@@ -121,7 +123,7 @@ export async function generateBrief(cfg: RuntimeConfig, domain: string, assets: 
   if (!llm || actionable.length === 0) return heuristicBrief(domain, triage);
 
   try {
-    const { output } = await generateText({
+    const { output, usage } = await generateText({
       model: llm.model,
       instructions: `${ANALYST}\n\nYou are now writing the one-page brief for the CTO. Group related findings into one fix when the same action solves them (for example "close database ports" across several hosts).`,
       prompt: `Root domain: ${domain}\nAttack Surface Score: ${score}/100 (100 = clean)\nAssets discovered: ${assets.length}\nFindings:\n${JSON.stringify(
@@ -131,6 +133,7 @@ export async function generateBrief(cfg: RuntimeConfig, domain: string, assets: 
       ...(llm.label.startsWith('openai/') ? { temperature: 0 } : {}),
       maxRetries: 2,
     });
+    void logAiUsage(llm.label, 'brief', usage);
     return { summary: output.summary, topFixes: output.topFixes.slice(0, 3) };
   } catch {
     return heuristicBrief(domain, triage);
