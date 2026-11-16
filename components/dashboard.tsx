@@ -307,11 +307,11 @@ export function Dashboard({ userEmail, isAdmin = false, initialScan = null, init
 
       {scan && !running && (
         <div className="no-print sticky top-0 z-10 sm:top-[var(--topbar-h,48px)] border-b border-line bg-bg/95 backdrop-blur-md">
-          <div className="mx-auto flex max-w-[1360px] flex-col px-4 sm:flex-row sm:items-center sm:gap-4 sm:px-6">
+          <div className="mx-auto flex max-w-[1360px] flex-row items-center gap-2 px-4 sm:gap-4 sm:px-6">
             {stuck && (
-              <div className="flex shrink-0 items-center gap-3 pt-2 sm:pt-0">
+              <div className="flex min-w-0 max-w-[45%] shrink-0 items-center gap-2 sm:max-w-none sm:gap-3">
                 <ScanHistory recent={recent} currentId={scan.id} domain={scan.domain} lang={lang} dateFmt={dateFmt} onPick={loadScan} variant="compact" />
-                <span className="hidden h-5 w-px bg-line sm:block" aria-hidden />
+                <span className="h-5 w-px shrink-0 bg-line" aria-hidden />
               </div>
             )}
             <nav className="-mb-px flex min-w-0 flex-1 gap-1 overflow-x-auto" role="tablist" aria-label={scan.domain}>

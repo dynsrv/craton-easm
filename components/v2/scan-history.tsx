@@ -74,7 +74,7 @@ export function ScanHistory({
       .filter((g) => g.rows.length > 0);
   }, [recent, q, domain, currentId, dateFmt]);
 
-  const mark = variant === 'hero' ? 'domain-mark text-[32px] font-semibold leading-10 tracking-[-0.025em]' : 'domain-mark text-sm font-semibold';
+  const mark = variant === 'hero' ? 'domain-mark text-[32px] font-semibold leading-10 tracking-[-0.025em]' : 'domain-mark min-w-0 truncate text-sm font-semibold';
 
   if (!multi) {
     return variant === 'hero' ? (
