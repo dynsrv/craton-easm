@@ -44,12 +44,12 @@ export function ComplianceLens({ scan, lang }: { scan: ScanDTO; lang: Lang }) {
       {/* Summary band */}
       <div className="grid gap-px border border-line bg-line sm:grid-cols-3">
         {[
-          { big: withFindings.length, of: hits.length, label: u.sumFlagged(withFindings.length, hits.length), tone: withFindings.length ? 'text-ink' : 'text-muted' },
-          { big: clear.length, of: hits.length, label: u.sumClear(clear.length), tone: 'text-muted' },
-          { big: inPlay, of: mine.length, label: u.sumRules(inPlay), tone: inPlay ? 'text-ink' : 'text-muted' },
+          { big: withFindings.length, of: hits.length, label: u.sumFlagged(withFindings.length, hits.length), color: withFindings.length ? 'var(--color-high)' : 'var(--color-muted)' },
+          { big: clear.length, of: hits.length, label: u.sumClear(clear.length), color: clear.length ? 'var(--color-ok)' : 'var(--color-muted)' },
+          { big: inPlay, of: mine.length, label: u.sumRules(inPlay), color: inPlay ? 'var(--color-tone-teal)' : 'var(--color-muted)' },
         ].map((c, i) => (
           <div key={i} className="flex items-baseline gap-3 bg-panel px-5 py-4">
-            <span className={cn('tabular font-mono text-[28px] font-light leading-none', c.tone)}>{c.big}</span>
+            <span className="tabular text-2xl font-semibold leading-none" style={{ color: c.color }}>{c.big}</span>
             <span className="text-[13px] leading-5 text-muted">{c.label}</span>
           </div>
         ))}
