@@ -8,10 +8,11 @@ import { cn } from '@/lib/utils';
 
 const NAV = [
   { id: 'dashboard', href: '/', label: 'Dashboard' },
+  { id: 'compliance', href: '/compliance', label: 'Compliance' },
   { id: 'admin', href: '/admin', label: 'Admin' },
 ] as const;
 
-export function TopBar({ active, email, children }: { active: 'dashboard' | 'admin' | null; email?: string; children?: React.ReactNode }) {
+export function TopBar({ active, email, children }: { active: 'dashboard' | 'compliance' | 'admin' | null; email?: string; children?: React.ReactNode }) {
   const signOut = async () => {
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     window.location.href = '/';

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AssetDrawer } from '@/components/asset-drawer';
 import { AttackPaths } from '@/components/v2/attack-paths';
+import { ComplianceLens } from '@/components/v2/compliance-lens';
 import { DriftTimeline } from '@/components/v2/drift-timeline';
 import { Exposures } from '@/components/v2/exposures';
 import { ModuleShowcase } from '@/components/v2/module-overview';
@@ -29,7 +30,7 @@ import { cn } from '@/lib/utils';
 
 const POLL_MS = 1500;
 
-const TABS = ['overview', 'paths', 'assets', 'exposures', 'drift'] as const;
+const TABS = ['overview', 'paths', 'assets', 'exposures', 'compliance', 'drift'] as const;
 type Tab = (typeof TABS)[number];
 
 export { LangToggle, useLang } from '@/components/lang';
@@ -178,9 +179,10 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
     paths: scan?.attackPaths.length ?? 0,
     assets: assets.length,
     exposures: actionableExposures.length,
+    compliance: null,
     drift: scan?.driftEvents.filter((e) => e.scanId === scan.id).length ?? 0,
   };
-  const tabLabel: Record<Tab, string> = { overview: t.tabOverview, paths: t.tabPaths, assets: t.tabAssets, exposures: t.tabExposures, drift: t.tabDrift };
+  const tabLabel: Record<Tab, string> = { overview: t.tabOverview, paths: t.tabPaths, assets: t.tabAssets, exposures: t.tabExposures, compliance: t.tabCompliance, drift: t.tabDrift };
 
   return (
     <div>
@@ -337,6 +339,11 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
         {scan && !running && tab === 'exposures' && (
           <section role="tabpanel" id="panel-exposures" aria-labelledby="tab-exposures">
             <Exposures exposures={scan.exposures} email={scan.emailSecurity} lang={lang} t={t} />
+          </section>
+        )}
+        {scan && !running && tab === 'compliance' && (
+          <section role="tabpanel" id="panel-compliance" aria-labelledby="tab-compliance">
+            <ComplianceLens scan={scan} lang={lang} />
           </section>
         )}
         {scan && !running && tab === 'drift' && (

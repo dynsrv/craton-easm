@@ -3,6 +3,7 @@ import {
   Cloud,
   CodeXml,
   FileText,
+  Scale,
   Gauge,
   History,
   LayoutDashboard,
@@ -43,6 +44,7 @@ export const MODULE: Record<string, ModuleStyle> = {
   paths: { icon: Route, tone: 'var(--color-muted)' },
   drift: { icon: History, tone: 'var(--color-muted)' },
   brief: { icon: FileText, tone: 'var(--color-muted)' },
+  compliance: { icon: Scale, tone: 'var(--color-muted)' },
 };
 
 /** Icons for the nine scan phases, in pipeline order. */

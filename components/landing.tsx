@@ -188,6 +188,7 @@ const COPY = {
     finalBody: 'Run a scan on your own domain and get a brief your leadership team can act on today.',
     invite: 'Access is by invitation for authorised security teams.',
     footer: 'External attack surface management',
+    complianceLink: 'Indonesian compliance guide',
   },
   id: {
     nav: { framework: 'Kerangka', brief: 'Laporan', leaders: 'Untuk Pimpinan', trust: 'Keamanan' },
@@ -315,6 +316,7 @@ const COPY = {
     finalBody: 'Pindai domain Anda sendiri dan dapatkan laporan yang bisa langsung ditindaklanjuti pimpinan hari ini.',
     invite: 'Akses melalui undangan untuk tim keamanan yang berwenang.',
     footer: 'Manajemen permukaan serangan eksternal',
+    complianceLink: 'Panduan kepatuhan Indonesia',
   },
 };
 
@@ -684,6 +686,9 @@ export function Landing() {
           <span className="flex flex-wrap items-center gap-6 text-[13px] text-muted">
             <span>security.digitalstrategy.id</span>
             <span>© 2026</span>
+            <Link href="/compliance" className="hover:text-ink">
+              {c.complianceLink}
+            </Link>
             <Link href="/login" className="hover:text-ink">
               {c.signIn}
             </Link>
