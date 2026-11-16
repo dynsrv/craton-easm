@@ -16,6 +16,15 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // /compliance is static for visitors; people holding a session cookie get the in-app variant.
+  if (pathname === '/compliance') {
+    if (!req.cookies.get(SESSION_COOKIE)?.value) return NextResponse.next();
+    const url = req.nextUrl.clone();
+    url.pathname = '/compliance/app';
+    return NextResponse.rewrite(url);
+  }
+  if (pathname === '/compliance/app') return NextResponse.redirect(new URL('/compliance', req.url));
+
   if (PUBLIC.some((p) => pathname === p)) return NextResponse.next();
 
   const session = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);

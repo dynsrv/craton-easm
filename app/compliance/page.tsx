@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { CompliancePage } from '@/components/compliance-page';
-import { getSession } from '@/lib/auth/guard';
 
-export const dynamic = 'force-dynamic';
+// Static: served from the edge with no session lookup. Signed-in users are rewritten to /compliance/app by middleware.
+export const dynamic = 'force-static';
 
 export const metadata: Metadata = {
   title: 'Indonesian compliance guide',
@@ -11,15 +11,12 @@ export const metadata: Metadata = {
   alternates: { canonical: '/compliance' },
 };
 
-/** Public reference page. Signed-in users see it inside the app shell. */
-export default async function Compliance() {
-  const session = await getSession();
-  const email = session?.email ?? null;
+export default function Compliance() {
   return (
     <>
-      {/* Signed-out visitors always get the dark theme, set before first paint. Signed-in users keep their own choice. */}
-      {!email && <script dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.theme='dark'" }} />}
-      <CompliancePage email={email} />
+      {/* Visitors always get the dark theme, set before first paint. */}
+      <script dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.theme='dark'" }} />
+      <CompliancePage email={null} />
     </>
   );
 }

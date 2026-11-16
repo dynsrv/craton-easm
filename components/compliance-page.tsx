@@ -3,7 +3,8 @@
 import { useSector } from '@/components/use-sector';
 import { ArrowUpRight, Banknote, Building2, Check, CreditCard, ExternalLink, Factory, Landmark, Scale, TriangleAlert, type LucideIcon } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { NIGHT, SiteFooter, SiteHeader } from '@/components/site-chrome';
 import { Wordmark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
 import { TopBar } from '@/components/top-bar';
@@ -15,9 +16,13 @@ const ext = { target: '_blank', rel: 'noopener noreferrer' } as const;
 const SECTOR_ICON: Record<Sector, LucideIcon> = { any: Building2, bank: Landmark, payments: CreditCard, finance: Banknote, cii: Factory };
 
 /** One shell for every section, so the page lines up with the top bar and with itself. */
-const SHELL = 'mx-auto w-full max-w-[1360px] px-4 sm:px-6';
+const APP_SHELL = 'mx-auto w-full max-w-[1360px] px-4 sm:px-6';
+/** Signed-out visitors get the landing page's width so both pages line up. */
+const PUBLIC_SHELL = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8';
+const ShellCtx = createContext(APP_SHELL);
 
 function Section({ id, className, children, first, ...rest }: { id: string; className?: string; children: React.ReactNode; first?: boolean } & React.AriaAttributes) {
+  const SHELL = useContext(ShellCtx);
   return (
     <section id={id} className={cn('scroll-mt-28', !first && 'border-t border-line')} {...rest}>
       <div className={cn(SHELL, 'py-12 sm:py-16', className)}>{children}</div>
@@ -35,25 +40,6 @@ function NumBadge({ n, className }: { n: number; className?: string }) {
     >
       {n}
     </span>
-  );
-}
-
-function PublicBar({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }) {
-  return (
-    <header className="sticky top-0 z-30 border-b border-line bg-bg/90 backdrop-blur-md">
-      <div className={cn(SHELL, 'flex h-12 items-center gap-4')}>
-        <Link href="/" aria-label="Craton home" className="shrink-0">
-          <Wordmark compact />
-        </Link>
-        <div className="ml-auto flex items-center gap-2">
-          <LangToggle lang={lang} setLang={setLang} />
-          <Link href="/login" className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line px-2.5 text-[13px] text-muted hover:bg-panel2 hover:text-ink">
-            {UI[lang].signIn}
-            <ArrowUpRight className="size-3.5" aria-hidden />
-          </Link>
-        </div>
-      </div>
-    </header>
   );
 }
 
@@ -203,18 +189,20 @@ export function CompliancePage({ email }: { email: string | null }) {
     setDays(Object.fromEntries(u.whatsNew.map((w) => [w.iso, Math.ceil((Date.parse(w.iso) - Date.now()) / 86_400_000)])));
   }, [u.whatsNew]);
 
+  const SHELL = email ? APP_SHELL : PUBLIC_SHELL;
   return (
-    <div>
+    <ShellCtx.Provider value={SHELL}>
+    <div style={email ? undefined : NIGHT} className={cn(!email && 'min-h-dvh bg-bg text-ink antialiased')}>
       {email ? (
         <TopBar active="compliance" email={email}>
           <LangToggle lang={lang} setLang={setLang} />
         </TopBar>
       ) : (
-        <PublicBar lang={lang} setLang={setLang} />
+        <SiteHeader lang={lang} setLang={setLang} active="compliance" />
       )}
 
       {/* Hero */}
-      <header className={cn(SHELL, 'pb-12 pt-10 sm:pb-16 sm:pt-16')}>
+      <header className={cn(SHELL, 'pb-12 sm:pb-16', email ? 'pt-10 sm:pt-16' : 'pt-24 sm:pt-28')}>
         <div className="grid gap-x-12 gap-y-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-end">
           <div>
             <p className="flex items-center gap-2.5 text-[15px] font-medium text-muted">
@@ -245,7 +233,7 @@ export function CompliancePage({ email }: { email: string | null }) {
       </header>
 
       {/* In-page navigation */}
-      <nav aria-label={u.navTitle} className="no-print z-20 border-y border-line bg-bg/90 backdrop-blur-md lg:sticky lg:top-12">
+      <nav aria-label={u.navTitle} className="no-print z-20 border-y border-line bg-bg/90 backdrop-blur-md lg:sticky" style={{ top: email ? 48 : 56 }}>
         <ul className={cn(SHELL, 'flex gap-1 overflow-x-auto')}>
           {(Object.keys(u.subnav) as (keyof typeof u.subnav)[]).map((k) => (
             <li key={k} className="shrink-0">
@@ -437,7 +425,9 @@ export function CompliancePage({ email }: { email: string | null }) {
           </ul>
         </Section>
       </main>
+      {!email && <SiteFooter lang={lang} />}
     </div>
+    </ShellCtx.Provider>
   );
 }
 

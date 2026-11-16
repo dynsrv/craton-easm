@@ -36,7 +36,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { CratonMark } from '@/components/brand';
-import { LangToggle, useLang } from '@/components/lang';
+import { NIGHT, SiteFooter, SiteHeader } from '@/components/site-chrome';
+import { useLang } from '@/components/lang';
 import { SEV_VAR } from '@/lib/i18n';
 import type { Lang, Severity } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -320,26 +321,6 @@ const COPY = {
   },
 };
 
-/** The landing page is always dark, independent of the workspace theme. */
-const NIGHT = {
-  '--color-bg': '#000000',
-  '--color-panel': '#0a0a0a',
-  '--color-panel2': '#161616',
-  '--color-line': '#262626',
-  '--color-ink': '#f5f5f5',
-  '--color-primary': '#f5f5f5',
-  '--color-accent': '#8ab4ff',
-  '--color-muted': '#8f8f8f',
-  '--color-field': '#000000',
-  '--color-inverse': '#000000',
-  '--color-crit': '#ff5a5f',
-  '--color-high': '#ff8a3d',
-  '--color-med': '#f2b233',
-  '--color-low': '#f0e052',
-  '--color-ok': '#4fd18b',
-  '--color-info': '#8f8f8f',
-  colorScheme: 'dark',
-} as React.CSSProperties;
 
 const LOG = [
   ['00:00.4', 'ct-logs', '44 names under company.co.id'],
@@ -454,40 +435,10 @@ function BriefPreview({ c }: { c: (typeof COPY)['en'] }) {
 export function Landing() {
   const [lang, setLang] = useLang();
   const c = COPY[lang];
-  const navLinks: [string, string][] = [
-    ['#framework', c.nav.framework],
-    ['#brief', c.nav.brief],
-    ['#leaders', c.nav.leaders],
-    ['#trust', c.nav.trust],
-  ];
 
   return (
     <div style={NIGHT} className="min-h-dvh bg-bg text-ink antialiased">
-      <header className="fixed inset-x-0 top-0 z-30 border-b border-line bg-bg/80 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-[1280px] items-center gap-6 px-5 sm:px-8">
-          <Link href="/" aria-label="Craton home" className="flex shrink-0 items-center gap-2.5">
-            <CratonMark className="size-5" />
-            <span className="text-sm font-semibold tracking-[0.22em]">CRATON</span>
-          </Link>
-          <nav className="hidden items-center gap-7 md:flex" aria-label="Sections">
-            {navLinks.map(([href, label]) => (
-              <a key={href} href={href} className="text-[13px] text-muted transition-colors hover:text-ink">
-                {label}
-              </a>
-            ))}
-            <Link href="/compliance" className="text-[13px] text-muted transition-colors hover:text-ink">
-              {c.nav.compliance}
-            </Link>
-          </nav>
-          <div className="ml-auto flex items-center gap-3">
-            <LangToggle lang={lang} setLang={setLang} />
-            <Link href="/login" className="inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap bg-ink px-3.5 text-[13px] font-medium text-bg hover:bg-white">
-              {c.signIn}
-              <ArrowUpRight className="size-3.5" aria-hidden />
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SiteHeader lang={lang} setLang={setLang} onLanding />
 
       <main>
         {/* Hero: type-led, with the five framework functions as the base line */}
@@ -680,25 +631,7 @@ export function Landing() {
         </Band>
       </main>
 
-      <footer className="border-t border-line px-5 py-10 sm:px-8">
-        <div className="mx-auto flex max-w-[1280px] flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-          <span className="flex items-center gap-2.5">
-            <CratonMark className="size-4" />
-            <span className="text-xs font-semibold tracking-[0.22em]">CRATON</span>
-            <span className="text-[13px] text-muted">· {c.footer}</span>
-          </span>
-          <span className="flex flex-wrap items-center gap-6 text-[13px] text-muted">
-            <span>security.digitalstrategy.id</span>
-            <span>© 2026</span>
-            <Link href="/compliance" className="hover:text-ink">
-              {c.complianceLink}
-            </Link>
-            <Link href="/login" className="hover:text-ink">
-              {c.signIn}
-            </Link>
-          </span>
-        </div>
-      </footer>
+      <SiteFooter lang={lang} />
     </div>
   );
 }
