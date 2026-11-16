@@ -75,14 +75,16 @@ const en = {
   viewAssets: 'View assets',
   modulesTitle: 'Security modules',
   mod: { takeover: 'Subdomain takeover', visual: 'Visual triage', code_leak: 'Public code', bucket: 'Cloud storage', email: 'Email security', paths: 'Attack paths', drift: 'Drift' } as Record<string, string>,
+  /** Shorter titles for the narrow one-row layout. */
+  modShort: { takeover: 'Takeover', visual: 'Visual triage', code_leak: 'Public code', bucket: 'Cloud storage', email: 'Email', paths: 'Attack paths', drift: 'Drift' } as Record<string, string>,
   modSub: {
     takeover: (n: number) => (n ? `dangling DNS record${n === 1 ? '' : 's'}` : 'no dangling records'),
-    visual: (n: number, risky: number) => (n ? `${n} screenshots · ${risky} exposed console${risky === 1 ? '' : 's'} or API docs` : 'no screenshots taken'),
-    code_leak: (n: number) => (n ? `file${n === 1 ? '' : 's'} on GitHub mention you` : 'nothing found, or no GitHub token'),
+    visual: (n: number, risky: number) => (n ? `${n} screenshots · ${risky} exposed panel${risky === 1 ? '' : 's'}` : 'no screenshots taken'),
+    code_leak: (n: number) => (n ? `file${n === 1 ? '' : 's'} on GitHub mention you` : 'nothing found on GitHub'),
     bucket: (n: number) => (n ? `publicly listable bucket${n === 1 ? '' : 's'}` : 'no public buckets'),
     email: (spf: string, dmarc: string) => `SPF ${spf} · DMARC ${dmarc}`,
     paths: (n: number) => (n ? `breach chain${n === 1 ? '' : 's'} to break` : 'no credible chains'),
-    drift: (n: number, baseline: boolean) => (baseline ? (n ? `change${n === 1 ? '' : 's'} since the last scan` : 'no changes since the last scan') : 'first scan: baseline saved'),
+    drift: (n: number, baseline: boolean) => (baseline ? (n ? `change${n === 1 ? '' : 's'} since last scan` : 'no changes since last scan') : 'baseline saved'),
   },
   emailGrade: { strong: 'Protected', partial: 'Partial', weak: 'Spoofable', unknown: 'Unknown' },
   modDesc: {
@@ -271,14 +273,15 @@ const id: typeof en = {
   viewAssets: 'Lihat aset',
   modulesTitle: 'Modul keamanan',
   mod: { takeover: 'Pengambilalihan subdomain', visual: 'Triage visual', code_leak: 'Kode publik', bucket: 'Penyimpanan cloud', email: 'Keamanan email', paths: 'Jalur serangan', drift: 'Perubahan' },
+  modShort: { takeover: 'Ambil alih', visual: 'Triage visual', code_leak: 'Kode publik', bucket: 'Cloud storage', email: 'Email', paths: 'Jalur serangan', drift: 'Perubahan' } as Record<string, string>,
   modSub: {
     takeover: (n: number) => (n ? 'record DNS menggantung' : 'tidak ada record menggantung'),
-    visual: (n: number, risky: number) => (n ? `${n} tangkapan layar · ${risky} konsol atau dokumentasi API terbuka` : 'tidak ada tangkapan layar'),
-    code_leak: (n: number) => (n ? 'file di GitHub menyebut Anda' : 'tidak ditemukan, atau belum ada token GitHub'),
+    visual: (n: number, risky: number) => (n ? `${n} tangkapan layar · ${risky} panel terbuka` : 'tidak ada tangkapan layar'),
+    code_leak: (n: number) => (n ? 'file di GitHub menyebut Anda' : 'tidak ada temuan di GitHub'),
     bucket: (n: number) => (n ? 'bucket dapat dilihat publik' : 'tidak ada bucket publik'),
     email: (spf: string, dmarc: string) => `SPF ${spf} · DMARC ${dmarc}`,
     paths: (n: number) => (n ? 'rantai pembobolan untuk diputus' : 'tidak ada rantai yang kredibel'),
-    drift: (n: number, baseline: boolean) => (baseline ? (n ? 'perubahan sejak scan terakhir' : 'tidak ada perubahan sejak scan terakhir') : 'scan pertama: baseline disimpan'),
+    drift: (n: number, baseline: boolean) => (baseline ? (n ? 'perubahan sejak scan terakhir' : 'tidak ada perubahan sejak scan terakhir') : 'baseline disimpan'),
   },
   emailGrade: { strong: 'Terlindungi', partial: 'Sebagian', weak: 'Rentan', unknown: 'Tidak jelas' },
   modDesc: {

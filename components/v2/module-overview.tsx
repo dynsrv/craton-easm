@@ -50,7 +50,7 @@ export function ModuleOverview({ scan, t, onOpen }: { scan: ScanDTO; t: Dict; on
     <Card>
       <CardTitle icon={Layers}>{t.modulesTitle}</CardTitle>
       {/* Every tile has the same three rows: icon + title with the result on the right, then the caption underneath. */}
-      <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         {tiles.map((m, idx) => {
           const mod = MODULE[m.key];
           return (
@@ -60,14 +60,17 @@ export function ModuleOverview({ scan, t, onOpen }: { scan: ScanDTO; t: Dict; on
               className={cn(
                 'group flex min-w-0 flex-col gap-1.5 bg-panel px-4 py-3.5 text-left transition-colors hover:bg-panel2 sm:px-5 sm:py-4',
                 // The odd tile out spans the row, so the ruled grid ends square.
-                idx === tiles.length - 1 && tiles.length % 2 === 1 && 'sm:col-span-2',
+                idx === tiles.length - 1 && tiles.length % 2 === 1 && 'sm:max-xl:col-span-2',
               )}
             >
-              <span className="flex min-h-7 items-center gap-3">
+              <span className="flex min-h-7 items-center gap-3 xl:grid xl:grid-cols-[auto_minmax(0,1fr)] xl:gap-y-2">
                 <IconTile icon={mod.icon} tone={mod.tone} />
-                <span className="min-w-0 flex-1 truncate text-[13px] font-medium leading-5">{t.mod[m.key]}</span>
+                <span className="min-w-0 flex-1 truncate text-[13px] font-medium leading-5 xl:order-3 xl:col-span-2">
+                  <span className={m.key === 'email' ? 'hidden' : 'xl:hidden'}>{t.mod[m.key]}</span>
+                  <span className={m.key === 'email' ? '' : 'hidden xl:inline'}>{t.modShort[m.key]}</span>
+                </span>
                 <span
-                  className={cn('shrink-0 text-right font-semibold leading-7', typeof m.value === 'number' ? 'tabular text-2xl' : 'text-lg')}
+                  className={cn('shrink-0 text-right font-semibold leading-7 xl:order-2 xl:justify-self-end', typeof m.value === 'number' ? 'tabular text-2xl/7' : 'text-lg/7')}
                   style={{ color: m.color ?? (m.sev && m.sev !== 'Info' ? SEV_VAR[m.sev] : undefined) }}
                 >
                   {m.value}
@@ -87,7 +90,7 @@ export function ModuleShowcase({ t }: { t: Dict }) {
   const keys = ['discovery', 'takeover', 'visual', 'code_leak', 'bucket', 'email', 'paths', 'drift'];
   const title: Record<string, string> = t.mod;
   return (
-    <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
       {keys.map((k) => (
         <div key={k} className="flex gap-3 bg-panel px-4 py-3 sm:p-5">
           <IconTile icon={MODULE[k].icon} tone={MODULE[k].tone} />
