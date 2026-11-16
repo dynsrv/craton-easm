@@ -1,10 +1,11 @@
 'use client';
 
-import { ChevronRight, Layers } from 'lucide-react';
+import { Layers } from 'lucide-react';
 import { Card, CardTitle } from '@/components/ui/card';
 import { IconTile } from '@/components/ui/icon-tile';
 import { SEV_VAR, type Dict } from '@/lib/i18n';
 import { MODULE } from '@/lib/modules';
+import { cn } from '@/lib/utils';
 import type { EmailSecurity, ScanDTO, Severity } from '@/lib/types';
 
 /** Can someone send mail that looks like it came from this domain? */
@@ -55,22 +56,22 @@ export function ModuleOverview({ scan, t, onOpen }: { scan: ScanDTO; t: Dict; on
             <button
               key={m.key}
               onClick={() => onOpen(m.tab)}
-              className="group flex flex-col gap-4 bg-panel p-5 text-left transition-colors hover:bg-panel2"
+              className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-0.5 bg-panel px-4 py-3 text-left transition-colors hover:bg-panel2 sm:content-start sm:items-start sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-y-1.5 sm:p-5"
             >
-              <span className="flex items-center justify-between">
+              <span className="row-span-2 sm:row-span-1 sm:pt-px">
                 <IconTile icon={mod.icon} tone={mod.tone} />
-                <ChevronRight className="size-4 text-muted opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
               </span>
-              <span>
-                <span className="block text-[13px] font-medium leading-5">{t.mod[m.key]}</span>
-                <span
-                  className={typeof m.value === 'number' ? 'tabular mt-1 block text-2xl font-semibold leading-7' : 'mt-1 block truncate text-xl font-semibold leading-7'}
-                  style={{ color: m.color ?? (m.sev && m.sev !== 'Info' ? SEV_VAR[m.sev] : undefined) }}
-                >
-                  {m.value}
-                </span>
-                <span className="mt-0.5 block text-xs leading-4 text-muted">{m.sub}</span>
+              <span className="self-end truncate text-[13px] font-medium leading-5 sm:self-start sm:overflow-visible sm:whitespace-normal">{t.mod[m.key]}</span>
+              <span
+                className={cn(
+                  'col-start-3 row-span-2 row-start-1 text-right sm:col-span-2 sm:col-start-1 sm:row-span-1 sm:row-start-2 sm:text-left',
+                  typeof m.value === 'number' ? 'tabular text-2xl font-semibold leading-7' : 'truncate text-lg font-semibold leading-7 sm:text-xl',
+                )}
+                style={{ color: m.color ?? (m.sev && m.sev !== 'Info' ? SEV_VAR[m.sev] : undefined) }}
+              >
+                {m.value}
               </span>
+              <span className="col-start-2 self-start text-xs leading-4 text-muted sm:col-span-2 sm:col-start-1">{m.sub}</span>
             </button>
           );
         })}
@@ -86,7 +87,7 @@ export function ModuleShowcase({ t }: { t: Dict }) {
   return (
     <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
       {keys.map((k) => (
-        <div key={k} className="flex gap-3 bg-panel p-5">
+        <div key={k} className="flex gap-3 bg-panel px-4 py-3 sm:p-5">
           <IconTile icon={MODULE[k].icon} tone={MODULE[k].tone} />
           <div>
             <p className="text-[13px] font-semibold leading-5">{k === 'discovery' ? (t.tabAssets === 'Aset' ? 'Penemuan aset' : 'Asset discovery') : title[k]}</p>
