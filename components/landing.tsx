@@ -369,6 +369,25 @@ const btn = 'inline-flex h-12 items-center gap-3 px-6 text-[15px] font-medium tr
 const h2 = 'text-[36px] font-semibold leading-[1.05] tracking-[-0.03em] sm:text-[56px]';
 const sub = 'text-sm font-medium text-muted';
 
+/**
+ * Section header. It reuses the column template of the content below it, so the lead paragraph starts exactly
+ * where the last column of that content starts. The headline spans the columns before it. The lead is nudged
+ * so its first line is centred on the headline's first line.
+ */
+function Head({ title, lead, cols, gap = 'lg:gap-x-10', indent = '', children }: { title: string; lead?: string; cols: string; gap?: string; indent?: string; children?: React.ReactNode }) {
+  return (
+    <div className={cn('mt-8 grid gap-6', cols, gap)}>
+      <h2 className={cn(h2, 'lg:col-[1/-2]')}>{title}</h2>
+      {(lead || children) && (
+        <div className={cn('lg:col-[-2/-1] lg:pt-[15px]', indent)}>
+          {lead && <p className="max-w-[48ch] text-[17px] leading-7 text-muted">{lead}</p>}
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Sample brief, styled as the product renders it. */
 function BriefPreview({ c }: { c: (typeof COPY)['en'] }) {
   const sev: [Severity, number][] = [
@@ -539,36 +558,32 @@ export function Landing() {
         {/* Framework: the five NIST functions */}
         <Band id="framework" className="py-24 sm:py-32">
           <Label icon={ShieldCheck}>{c.labels.framework}</Label>
-          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
-            <h2 className={h2}>{c.frameworkTitle}</h2>
-            <div>
-              <p className="text-[17px] leading-7 text-muted">{c.frameworkLead}</p>
-              <a href={NIST_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4 hover:no-underline">
-                {c.frameworkLink}
-                <ArrowUpRight className="size-3.5" aria-hidden />
-              </a>
-            </div>
-          </div>
+          <Head title={c.frameworkTitle} lead={c.frameworkLead} cols="lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1.25fr)]">
+            <a href={NIST_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4 hover:no-underline">
+              {c.frameworkLink}
+              <ArrowUpRight className="size-3.5" aria-hidden />
+            </a>
+          </Head>
 
           <div className="mt-16 border-b border-line">
             {c.fns.map((f) => {
               const Icon = FN_ICON[f.id];
               return (
                 <article key={f.id} id={f.id} className="grid scroll-mt-14 gap-x-10 gap-y-6 border-t border-line py-10 lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1.25fr)]">
-                  <div className="flex items-start gap-4 lg:flex-col lg:gap-5">
-                    <Icon className="size-9 shrink-0 text-ink" strokeWidth={1.1} aria-hidden />
-                    <div>
+                  <div>
+                    <div className="flex h-8 items-center gap-3">
+                      <Icon className="size-7 shrink-0 text-ink" strokeWidth={1.25} aria-hidden />
                       <h3 className="text-[28px] font-semibold leading-8 tracking-[-0.02em]">{f.name}</h3>
-                      <p className="mt-1 text-sm text-muted">{f.question}</p>
                     </div>
+                    <p className="mt-1.5 text-sm text-muted lg:pl-10">{f.question}</p>
                   </div>
                   <div>
                     <p className="text-[22px] font-semibold leading-8 tracking-[-0.015em]">{f.head}</p>
                     <p className="mt-3 text-[15px] leading-7 text-muted">{f.body}</p>
                   </div>
-                  <ul className="flex flex-col">
+                  <ul className="flex flex-col lg:-mt-0">
                     {f.items.map((it, i) => (
-                      <li key={it.title} className={cn('flex gap-4 py-4', i === 0 ? 'lg:pt-0' : 'border-t border-line')}>
+                      <li key={it.title} className={cn('flex gap-4 py-4', i === 0 ? 'lg:pt-1' : 'border-t border-line')}>
                         <it.icon className="mt-0.5 size-5 shrink-0 text-ink" strokeWidth={1.5} aria-hidden />
                         <div>
                           <p className="text-[15px] font-medium leading-6">{it.title}</p>
@@ -587,10 +602,7 @@ export function Landing() {
         {/* The brief */}
         <Band id="brief" className="py-24 sm:py-32">
           <Label icon={FileText}>{c.labels.brief}</Label>
-          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
-            <h2 className={h2}>{c.briefTitle}</h2>
-            <p className="text-[17px] leading-7 text-muted">{c.briefLead}</p>
-          </div>
+          <Head title={c.briefTitle} lead={c.briefLead} cols="lg:grid-cols-[280px_minmax(0,1fr)_minmax(0,1fr)]" gap="" indent="lg:pl-6" />
           <div className="mt-16">
             <BriefPreview c={c} />
           </div>
@@ -602,13 +614,13 @@ export function Landing() {
           <h2 className={cn(h2, 'mt-8')}>{c.leadersTitle}</h2>
           <div className="mt-16 border-b border-line">
             {c.leaders.map((l) => (
-              <article key={l.role} className="grid gap-4 border-t border-line py-10 lg:grid-cols-[240px_minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10">
-                <p className="flex items-center gap-3 text-base font-medium">
-                  <l.icon className="size-6 text-ink" strokeWidth={1.25} aria-hidden />
+              <article key={l.role} className="grid items-start gap-4 border-t border-line py-10 lg:grid-cols-[240px_minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10">
+                <p className="flex h-8 items-center gap-3 text-base font-medium">
+                  <l.icon className="size-6 shrink-0 text-ink" strokeWidth={1.25} aria-hidden />
                   {l.role}
                 </p>
                 <h3 className="text-[26px] font-semibold leading-8 tracking-[-0.02em]">{l.head}</h3>
-                <ul className="flex flex-col gap-2">
+                <ul className="flex flex-col gap-2 lg:pt-1">
                   {l.points.map((p) => (
                     <li key={p} className="flex gap-3 text-[15px] leading-6 text-muted">
                       <Check className="mt-1 size-4 shrink-0 text-ink" strokeWidth={1.5} aria-hidden />
@@ -624,10 +636,7 @@ export function Landing() {
         {/* Trust */}
         <Band id="trust" className="py-24 sm:py-32">
           <Label icon={ShieldCheck}>{c.labels.trust}</Label>
-          <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-end">
-            <h2 className={h2}>{c.trustTitle}</h2>
-            <p className="text-[17px] leading-7 text-muted">{c.trustLead}</p>
-          </div>
+          <Head title={c.trustTitle} lead={c.trustLead} cols="lg:grid-cols-2" gap="" indent="lg:pl-10" />
           <div className="mt-16 grid gap-px border border-line bg-line lg:grid-cols-2">
             {[
               { title: c.does, items: c.doesList, icon: Check, color: 'text-low' },
