@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Wordmark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { TopBar } from '@/components/top-bar';
 import { appliesTo, PLAIN, REGULATIONS, REVIEWED, SECTORS, SIGNALS, STANDARDS, UI, regById, type Regulation, type Sector } from '@/lib/compliance';
 import type { Lang } from '@/lib/types';
@@ -48,7 +47,6 @@ function PublicBar({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void }
         </Link>
         <div className="ml-auto flex items-center gap-2">
           <LangToggle lang={lang} setLang={setLang} />
-          <ThemeToggle />
           <Link href="/login" className="inline-flex h-8 items-center gap-1.5 rounded-md border border-line px-2.5 text-[13px] text-muted hover:bg-panel2 hover:text-ink">
             {UI[lang].signIn}
             <ArrowUpRight className="size-3.5" aria-hidden />
@@ -149,6 +147,20 @@ function Reader({ r, lang, applies }: { r: Regulation; lang: Lang; applies: bool
 export function CompliancePage({ email }: { email: string | null }) {
   const [lang, setLang] = useLang();
   const u = UI[lang];
+  // Signed-out visitors see the dark theme and have no switch; on leaving, the saved or system theme returns.
+  useEffect(() => {
+    if (email) return;
+    const root = document.documentElement;
+    root.dataset.theme = 'dark';
+    return () => {
+      let t: string | null = null;
+      try {
+        t = localStorage.getItem('craton-theme');
+      } catch {}
+      if (t !== 'light' && t !== 'dark') t = window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      root.dataset.theme = t;
+    };
+  }, [email]);
   const [sector, setSector] = useSector();
   const [selected, setSelected] = useState<string>('uu-pdp');
   const [days, setDays] = useState<Record<string, number>>({});

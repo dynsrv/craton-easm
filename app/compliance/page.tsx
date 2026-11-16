@@ -14,5 +14,12 @@ export const metadata: Metadata = {
 /** Public reference page. Signed-in users see it inside the app shell. */
 export default async function Compliance() {
   const session = await getSession();
-  return <CompliancePage email={session?.email ?? null} />;
+  const email = session?.email ?? null;
+  return (
+    <>
+      {/* Signed-out visitors always get the dark theme, set before first paint. Signed-in users keep their own choice. */}
+      {!email && <script dangerouslySetInnerHTML={{ __html: "document.documentElement.dataset.theme='dark'" }} />}
+      <CompliancePage email={email} />
+    </>
+  );
 }

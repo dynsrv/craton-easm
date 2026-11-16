@@ -45,6 +45,8 @@ export interface DiscoveredAsset {
   provider: string;
   http: HttpProbe | null;
   ports: number[];
+  /** The full list as reported, kept for storage when `ports` was cleared as noise. */
+  portsRaw?: number[];
   cves: string[];
   cpes: string[];
   /** CVSS and KEV status for the most urgent CVEs, so triage can weigh them. */
@@ -88,6 +90,8 @@ export interface AssetDTO {
   tlsIssuer: string | null;
   tlsError: string | null;
   ports: number[];
+  /** When the host reported an implausible number of open ports, how many; `ports` is then empty. */
+  portNoise: number;
   cves: string[];
   cpes: string[];
   category: Category | null;

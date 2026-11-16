@@ -16,12 +16,11 @@ import { Shot } from '@/components/ui/shot';
 import { MODULE, PHASE_ICONS } from '@/lib/modules';
 import { ScoreGauge } from '@/components/score-gauge';
 import { TopBar } from '@/components/top-bar';
-import { PortChip, SeverityBadge, SeverityDot } from '@/components/ui/badge';
+import { PortList, SeverityBadge, SeverityDot } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardTitle, Eyebrow } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import { catName, sevName, SEV_VAR, T, tlsLabel, TONE_CLASS, visName } from '@/lib/i18n';
-import { SENSITIVE_PORTS } from '@/lib/ports';
 import { SEVERITY_RANK } from '@/lib/score';
 import { CATEGORIES, SEVERITIES, type AssetDTO, type Category, type Lang, type ScanDTO, type Severity } from '@/lib/types';
 import type { ScanListItem } from '@/lib/types';
@@ -455,9 +454,7 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
                           <td className={cn('tabular whitespace-nowrap text-[13px] leading-5', TONE_CLASS[tls.tone])}>{tls.text}</td>
                           <td className="!pr-5">
                             <div className="flex flex-wrap gap-1">
-                              {a.ports.map((p) => (
-                                <PortChip key={p} port={p} risky={p in SENSITIVE_PORTS} />
-                              ))}
+                              <PortList ports={a.ports} noise={a.portNoise} lang={lang} />
                             </div>
                             {a.cves.length > 0 && <div className="tabular mt-1 text-xs font-medium text-crit">{a.cves.length} CVE</div>}
                           </td>
@@ -508,11 +505,9 @@ export function Dashboard({ userEmail, initialScan = null, initialRecent = [] }:
                             </>
                           )}
                         </div>
-                        {(a.ports.length > 0 || a.cves.length > 0 || tls.text) && (
+                        {(a.ports.length > 0 || a.portNoise > 0 || a.cves.length > 0 || tls.text) && (
                           <div className="flex flex-wrap items-center gap-1.5">
-                            {a.ports.map((p) => (
-                              <PortChip key={p} port={p} risky={p in SENSITIVE_PORTS} />
-                            ))}
+                            <PortList ports={a.ports} noise={a.portNoise} lang={lang} />
                             {a.cves.length > 0 && <span className="tabular text-xs font-medium text-crit">{a.cves.length} CVE</span>}
                             {tls.text && <span className={cn('tabular ml-auto font-mono text-xs', TONE_CLASS[tls.tone])}>{tls.text}</span>}
                           </div>

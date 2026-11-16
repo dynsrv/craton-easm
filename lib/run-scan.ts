@@ -10,6 +10,7 @@ import { detectTakeovers } from './scanner/takeover';
 import { visualTriage } from './scanner/visual-triage';
 import { SEVERITY_RANK, surfaceScore } from './score';
 import { getRuntimeConfig } from './settings';
+import { isPortNoise, trustedPorts } from './ports';
 import type { AssetDTO, AttackPath, Bilingual, Category, DriftEventDTO, EmailSecurity, ExecutiveBrief, ExposureDTO, ExposureFinding, ExposureKind, ScanDTO, ScanListItem, Severity, Triage, VisualClass, VisualResult } from './types';
 
 const MAX_LOG_LINES = 300;
@@ -71,7 +72,7 @@ export async function runScan(scanId: string): Promise<void> {
         tlsDaysLeft: a.http?.tls?.daysLeft,
         tlsIssuer: a.http?.tls?.issuer,
         tlsError: a.http?.tls?.error,
-        ports: JSON.stringify(a.ports),
+        ports: JSON.stringify(a.portsRaw ?? a.ports),
         cves: JSON.stringify(a.cves),
         cpes: JSON.stringify(a.cpes),
       })),
@@ -167,7 +168,7 @@ export async function runScan(scanId: string): Promise<void> {
     progress(PHASE.drift, 'Comparing with the previous scan');
     const assetRows = await prisma.asset.findMany({ where: { scanId }, select: { hostname: true, ports: true, tlsDaysLeft: true, severity: true } });
     const snapshot = buildSnapshot(
-      assetRows.map((r) => ({ hostname: r.hostname, ports: JSON.parse(r.ports) as number[], tlsDaysLeft: r.tlsDaysLeft, severity: r.severity as Severity | null })),
+      assetRows.map((r) => ({ hostname: r.hostname, ports: trustedPorts(JSON.parse(r.ports) as number[]), tlsDaysLeft: r.tlsDaysLeft, severity: r.severity as Severity | null })),
       email,
       exposures,
     );
@@ -244,7 +245,8 @@ export function toAssetDTO(a: Asset): AssetDTO {
     tlsDaysLeft: a.tlsDaysLeft,
     tlsIssuer: a.tlsIssuer,
     tlsError: a.tlsError,
-    ports: parse<number[]>(a.ports, []),
+    ports: trustedPorts(parse<number[]>(a.ports, [])),
+    portNoise: isPortNoise(parse<number[]>(a.ports, [])) ? parse<number[]>(a.ports, []).length : 0,
     cves: parse<string[]>(a.cves, []),
     cpes: parse<string[]>(a.cpes, []),
     category: a.category as Category | null,

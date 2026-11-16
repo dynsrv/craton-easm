@@ -5,6 +5,7 @@ import { bruteCommonPrefixes, COMMON_PREFIXES, isSharedEdge, prioritize, resolve
 import { probeHost } from './http-probe';
 import { cveRank, getCveDetails } from '../cve';
 import { lookupIp, type IpIntel } from './internetdb';
+import { trustedPorts } from '../ports';
 import { findCnameOnlyRecords, type DanglingCandidate } from './takeover';
 import { gatherOsintNames, type OsintSourceResult } from './osint';
 
@@ -111,7 +112,8 @@ export async function discover(
   const assets: DiscoveredAsset[] = targets.map((t, i) => {
     // Ports on a shared CDN edge describe the CDN, not this customer.
     const info = isSharedEdge(t.provider) ? undefined : intel.get(t.ips[0]);
-    return { ...t, http: probes[i], ports: info?.ports ?? [], cves: info?.cves ?? [], cpes: info?.cpes ?? [] };
+    const raw = info?.ports ?? [];
+    return { ...t, http: probes[i], ports: trustedPorts(raw), portsRaw: raw, cves: info?.cves ?? [], cpes: info?.cpes ?? [] };
   });
   const withCves = assets.filter((a) => a.cves.length).length;
 

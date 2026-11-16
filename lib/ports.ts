@@ -1,5 +1,13 @@
 // Kept free of Node imports so client components can use it too.
 
+/**
+ * Some hosts answer on nearly every port: shared cloud front ends, proxies, tarpits. Scan data for them lists hundreds of
+ * "open" ports that are not real services, so a list this long is treated as noise rather than as findings.
+ */
+export const PORT_NOISE_LIMIT = 25;
+export const isPortNoise = (ports: number[]): boolean => ports.length > PORT_NOISE_LIMIT;
+export const trustedPorts = (ports: number[]): number[] => (isPortNoise(ports) ? [] : ports);
+
 /** Ports that should almost never face the internet, with the service usually behind them. */
 export const SENSITIVE_PORTS: Record<number, { service: string; tier: 'data' | 'remote' | 'note' }> = {
   21: { service: 'FTP', tier: 'remote' },

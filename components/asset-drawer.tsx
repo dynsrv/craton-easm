@@ -7,11 +7,10 @@ import { CveList } from '@/components/v2/cve-list';
 import { ExploitPanel } from '@/components/v2/exploit-panel';
 import type { ExploitInput } from '@/lib/ai/exploit';
 import { useEffect, useRef, useState } from 'react';
-import { PortChip, SeverityBadge } from '@/components/ui/badge';
+import { PortList, SeverityBadge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eyebrow } from '@/components/ui/card';
 import { catName, sevName, tlsLabel, TONE_CLASS, visName, type Dict } from '@/lib/i18n';
-import { SENSITIVE_PORTS } from '@/lib/ports';
 import type { AssetDTO, Lang } from '@/lib/types';
 
 export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; lang: Lang; t: Dict; onClose: () => void }) {
@@ -78,7 +77,7 @@ export function AssetDrawer({ asset: a, lang, t, onClose }: { asset: AssetDTO; l
     [t.hsts, a.httpStatus == null ? '—' : yn(a.hsts)],
     [t.csp, a.httpStatus == null ? '—' : yn(a.csp)],
     [t.tls, <span key="tls" className={TONE_CLASS[tls.tone]}>{tls.text}{a.tlsIssuer ? ` · ${a.tlsIssuer}` : ''}{a.tlsError ? ` · ${a.tlsError}` : ''}</span>],
-    [t.ports, a.ports.length ? a.ports.map((p) => <PortChip key={p} port={p} risky={p in SENSITIVE_PORTS} />) : '—'],
+    [t.ports, a.ports.length || a.portNoise ? <PortList key="ports" ports={a.ports} noise={a.portNoise} lang={lang} /> : '—'],
   ];
 
   return (
