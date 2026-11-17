@@ -16,7 +16,7 @@ const STR = {
 } as const;
 
 /** The public header, shared by the landing page and the compliance guide so they read as one site. */
-export function SiteHeader({ lang, setLang, onLanding = false, active }: { lang: Lang; setLang: (l: Lang) => void; onLanding?: boolean; active?: 'compliance' }) {
+export function SiteHeader({ lang, setLang, onLanding = false, active, inner = 'max-w-[1280px]' }: { lang: Lang; setLang: (l: Lang) => void; onLanding?: boolean; active?: 'compliance'; inner?: string }) {
   const s = STR[lang];
   const base = onLanding ? '' : '/';
   const links: [string, string][] = [
@@ -27,7 +27,7 @@ export function SiteHeader({ lang, setLang, onLanding = false, active }: { lang:
   ];
   return (
     <header className="fixed inset-x-0 top-0 z-30 border-b border-line bg-bg/80 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-[1280px] items-center gap-6 px-5 sm:px-8">
+      <div className={cn('mx-auto flex h-14 items-center gap-6 px-5 sm:px-8', inner)}>
         <Link href="/" aria-label="Craton home" className="flex shrink-0 items-center">
           <Wordmark />
         </Link>

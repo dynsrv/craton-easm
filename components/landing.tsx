@@ -437,7 +437,8 @@ export function Landing() {
 
   return (
     <div className="min-h-dvh bg-bg text-ink antialiased">
-      <SiteHeader lang={lang} setLang={setLang} onLanding />
+      {/* The landing sections pad outside a 1280px content box, so the chrome is 64px wider to line up with it. */}
+      <SiteHeader lang={lang} setLang={setLang} onLanding inner="max-w-[1344px]" />
 
       <main>
         {/* Hero: type-led, with the five framework functions as the base line */}
@@ -630,7 +631,7 @@ export function Landing() {
         </Band>
       </main>
 
-      <SiteFooter lang={lang} inner="max-w-[1280px]" />
+      <SiteFooter lang={lang} inner="max-w-[1344px]" />
     </div>
   );
 }
