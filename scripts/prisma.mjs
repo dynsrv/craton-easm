@@ -33,7 +33,7 @@ if (mode === 'push') {
   }
   // Schema changes need a direct connection, not a pooler (Neon and Supabase expose both).
   if (!url.startsWith('file:')) env.DATABASE_URL = process.env.DATABASE_URL_UNPOOLED || process.env.POSTGRES_URL_NON_POOLING || url;
-  args = ['prisma', 'db', 'push', '--schema', schema, '--skip-generate', '--accept-data-loss'];
+  args = ['prisma', 'db', 'push', '--schema', schema, '--skip-generate'];
 }
 const res = spawnSync('npx', args, { stdio: 'inherit', env, shell: process.platform === 'win32' });
 process.exit(res.status ?? 1);
