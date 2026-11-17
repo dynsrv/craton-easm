@@ -9,8 +9,8 @@ import { LEGAL } from '@/lib/legal-content';
 import { cn } from '@/lib/utils';
 
 const UI = {
-  en: { legal: 'Legal', updated: 'Last updated', questions: 'Questions about this page?', toc: 'On this page', review: 'This page is provided in English and Bahasa Indonesia. Use the language switch in the header.' },
-  id: { legal: 'Hukum', updated: 'Diperbarui', questions: 'Ada pertanyaan tentang halaman ini?', toc: 'Di halaman ini', review: 'Halaman ini tersedia dalam bahasa Inggris dan Indonesia. Gunakan pengalih bahasa di header.' },
+  en: { legal: 'Legal', updated: 'Last updated', questions: 'Questions about this page?' },
+  id: { legal: 'Hukum', updated: 'Diperbarui', questions: 'Ada pertanyaan tentang halaman ini?' },
 } as const;
 
 const ICON: Record<LegalSlug, LucideIcon> = {
@@ -39,18 +39,30 @@ export function LegalPage({ slug }: { slug: LegalSlug }) {
               const Icon = ICON[s];
               const on = s === slug;
               return (
-                <Link
-                  key={s}
-                  href={`/legal/${s}`}
-                  aria-current={on ? 'page' : undefined}
-                  className={cn(
-                    'group relative flex shrink-0 items-center gap-3 border border-transparent px-3 py-2.5 text-[14px] leading-5 transition-colors',
-                    on ? 'border-line bg-panel font-medium text-ink shadow-[inset_3px_0_0_var(--color-accent)]' : 'text-muted hover:bg-panel hover:text-ink',
+                <div key={s} className="shrink-0">
+                  <Link
+                    href={`/legal/${s}`}
+                    aria-current={on ? 'page' : undefined}
+                    className={cn(
+                      'group relative flex items-center gap-3 border border-transparent px-3 py-2.5 text-[14px] leading-5 transition-colors',
+                      on ? 'border-line bg-panel font-medium text-ink shadow-[inset_3px_0_0_var(--color-accent)]' : 'text-muted hover:bg-panel hover:text-ink',
+                    )}
+                  >
+                    <Icon className={cn('size-4 shrink-0', on ? 'text-accent' : 'text-muted group-hover:text-ink')} strokeWidth={1.75} aria-hidden />
+                    <span className="whitespace-nowrap lg:whitespace-normal">{LEGAL[s].title[i]}</span>
+                  </Link>
+                  {on && (
+                    <ol className="ml-[22px] mt-1 hidden flex-col border-l border-line py-1 lg:flex">
+                      {doc.sections.map((sec, n) => (
+                        <li key={n}>
+                          <a href={`#s${n + 1}`} className="block py-1 pl-4 pr-2 text-[13px] leading-5 text-muted transition-colors hover:text-ink">
+                            {sec.h[i]}
+                          </a>
+                        </li>
+                      ))}
+                    </ol>
                   )}
-                >
-                  <Icon className={cn('size-4 shrink-0', on ? 'text-accent' : 'text-muted group-hover:text-ink')} strokeWidth={1.75} aria-hidden />
-                  <span className="whitespace-nowrap lg:whitespace-normal">{LEGAL[s].title[i]}</span>
-                </Link>
+                </div>
               );
             })}
           </nav>
@@ -62,20 +74,7 @@ export function LegalPage({ slug }: { slug: LegalSlug }) {
             {u.updated} {date}
           </p>
 
-          <nav aria-label={u.toc} className="mt-8 border border-line bg-panel p-4">
-            <p className="mb-2 text-xs font-medium text-muted">{u.toc}</p>
-            <ol className="grid gap-x-6 gap-y-1 text-[13px] sm:grid-cols-2">
-              {doc.sections.map((s, n) => (
-                <li key={n}>
-                  <a href={`#s${n + 1}`} className="text-muted hover:text-ink">
-                    {s.h[i]}
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
-
-          <div className="mt-10 flex flex-col gap-10">
+          <div className="mt-9 flex flex-col gap-10">
             {doc.sections.map((s, n) => (
               <section key={n} id={`s${n + 1}`} className="scroll-mt-24">
                 <h2 className="text-[20px] font-semibold leading-7 tracking-tight">{s.h[i]}</h2>

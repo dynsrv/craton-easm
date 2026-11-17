@@ -306,14 +306,19 @@ export function Dashboard({ userEmail, isAdmin = false, initialScan = null, init
       </main>
 
       {scan && !running && (
-        <div className="no-print sticky top-0 z-10 sm:top-[var(--topbar-h,48px)] border-b border-line bg-bg/95 backdrop-blur-md">
+        <div className={cn('no-print sticky top-0 z-10 border-b border-line bg-bg/95 backdrop-blur-md transition-shadow duration-300 motion-reduce:transition-none sm:top-[var(--topbar-h,48px)]', stuck && 'shadow-[0_10px_18px_-14px_rgba(0,0,0,0.35)]')}>
           <div className="mx-auto flex max-w-[1360px] flex-row items-center gap-2 px-4 sm:gap-4 sm:px-6">
-            {stuck && (
-              <div className="flex min-w-0 max-w-[45%] shrink-0 items-center gap-2 sm:max-w-none sm:gap-3">
-                <ScanHistory recent={recent} currentId={scan.id} domain={scan.domain} lang={lang} dateFmt={dateFmt} onPick={loadScan} variant="compact" />
-                <span className="h-5 w-px shrink-0 bg-line" aria-hidden />
-              </div>
-            )}
+            <div
+              inert={!stuck}
+              aria-hidden={!stuck}
+              className={cn(
+                'flex min-w-0 shrink-0 items-center gap-2 overflow-hidden transition-[max-width,opacity,transform] duration-300 ease-out motion-reduce:transition-none sm:gap-3',
+                stuck ? 'max-w-[45%] translate-x-0 opacity-100 sm:max-w-[420px]' : 'pointer-events-none max-w-0 -translate-x-2 opacity-0',
+              )}
+            >
+              <ScanHistory recent={recent} currentId={scan.id} domain={scan.domain} lang={lang} dateFmt={dateFmt} onPick={loadScan} variant="compact" />
+              <span className="h-5 w-px shrink-0 bg-line" aria-hidden />
+            </div>
             <nav className="-mb-px flex min-w-0 flex-1 gap-1 overflow-x-auto" role="tablist" aria-label={scan.domain}>
               {TABS.map((id) => (
                 <button
@@ -337,7 +342,16 @@ export function Dashboard({ userEmail, isAdmin = false, initialScan = null, init
                 </button>
               ))}
             </nav>
-            {stuck && <div className="hidden shrink-0 items-center gap-2 lg:flex">{actions}</div>}
+            <div
+              inert={!stuck}
+              aria-hidden={!stuck}
+              className={cn(
+                'hidden shrink-0 items-center gap-2 overflow-hidden transition-[max-width,opacity,transform] duration-300 ease-out motion-reduce:transition-none lg:flex',
+                stuck ? 'max-w-[480px] translate-x-0 opacity-100' : 'pointer-events-none max-w-0 translate-x-2 opacity-0',
+              )}
+            >
+              {actions}
+            </div>
           </div>
         </div>
       )}
