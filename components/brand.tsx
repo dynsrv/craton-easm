@@ -1,25 +1,21 @@
-import { cn } from '@/lib/utils';
-
-/** Paints a transparent PNG in the current text colour, so the logo follows the light and dark themes. */
-function Masked({ src, ratio, className, label }: { src: string; ratio: number; className?: string; label?: string }) {
-  const mask = `url(${src})`;
+/** Craton mark: three strata, the stable core of a continent. */
+export function CratonMark({ className }: { className?: string }) {
   return (
-    <span
-      role={label ? 'img' : undefined}
-      aria-label={label}
-      aria-hidden={label ? undefined : true}
-      className={cn('block shrink-0 bg-ink', className)}
-      style={{ aspectRatio: ratio, maskImage: mask, WebkitMaskImage: mask, maskSize: 'contain', WebkitMaskSize: 'contain', maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat', maskPosition: 'left center', WebkitMaskPosition: 'left center' }}
-    />
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <rect x="2" y="3" width="20" height="4" fill="var(--color-brand)" />
+      <rect x="2" y="10" width="14" height="4" fill="var(--color-brand)" opacity="0.7" />
+      <rect x="2" y="17" width="20" height="4" fill="var(--color-brand)" opacity="0.4" />
+    </svg>
   );
 }
 
-/** Craton fingerprint mark. */
-export function CratonMark({ className }: { className?: string }) {
-  return <Masked src="/brand/craton-mark.png" ratio={404 / 402} className={cn('size-5', className)} />;
-}
-
-/** Mark plus the CRATON wordmark, one lockup. `compact` is kept for callers; the lockup is the same at every width. */
-export function Wordmark({ className }: { compact?: boolean; className?: string }) {
-  return <Masked src="/brand/craton-logo.png" ratio={1741 / 402} label="Craton" className={cn('h-8', className)} />;
+/** The product name is the one place that stays in capitals. */
+export function Wordmark({ compact = false }: { compact?: boolean }) {
+  return (
+    <span className="flex items-center gap-2.5">
+      <CratonMark className="size-5" />
+      <span className="text-sm font-semibold tracking-[0.22em]">CRATON</span>
+      <span className={compact ? 'hidden border-l border-line pl-2.5 font-mono text-[11px] tracking-[0.18em] text-muted sm:inline' : 'border-l border-line pl-2.5 font-mono text-[11px] tracking-[0.18em] text-muted'}>EASM</span>
+    </span>
+  );
 }

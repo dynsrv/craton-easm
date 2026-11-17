@@ -2,7 +2,7 @@
 
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
-import { Wordmark } from '@/components/brand';
+import { CratonMark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { BUILD, CONTACT_EMAIL, LEGAL_SLUGS, OPERATOR, PRODUCT, VERSION } from '@/lib/legal';
@@ -28,8 +28,9 @@ export function SiteHeader({ lang, setLang, onLanding = false, active }: { lang:
   return (
     <header className="fixed inset-x-0 top-0 z-30 border-b border-line bg-bg/80 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-[1280px] items-center gap-6 px-5 sm:px-8">
-        <Link href="/" aria-label="Craton home" className="flex shrink-0 items-center">
-          <Wordmark />
+        <Link href="/" aria-label="Craton home" className="flex shrink-0 items-center gap-2.5">
+          <CratonMark className="size-5" />
+          <span className="text-sm font-semibold tracking-[0.22em]">CRATON</span>
         </Link>
         <nav className="hidden items-center gap-7 md:flex" aria-label="Sections">
           {links.map(([href, label]) => (
