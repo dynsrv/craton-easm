@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleCheck, FileText, Link2Off, Loader2, Lock, Radar } from 'lucide-react';
+import { FileText, Link2Off, Lock, Radar } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AssetDrawer } from '@/components/asset-drawer';
@@ -13,15 +13,16 @@ import { Overview } from '@/components/v2/overview';
 import { ScanBar } from '@/components/v2/scan-form';
 import { Callout } from '@/components/ui/callout';
 import { Shot } from '@/components/ui/shot';
-import { MODULE, PHASE_ICONS } from '@/lib/modules';
+import { MODULE } from '@/lib/modules';
 import { ScoreGauge } from '@/components/score-gauge';
 import { SiteFooter } from '@/components/site-chrome';
 import { TopBar } from '@/components/top-bar';
 import { PortList, SeverityBadge, SeverityDot } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardTitle, Eyebrow } from '@/components/ui/card';
+import { Card, Eyebrow } from '@/components/ui/card';
 import { Select } from '@/components/ui/select';
 import { ScanHistory } from '@/components/v2/scan-history';
+import { ScanProgress } from '@/components/v2/scan-progress';
 import { catName, sevName, SEV_VAR, T, tlsLabel, TONE_CLASS, visName } from '@/lib/i18n';
 import { SEVERITY_RANK } from '@/lib/score';
 import { CATEGORIES, SEVERITIES, type AssetDTO, type Category, type Lang, type ScanDTO, type Severity } from '@/lib/types';
@@ -269,31 +270,16 @@ export function Dashboard({ userEmail, isAdmin = false, initialScan = null, init
         )}
 
         {scan && running && (
-          <Card>
-            <CardTitle icon={Radar}>{t.progress}</CardTitle>
-            <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-              <ul className="flex flex-col gap-2.5">
-                {t.phases.map((p, i) => (
-                  <li key={p} className={cn('flex items-center gap-3 text-muted', i < scan.phase && 'text-ink', i === scan.phase && 'font-medium text-ink')}>
-                    {(() => {
-                      if (i < scan.phase) return <CircleCheck className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />;
-                      if (i === scan.phase) return <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />;
-                      const Icon = PHASE_ICONS[i];
-                      return <Icon className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />;
-                    })()}
-                    {p}
-                  </li>
-                ))}
-              </ul>
-              <pre ref={logRef} aria-live="polite" className="h-[190px] overflow-auto whitespace-pre-wrap rounded-md border border-line bg-bg px-3.5 py-3 font-mono text-xs leading-relaxed text-muted">
-                {scan.log.join('\n')}
-              </pre>
-            </div>
-            <div className="mt-4 h-1 overflow-hidden rounded-full bg-panel2">
-              <div className="h-full bg-primary transition-[width]" style={{ width: `${Math.round((scan.phase / t.phases.length) * 100)}%` }} />
-            </div>
-            <p className="mt-3 text-[13px] text-muted">{t.resultsSoon}</p>
-          </Card>
+          <ScanProgress
+            title={t.progress}
+            domain={scan.domain}
+            phases={t.phases}
+            phase={scan.phase}
+            log={scan.log}
+            footer={t.resultsSoon}
+            stepLabel={(c, n) => (lang === 'id' ? `Langkah ${c} dari ${n}` : `Step ${c} of ${n}`)}
+            logRef={logRef}
+          />
         )}
 
         {scan && done && (scan.source === 'dns-fallback' || scan.triagedBy !== 'llm') && (
