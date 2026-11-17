@@ -21,5 +21,5 @@ export function CratonMark({ className }: { className?: string }) {
 
 /** The full Craton lockup: mark, wordmark and tagline. `compact` is the slightly smaller size for the 48px app bar. */
 export function Wordmark({ compact = false, className }: { compact?: boolean; className?: string }) {
-  return <Masked src="/brand/craton-logo.png" ratio={1728 / 402} label="Craton" className={cn(compact ? 'h-9' : 'h-10', className)} />;
+  return <Masked src="/brand/craton-logo.png" ratio={1728 / 402} label="Craton" className={cn(compact ? 'h-7' : 'h-8', className)} />;
 }
