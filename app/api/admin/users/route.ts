@@ -2,25 +2,28 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAdmin } from '@/lib/auth/guard';
 import { generatePassword, hashPassword } from '@/lib/auth/password';
-import { HOST_CAP_MAX, HOST_CAP_MIN, ROLES } from '@/lib/auth/roles';
+import { HOST_CAP_MAX, HOST_CAP_MIN, ROLES, SCAN_CAP_MAX } from '@/lib/auth/roles';
 import { prisma } from '@/lib/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const list = async () => {
-  const [users, counts] = await Promise.all([
+  const [users, counts, monthly] = await Promise.all([
     prisma.user.findMany({
       orderBy: { createdAt: 'asc' },
-      select: { id: true, email: true, role: true, maxHosts: true, disabled: true, mustChangePassword: true, lastLoginAt: true, createdAt: true },
+      select: { id: true, email: true, role: true, maxHosts: true, maxScans: true, disabled: true, mustChangePassword: true, lastLoginAt: true, createdAt: true },
     }),
     prisma.scan.groupBy({ by: ['ownerId'], _count: { _all: true } }),
+    prisma.scan.groupBy({ by: ['ownerId'], where: { createdAt: { gte: new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 1)) } }, _count: { _all: true } }),
   ]);
   const scans = new Map(counts.map((c) => [c.ownerId, c._count._all]));
-  return users.map((u) => ({ ...u, scans: scans.get(u.id) ?? 0 }));
+  const month = new Map(monthly.map((c) => [c.ownerId, c._count._all]));
+  return users.map((u) => ({ ...u, scans: scans.get(u.id) ?? 0, scansThisMonth: month.get(u.id) ?? 0 }));
 };
 
 const Hosts = z.number().int().min(HOST_CAP_MIN).max(HOST_CAP_MAX).nullable();
+const Scans = z.number().int().min(0).max(SCAN_CAP_MAX).nullable();
 const Role = z.enum(ROLES);
 
 export async function GET() {
@@ -52,17 +55,17 @@ async function wouldOrphanAdmins(id: string): Promise<boolean> {
 }
 
 /**
- * PATCH /api/admin/users { id, role?, maxHosts?, disabled?, resetPassword? }
+ * PATCH /api/admin/users { id, role?, maxHosts?, maxScans?, disabled?, resetPassword? }
  * Changes role, host limit or status, or issues a new one-time password.
  */
 export async function PATCH(req: Request) {
   const auth = await requireAdmin();
   if ('response' in auth) return auth.response;
   const parsed = z
-    .object({ id: z.string().min(1), role: Role.optional(), maxHosts: Hosts.optional(), disabled: z.boolean().optional(), resetPassword: z.boolean().optional() })
+    .object({ id: z.string().min(1), role: Role.optional(), maxHosts: Hosts.optional(), maxScans: Scans.optional(), disabled: z.boolean().optional(), resetPassword: z.boolean().optional() })
     .safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'Invalid change.' }, { status: 400 });
-  const { id, role, maxHosts, disabled, resetPassword } = parsed.data;
+  const { id, role, maxHosts, maxScans, disabled, resetPassword } = parsed.data;
 
   const target = await prisma.user.findUnique({ where: { id } });
   if (!target) return NextResponse.json({ error: 'User not found.' }, { status: 404 });
@@ -75,6 +78,7 @@ export async function PATCH(req: Request) {
   const data: Record<string, unknown> = {};
   if (role !== undefined) data.role = role;
   if (maxHosts !== undefined) data.maxHosts = maxHosts;
+  if (maxScans !== undefined) data.maxScans = maxScans;
   if (disabled !== undefined) data.disabled = disabled;
   let password: string | undefined;
   if (resetPassword) {

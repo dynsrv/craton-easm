@@ -21,8 +21,11 @@ interface UserRow {
   email: string;
   role: string;
   maxHosts: number | null;
+  /** Scans per calendar month; null = default, 0 = unlimited. */
+  maxScans: number | null;
   disabled: boolean;
   scans: number;
+  scansThisMonth: number;
   mustChangePassword: boolean;
   lastLoginAt: string | null;
   createdAt: string;
@@ -87,9 +90,14 @@ const TH = 'lbl';
 export function AdminPanel({ email }: { email: string }) {
   const [tab, setTab] = useState<TabId>('services');
   const [defaultHosts, setDefaultHosts] = useState(50);
+  const [defaultScans, setDefaultScans] = useState(10);
   useEffect(() => {
     api<{ settings: SettingView[] }>('/api/admin/settings')
-      .then((r) => setDefaultHosts(Number(r.settings.find((x) => x.key === 'MAX_HOSTS')?.display) || 50))
+      .then((r) => {
+        setDefaultHosts(Number(r.settings.find((x) => x.key === 'MAX_HOSTS')?.display) || 50);
+        const scans = r.settings.find((x) => x.key === 'MAX_SCANS')?.display;
+        setDefaultScans(scans == null || scans === '' || !Number.isInteger(Number(scans)) ? 10 : Number(scans));
+      })
       .catch(() => {});
   }, [tab]);
   return (
@@ -130,7 +138,7 @@ export function AdminPanel({ email }: { email: string }) {
           <DataSources />
         </div>
         <div role="tabpanel" id="admin-panel-access" aria-labelledby="admin-tab-access" hidden={tab !== 'access'} className="grid items-start gap-5">
-          <Users defaultHosts={defaultHosts} />
+          <Users defaultHosts={defaultHosts} defaultScans={defaultScans} />
           <div className="grid items-start gap-5 lg:grid-cols-2">
             <Section title="Your password" icon={KeyRound} desc="Use at least 12 characters. You stay signed in on this device.">
               <div className="p-5">
@@ -172,6 +180,7 @@ function ServiceSettings() {
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
   const [maxHosts, setMaxHosts] = useState('');
+  const [maxScans, setMaxScans] = useState('');
   const [models, setModels] = useState<string[]>([]);
   const [modelSource, setModelSource] = useState<'live' | 'fallback' | null>(null);
   const [customModel, setCustomModel] = useState(false);
@@ -185,6 +194,7 @@ function ServiceSettings() {
     setProvider(get('AI_PROVIDER')?.display ?? '');
     setModel(get('TRIAGE_MODEL')?.display ?? '');
     setMaxHosts(get('MAX_HOSTS')?.display ?? '');
+    setMaxScans(get('MAX_SCANS')?.display ?? '');
     setKeys({});
   }, []);
 
@@ -226,7 +236,7 @@ function ServiceSettings() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     // Only send keys the admin typed; untouched secrets stay as they are.
-    const values: Record<string, string | null> = { AI_PROVIDER: provider || null, TRIAGE_MODEL: model || null, MAX_HOSTS: maxHosts.trim() || null };
+    const values: Record<string, string | null> = { AI_PROVIDER: provider || null, TRIAGE_MODEL: model || null, MAX_HOSTS: maxHosts.trim() || null, MAX_SCANS: maxScans.trim() || null };
     for (const [k, v] of Object.entries(keys)) if (v.trim()) values[k] = v.trim();
     save(values);
   };
@@ -320,6 +330,11 @@ function ServiceSettings() {
               <input id="max-hosts" type="number" inputMode="numeric" min={10} max={500} value={maxHosts} onChange={(e) => setMaxHosts(e.target.value)} placeholder="50" className="field tabular !h-9" />
               <p className="hint mt-1.5">Default for everyone, 10 to 500. A user&apos;s own limit overrides it. More hosts take longer and cost more.</p>
             </div>
+            <div>
+              <label htmlFor="max-scans" className="label">Scans per month</label>
+              <input id="max-scans" type="number" inputMode="numeric" min={0} max={100000} value={maxScans} onChange={(e) => setMaxScans(e.target.value)} placeholder="10" className="field tabular !h-9" />
+              <p className="hint mt-1.5">Default for each customer, per calendar month (UTC). Leave empty for 10, enter 0 for unlimited. Super admins are never limited. A user&apos;s own limit overrides it.</p>
+            </div>
           </div>
 
           <div className="hidden grid-cols-[minmax(0,5fr)_minmax(0,6fr)_92px] gap-x-5 border-b border-line px-5 py-2.5 sm:grid">
@@ -395,7 +410,7 @@ const ROLE_OPTIONS = [
   { value: 'user', label: 'Customer', hint: 'Own scans only' },
 ];
 
-function Users({ defaultHosts }: { defaultHosts: number }) {
+function Users({ defaultHosts, defaultScans }: { defaultHosts: number; defaultScans: number }) {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [me, setMe] = useState('');
   const [email, setEmail] = useState('');
@@ -465,14 +480,15 @@ function Users({ defaultHosts }: { defaultHosts: number }) {
     <Section
       title={`Users · ${users.length}`}
       icon={UsersIcon}
-      desc="Super admins manage the site and see every scan. Customers sign in to scan their own domains and see only their own results. A host limit overrides the default for that person."
+      desc="Super admins manage the site and see every scan. Customers sign in to scan their own domains and see only their own results. Host and scan limits override the defaults for that person."
       aside={<span className="tabular text-xs text-muted">{admins} super admin{admins === 1 ? '' : 's'} · {users.length - admins} customer{users.length - admins === 1 ? '' : 's'}</span>}
     >
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] table-fixed lg:min-w-[820px] border-collapse">
+        <table className="w-full min-w-[740px] table-fixed lg:min-w-[930px] border-collapse">
           <colgroup>
             <col />
             <col className="w-[150px]" />
+            <col className="w-[110px]" />
             <col className="w-[110px]" />
             <col className="w-[130px]" />
             <col className="hidden w-[150px] lg:table-column" />
@@ -480,8 +496,8 @@ function Users({ defaultHosts }: { defaultHosts: number }) {
           </colgroup>
           <thead>
             <tr className="border-b border-line">
-              {['Email', 'Role', 'Host limit', 'Status', 'Last sign-in', ''].map((h, i) => (
-                <th key={i} className={cn(TH, 'px-3 py-2.5 text-left first:pl-5 last:pr-5', i === 4 && 'hidden lg:table-cell', i === 5 && 'text-right')}>{h}</th>
+              {['Email', 'Role', 'Host limit', 'Scans / month', 'Status', 'Last sign-in', ''].map((h, i) => (
+                <th key={i} className={cn(TH, 'px-3 py-2.5 text-left first:pl-5 last:pr-5', i === 5 && 'hidden lg:table-cell', i === 6 && 'text-right')}>{h}</th>
               ))}
             </tr>
           </thead>
@@ -493,7 +509,7 @@ function Users({ defaultHosts }: { defaultHosts: number }) {
                 <tr key={u.id} className={cn('border-b border-line [&>td]:h-14 [&>td]:px-3 [&>td:first-child]:pl-5 [&>td:last-child]:pr-5', u.disabled && 'opacity-60')}>
                   <td className="min-w-0">
                     <p className="truncate font-mono text-[13px]">{u.email}{self && <span className="ml-2 font-sans text-xs text-muted">(you)</span>}</p>
-                    <p className="tabular text-xs text-muted">{u.scans} scan{u.scans === 1 ? '' : 's'}</p>
+                    <p className="tabular text-xs text-muted">{u.scansThisMonth} this month · {u.scans} total</p>
                   </td>
                   <td>
                     <Select
@@ -521,6 +537,28 @@ function Users({ defaultHosts }: { defaultHosts: number }) {
                         if (next !== u.maxHosts) patch(u.id, { maxHosts: next });
                       }}
                     />
+                  </td>
+                  <td>
+                    {u.role === 'admin' ? (
+                      <span className="text-[13px] text-muted">Unlimited</span>
+                    ) : (
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        max={100000}
+                        key={`${u.id}:s:${u.maxScans ?? ''}`}
+                        defaultValue={u.maxScans ?? ''}
+                        placeholder={defaultScans === 0 ? '∞' : String(defaultScans)}
+                        aria-label={`Scans per month for ${u.email}`}
+                        className="field tabular !h-9 w-full"
+                        onBlur={(e) => {
+                          const v = e.target.value.trim();
+                          const next = v === '' ? null : Number(v);
+                          if (next !== u.maxScans) patch(u.id, { maxScans: next });
+                        }}
+                      />
+                    )}
                   </td>
                   <td className="text-[13px]">
                     <span className="inline-flex items-center gap-2">

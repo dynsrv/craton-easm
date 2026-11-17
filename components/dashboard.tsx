@@ -38,7 +38,13 @@ type Tab = (typeof TABS)[number];
 export { LangToggle, useLang } from '@/components/lang';
 import { LangToggle, useLang } from '@/components/lang';
 
-export function Dashboard({ userEmail, isAdmin = false, initialScan = null, initialRecent = [] }: { userEmail?: string; isAdmin?: boolean; initialScan?: ScanDTO | null; initialRecent?: ScanListItem[] }) {
+export interface ScanQuotaDTO {
+  limit: number | null;
+  used: number;
+  resetsAt: string | Date;
+}
+
+export function Dashboard({ userEmail, isAdmin = false, initialScan = null, initialRecent = [], initialQuota = null }: { initialQuota?: ScanQuotaDTO | null; userEmail?: string; isAdmin?: boolean; initialScan?: ScanDTO | null; initialRecent?: ScanListItem[] }) {
   const [lang, setLang] = useLang();
   const t = T[lang];
   const [domain, setDomain] = useState('');
@@ -46,6 +52,7 @@ export function Dashboard({ userEmail, isAdmin = false, initialScan = null, init
   const [scan, setScan] = useState<ScanDTO | null>(initialScan);
   const [recent, setRecent] = useState<ScanListItem[]>(initialRecent);
   const [error, setError] = useState<string | null>(null);
+  const [quota, setQuota] = useState<ScanQuotaDTO | null>(initialQuota);
   const [submitting, setSubmitting] = useState(false);
   const [sev, setSev] = useState<Severity | 'All'>('All');
   const [cat, setCat] = useState<Category | 'All'>('All');
@@ -118,7 +125,8 @@ export function Dashboard({ userEmail, isAdmin = false, initialScan = null, init
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain, authorized }),
       });
-      const body = (await res.json()) as { id?: string; error?: string };
+      const body = (await res.json()) as { id?: string; error?: string; quota?: ScanQuotaDTO };
+      if (body.quota) setQuota(body.quota);
       if (!res.ok || !body.id) throw new Error(body.error ?? 'Could not start the scan');
       setSelected(null);
       setDomain('');
@@ -236,6 +244,7 @@ export function Dashboard({ userEmail, isAdmin = false, initialScan = null, init
         busy={submitting}
         running={!!running}
         error={error}
+        quota={quota}
         onSubmit={startScan}
         autoFocus={!scan}
       />

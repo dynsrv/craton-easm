@@ -4,6 +4,7 @@ import { Landing } from '@/components/landing';
 import { currentUser, getSession } from '@/lib/auth/guard';
 import { isAdminRole } from '@/lib/auth/roles';
 import { PUBLIC_THEME_SCRIPT } from '@/lib/public-theme';
+import { scanQuota } from '@/lib/quota';
 import { listScans, loadScanDTO } from '@/lib/run-scan';
 
 export const dynamic = 'force-dynamic';
@@ -29,8 +30,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ s
       </>
     );
   const admin = isAdminRole(user.role);
-  const [{ scan: wanted }, recent] = await Promise.all([searchParams, listScans(admin ? {} : { ownerId: user.session.userId })]);
+  const [{ scan: wanted }, recent, quota] = await Promise.all([searchParams, listScans(admin ? {} : { ownerId: user.session.userId }), scanQuota(user.session.userId)]);
   const id = wanted && recent.some((s) => s.id === wanted) ? wanted : recent[0]?.id;
   const scan = id ? await loadScanDTO(id) : null;
-  return <Dashboard userEmail={user.session.email} isAdmin={admin} initialScan={scan} initialRecent={recent} />;
+  return <Dashboard userEmail={user.session.email} isAdmin={admin} initialScan={scan} initialRecent={recent} initialQuota={quota} />;
 }

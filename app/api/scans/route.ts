@@ -2,6 +2,7 @@ import { after, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ownedBy, requireUser } from '@/lib/auth/guard';
 import { prisma } from '@/lib/db';
+import { overQuota, quotaMessage, scanQuota } from '@/lib/quota';
 import { listScans, runScan } from '@/lib/run-scan';
 import { normalizeDomain } from '@/lib/scanner/domain';
 
@@ -36,16 +37,20 @@ export async function POST(req: Request) {
   });
   if (active) return NextResponse.json({ id: active.id, reused: true });
 
+  // Monthly allowance (a scan already running for this domain above is reused and costs nothing).
+  const quota = await scanQuota(auth.session.userId);
+  if (overQuota(quota)) return NextResponse.json({ error: quotaMessage(quota), quota }, { status: 429 });
+
   const scan = await prisma.scan.create({ data: { domain, ownerId: auth.session.userId } });
   // Run after the response is sent. Works on `next dev` / `next start`; on serverless hosts
   // the function stays alive up to maxDuration. For heavier use, move this to a queue worker.
   after(() => runScan(scan.id));
-  return NextResponse.json({ id: scan.id }, { status: 202 });
+  return NextResponse.json({ id: scan.id, quota: { ...quota, used: quota.used + 1 } }, { status: 202 });
 }
 
 /** GET /api/scans  ->  the 20 most recent scans (without assets) */
 export async function GET() {
   const auth = await requireUser();
   if ('response' in auth) return auth.response;
-  return NextResponse.json({ scans: await listScans(ownedBy(auth.session)) });
+  return NextResponse.json({ scans: await listScans(ownedBy(auth.session)), quota: await scanQuota(auth.session.userId) });
 }

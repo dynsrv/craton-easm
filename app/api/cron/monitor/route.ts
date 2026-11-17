@@ -2,6 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { after, NextResponse } from 'next/server';
 import pLimit from 'p-limit';
 import { prisma } from '@/lib/db';
+import { overQuota, scanQuota } from '@/lib/quota';
 import { runScan } from '@/lib/run-scan';
 
 export const runtime = 'nodejs';
@@ -38,6 +39,8 @@ export async function GET(req: Request) {
   for (const m of due) {
     const running = await prisma.scan.findFirst({ where: { domain: m.domain, status: { in: ['queued', 'running'] } } });
     if (running) continue;
+    // Monitored re-scans count against the owner's monthly allowance, so a daily monitor cannot bypass it.
+    if (m.ownerId && overQuota(await scanQuota(m.ownerId))) continue;
     scans.push(await prisma.scan.create({ data: { domain: m.domain, ownerId: m.ownerId } }));
     await prisma.monitor.update({ where: { domain: m.domain }, data: { lastRunAt: new Date() } });
   }

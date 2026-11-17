@@ -14,6 +14,7 @@ interface ScanFormProps {
   setAuthorized: (v: boolean) => void;
   busy: boolean;
   error: string | null;
+  quota?: { limit: number | null; used: number; resetsAt: string | Date } | null;
   onSubmit: (e: React.FormEvent) => void;
   autoFocus?: boolean;
 }
@@ -31,6 +32,7 @@ export function ScanBar({
   busy,
   running,
   error,
+  quota,
   onSubmit,
   autoFocus,
 }: ScanFormProps & { running: boolean }) {
@@ -108,6 +110,11 @@ export function ScanBar({
           </span>
           {t.authorizeShort}
         </label>
+        {quota && quota.limit !== null && (
+          <p className={cn('ml-auto text-[13px] tabular-nums', quota.used >= quota.limit ? 'text-crit' : 'text-muted')}>
+            {Math.max(0, quota.limit - quota.used)} of {quota.limit} scans left this month
+          </p>
+        )}
         {(error || authErr) && (
           <p id="scan-error" role="alert" className="text-[13px] text-crit">
             {error ?? t.authorize}

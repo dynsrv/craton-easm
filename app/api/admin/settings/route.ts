@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireAdmin } from '@/lib/auth/guard';
-import { HOST_CAP_MAX, HOST_CAP_MIN } from '@/lib/auth/roles';
+import { HOST_CAP_MAX, HOST_CAP_MIN, SCAN_CAP_MAX } from '@/lib/auth/roles';
 import { resolveSettings, saveSetting, SECRET_KEYS, SETTING_KEYS, type SettingKey } from '@/lib/settings';
 
 export const runtime = 'nodejs';
@@ -46,6 +46,11 @@ export async function PUT(req: Request) {
   const hosts = parsed.data.values.MAX_HOSTS;
   if (hosts && !(Number.isInteger(Number(hosts)) && Number(hosts) >= HOST_CAP_MIN && Number(hosts) <= HOST_CAP_MAX)) {
     return NextResponse.json({ error: `Host limit must be a whole number from ${HOST_CAP_MIN} to ${HOST_CAP_MAX}.` }, { status: 400 });
+  }
+
+  const scans = parsed.data.values.MAX_SCANS;
+  if (scans && !(Number.isInteger(Number(scans)) && Number(scans) >= 0 && Number(scans) <= SCAN_CAP_MAX)) {
+    return NextResponse.json({ error: `Scan limit must be a whole number from 0 (unlimited) to ${SCAN_CAP_MAX}.` }, { status: 400 });
   }
 
   for (const [key, value] of Object.entries(parsed.data.values)) {

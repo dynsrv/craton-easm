@@ -8,3 +8,7 @@ export const DEFAULT_MAX_HOSTS = 50;
 export const HOST_CAP_MIN = 10;
 export const HOST_CAP_MAX = 500;
 export const clampHosts = (n: number) => Math.min(HOST_CAP_MAX, Math.max(HOST_CAP_MIN, Math.round(n)));
+
+/** Scans per calendar month. 0 means unlimited. Customers get DEFAULT_MAX_SCANS unless an admin sets another number. */
+export const DEFAULT_MAX_SCANS = 10;
+export const SCAN_CAP_MAX = 100000;

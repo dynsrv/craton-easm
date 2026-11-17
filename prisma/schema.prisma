@@ -165,6 +165,8 @@ model User {
   role               String    @default("user") // admin (super admin) | user (customer)
   /// Per-user cap on hosts probed per scan; null = use the global default from /admin.
   maxHosts           Int?
+  /// Per-user cap on scans per calendar month (UTC). Null = use the global default from /admin; 0 = unlimited.
+  maxScans           Int?
   disabled           Boolean   @default(false)
   mustChangePassword Boolean   @default(true)
   failedLogins       Int       @default(0)

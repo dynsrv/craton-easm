@@ -1,10 +1,10 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { authSecret } from './auth/session';
-import { clampHosts, DEFAULT_MAX_HOSTS } from './auth/roles';
+import { clampHosts, DEFAULT_MAX_HOSTS, DEFAULT_MAX_SCANS } from './auth/roles';
 import { prisma } from './db';
 
 /** Backend settings an admin can change at /admin. Database values override environment variables. */
-export const SETTING_KEYS = ['AI_PROVIDER', 'TRIAGE_MODEL', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'SHODAN_API_KEY', 'OTX_API_KEY', 'GITHUB_TOKEN', 'ALERT_WEBHOOK_URL', 'MAX_HOSTS'] as const;
+export const SETTING_KEYS = ['AI_PROVIDER', 'TRIAGE_MODEL', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'SHODAN_API_KEY', 'OTX_API_KEY', 'GITHUB_TOKEN', 'ALERT_WEBHOOK_URL', 'MAX_HOSTS', 'MAX_SCANS'] as const;
 export type SettingKey = (typeof SETTING_KEYS)[number];
 export const SECRET_KEYS: ReadonlySet<SettingKey> = new Set(['OPENAI_API_KEY', 'ANTHROPIC_API_KEY', 'SHODAN_API_KEY', 'OTX_API_KEY', 'GITHUB_TOKEN', 'ALERT_WEBHOOK_URL']);
 
@@ -72,11 +72,19 @@ export interface RuntimeConfig {
   alertWebhookUrl: string | null;
   /** Default cap on hosts probed per scan (a user's own limit overrides it). */
   maxHosts: number;
+  /** Default scans per calendar month for customers; 0 = unlimited. A user's own limit overrides it. */
+  maxScans: number;
 }
 
 function parseHosts(v: string | null | undefined): number {
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? clampHosts(n) : DEFAULT_MAX_HOSTS;
+}
+
+function parseScans(v: string | null | undefined): number {
+  if (v == null || v.trim() === '') return DEFAULT_MAX_SCANS;
+  const n = Number(v);
+  return Number.isInteger(n) && n >= 0 ? n : DEFAULT_MAX_SCANS;
 }
 
 export async function getRuntimeConfig(): Promise<RuntimeConfig> {
@@ -92,6 +100,7 @@ export async function getRuntimeConfig(): Promise<RuntimeConfig> {
     githubToken: s.GITHUB_TOKEN.value,
     alertWebhookUrl: s.ALERT_WEBHOOK_URL.value,
     maxHosts: parseHosts(s.MAX_HOSTS.value),
+    maxScans: parseScans(s.MAX_SCANS.value),
   };
 }
 
@@ -108,5 +117,6 @@ export function envRuntimeConfig(): RuntimeConfig {
     githubToken: process.env.GITHUB_TOKEN || null,
     alertWebhookUrl: process.env.ALERT_WEBHOOK_URL || null,
     maxHosts: parseHosts(process.env.MAX_HOSTS),
+    maxScans: parseScans(process.env.MAX_SCANS),
   };
 }
