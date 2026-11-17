@@ -65,18 +65,18 @@ export function ScanProgress({
           })}
         </ol>
 
-        <div className="flex min-h-[260px] min-w-0 flex-col overflow-hidden border border-[#1f2a3a] bg-[#0b111b] text-[#c3cedd] shadow-[0_12px_32px_-18px_rgba(0,0,0,0.6)]">
-          <div className="flex h-9 shrink-0 items-center gap-3 border-b border-[#1f2a3a] bg-[#0f1724] px-3.5">
+        <div className="flex min-h-[260px] min-w-0 flex-col overflow-hidden border border-line bg-bg text-ink shadow-[0_12px_32px_-22px_rgba(0,0,0,0.35)]">
+          <div className="flex h-9 shrink-0 items-center gap-3 border-b border-line bg-panel2 px-3.5">
             <span className="flex gap-1.5" aria-hidden>
-              <i className="size-2 rounded-full bg-[#2a3547]" />
-              <i className="size-2 rounded-full bg-[#2a3547]" />
-              <i className="size-2 rounded-full bg-[#2a3547]" />
+              <i className="size-2 rounded-full bg-line" />
+              <i className="size-2 rounded-full bg-line" />
+              <i className="size-2 rounded-full bg-line" />
             </span>
-            <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-[#7d8aa0]">craton · {domain}</span>
-            <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold tracking-[0.14em] text-[#4fd18b]">
+            <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted">craton · {domain}</span>
+            <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold tracking-[0.14em] text-ok">
               <span className="relative flex size-1.5">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-[#4fd18b] opacity-60 motion-reduce:hidden" />
-                <span className="relative inline-flex size-1.5 rounded-full bg-[#4fd18b]" />
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-ok opacity-60 motion-reduce:hidden" />
+                <span className="relative inline-flex size-1.5 rounded-full bg-ok" />
               </span>
               LIVE
             </span>
@@ -86,10 +86,10 @@ export function ScanProgress({
               const cmd = line.startsWith('$');
               const sub = !cmd && line.startsWith(' ');
               return (
-                <span key={i} className={cn('block', cmd && 'text-[#8ab4ff]', sub && 'pl-4 text-[#7d8aa0]', !cmd && !sub && 'text-[#e6edf7]')}>
-                  {!cmd && !sub && <span className="mr-2 text-[#4fd18b]">›</span>}
+                <span key={i} className={cn('block', cmd && 'text-accent', sub && 'pl-4 text-muted', !cmd && !sub && 'text-ink')}>
+                  {!cmd && !sub && <span className="mr-2 text-ok">›</span>}
                   {sub ? line.trim() : line}
-                  {i === last && <span className="ml-1 inline-block h-[1em] w-[7px] translate-y-[2px] animate-pulse bg-[#8ab4ff] motion-reduce:animate-none" aria-hidden />}
+                  {i === last && <span className="ml-1 inline-block h-[1em] w-[7px] translate-y-[2px] animate-pulse bg-accent motion-reduce:animate-none" aria-hidden />}
                 </span>
               );
             })}
