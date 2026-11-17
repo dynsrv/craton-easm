@@ -65,13 +65,8 @@ export function ScanProgress({
           })}
         </ol>
 
-        <div className="flex min-h-[260px] min-w-0 flex-col overflow-hidden border border-line bg-bg text-ink shadow-[0_12px_32px_-22px_rgba(0,0,0,0.35)]">
-          <div className="flex h-9 shrink-0 items-center gap-3 border-b border-line bg-panel2 px-3.5">
-            <span className="flex gap-1.5" aria-hidden>
-              <i className="size-2 rounded-full bg-line" />
-              <i className="size-2 rounded-full bg-line" />
-              <i className="size-2 rounded-full bg-line" />
-            </span>
+        <div className="flex min-h-[260px] min-w-0 flex-col overflow-hidden border border-line bg-bg text-ink">
+          <div className="flex h-9 shrink-0 items-center gap-3 border-b border-line px-4">
             <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-muted">craton · {domain}</span>
             <span className="inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold tracking-[0.14em] text-ok">
               <span className="relative flex size-1.5">
