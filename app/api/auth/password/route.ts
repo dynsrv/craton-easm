@@ -7,7 +7,7 @@ import { prisma } from '@/lib/db';
 
 export const runtime = 'nodejs';
 
-const Body = z.object({ current: z.string().min(1).max(200), next: z.string().min(MIN_PASSWORD_LENGTH).max(200) });
+const Body = z.object({ current: z.string().max(200).optional(), next: z.string().min(MIN_PASSWORD_LENGTH).max(200) });
 
 /** POST /api/auth/password  { current, next }  -> changes the signed-in user's password */
 export async function POST(req: Request) {
@@ -19,7 +19,9 @@ export async function POST(req: Request) {
   const { current, next } = parsed.data;
 
   const user = await prisma.user.findUnique({ where: { id: auth.session.userId } });
-  if (!user || !verifyPassword(current, user.passwordHash)) return NextResponse.json({ error: 'The current password is incorrect.' }, { status: 400 });
+  if (!user) return NextResponse.json({ error: 'Account not found.' }, { status: 404 });
+  // Accounts created with Google have no password yet, so there is nothing to confirm.
+  if (user.passwordHash && !verifyPassword(current ?? '', user.passwordHash)) return NextResponse.json({ error: 'The current password is incorrect.' }, { status: 400 });
   if (current === next) return NextResponse.json({ error: 'Choose a password different from the current one.' }, { status: 400 });
 
   await prisma.user.update({ where: { id: user.id }, data: { passwordHash: hashPassword(next), mustChangePassword: false } });

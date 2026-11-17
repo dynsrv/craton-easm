@@ -8,7 +8,26 @@ import { Wordmark } from '@/components/brand';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 
-export function LoginForm({ problems }: { problems: string[] }) {
+const NOTICE: Record<string, string> = {
+  google_denied: 'Google sign-in was cancelled.',
+  google_failed: 'Google sign-in did not complete. Please try again.',
+  google_unverified: 'Your Google email address is not verified, so we cannot use it.',
+  google_off: 'Google sign-in is not available right now.',
+  disabled: 'This account is disabled. Contact your administrator.',
+};
+
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden>
+      <path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.45a5.52 5.52 0 0 1-2.39 3.62v3h3.87c2.27-2.09 3.57-5.17 3.57-8.81Z" />
+      <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.87-3c-1.07.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.27v3.1A12 12 0 0 0 12 24Z" />
+      <path fill="#FBBC05" d="M5.27 14.28A7.2 7.2 0 0 1 4.9 12c0-.79.14-1.56.37-2.28v-3.1H1.27A12 12 0 0 0 0 12c0 1.94.46 3.77 1.27 5.38l4-3.1Z" />
+      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.27 6.62l4 3.1C6.22 6.86 8.87 4.75 12 4.75Z" />
+    </svg>
+  );
+}
+
+export function LoginForm({ problems, google, notice }: { problems: string[]; google: boolean; notice: string | null }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -73,10 +92,30 @@ export function LoginForm({ problems }: { problems: string[] }) {
         </div>
 
         <div className="mx-auto flex w-full max-w-[360px] flex-1 flex-col justify-center py-10">
-          <h1 className="text-2xl font-semibold leading-8 tracking-tight">Sign in</h1>
-          <p className="mt-1 text-[13px] text-muted">Use the account your administrator created for you.</p>
+          <h1 className="text-2xl font-semibold leading-8 tracking-tight">Sign in or sign up</h1>
+          <p className="mt-1 text-[13px] text-muted">{google ? 'New here? Continue with Google and your account is created for you.' : 'Use the account your administrator created for you.'}</p>
 
-          <form onSubmit={submit} className="mt-8 flex flex-col gap-4">
+          {notice && NOTICE[notice] && (
+            <p role="alert" className="mt-6 rounded-md border border-high px-3 py-2 text-[13px] text-high">
+              {NOTICE[notice]}
+            </p>
+          )}
+
+          {google && (
+            <>
+              <a href="/api/auth/google" className="mt-8 flex h-10 w-full items-center justify-center gap-2.5 border border-line bg-panel text-sm font-medium transition-colors hover:bg-panel2">
+                <GoogleMark />
+                Continue with Google
+              </a>
+              <div className="mt-6 flex items-center gap-3 text-xs text-muted" aria-hidden>
+                <span className="h-px flex-1 bg-line" />
+                or use email
+                <span className="h-px flex-1 bg-line" />
+              </div>
+            </>
+          )}
+
+          <form onSubmit={submit} className={google ? 'mt-6 flex flex-col gap-4' : 'mt-8 flex flex-col gap-4'}>
             {problems.length > 0 && (
               <div role="alert" className="rounded-md border border-high px-3 py-2 text-[13px]">
                 <b className="text-high">Setup incomplete</b>
@@ -104,7 +143,12 @@ export function LoginForm({ problems }: { problems: string[] }) {
 
           <p className="mt-8 flex items-start gap-2 text-xs leading-5 text-muted">
             <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-            Access is limited to authorised operators. Every scan is recorded against the account that ran it.
+            <span>
+              Every scan is recorded against the account that ran it. By continuing you agree to the{' '}
+              <Link href="/legal/terms" className="underline underline-offset-2 hover:text-ink">Terms</Link>,{' '}
+              <Link href="/legal/acceptable-use" className="underline underline-offset-2 hover:text-ink">Acceptable Use</Link> and{' '}
+              <Link href="/legal/privacy" className="underline underline-offset-2 hover:text-ink">Privacy Policy</Link>.
+            </span>
           </p>
         </div>
       </main>
