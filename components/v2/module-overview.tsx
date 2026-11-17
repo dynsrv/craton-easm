@@ -90,13 +90,13 @@ export function ModuleShowcase({ t }: { t: Dict }) {
   const keys = ['discovery', 'takeover', 'visual', 'code_leak', 'bucket', 'email', 'paths', 'drift'];
   const title: Record<string, string> = t.mod;
   return (
-    <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+    <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
       {keys.map((k) => (
-        <div key={k} className="flex gap-3 bg-panel px-4 py-3 sm:p-5">
+        <div key={k} className="flex gap-3.5 bg-panel px-4 py-4 sm:p-6">
           <IconTile icon={MODULE[k].icon} tone={MODULE[k].tone} />
           <div>
             <p className="text-[13px] font-semibold leading-5">{k === 'discovery' ? (t.tabAssets === 'Aset' ? 'Penemuan aset' : 'Asset discovery') : title[k]}</p>
-            <p className="mt-0.5 text-xs leading-4 text-muted">{t.modDesc[k]}</p>
+            <p className="mt-1 text-[13px] leading-5 text-muted">{t.modDesc[k]}</p>
           </div>
         </div>
       ))}
