@@ -35,7 +35,6 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
-import { CratonMark } from '@/components/brand';
 import { SiteFooter, SiteHeader } from '@/components/site-chrome';
 import { useLang } from '@/components/lang';
 import { SEV_VAR } from '@/lib/i18n';

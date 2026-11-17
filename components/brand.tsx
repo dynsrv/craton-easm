@@ -1,21 +1,25 @@
-/** Craton mark: three strata, the stable core of a continent. */
-export function CratonMark({ className }: { className?: string }) {
+import { cn } from '@/lib/utils';
+
+/** Paints a transparent PNG in the current text colour, so the logo follows the light and dark themes. */
+function Masked({ src, ratio, className, label }: { src: string; ratio: number; className?: string; label?: string }) {
+  const mask = `url(${src})`;
   return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <rect x="2" y="3" width="20" height="4" fill="var(--color-brand)" />
-      <rect x="2" y="10" width="14" height="4" fill="var(--color-brand)" opacity="0.7" />
-      <rect x="2" y="17" width="20" height="4" fill="var(--color-brand)" opacity="0.4" />
-    </svg>
+    <span
+      role={label ? 'img' : undefined}
+      aria-label={label}
+      aria-hidden={label ? undefined : true}
+      className={cn('block shrink-0 bg-ink', className)}
+      style={{ aspectRatio: ratio, maskImage: mask, WebkitMaskImage: mask, maskSize: 'contain', WebkitMaskSize: 'contain', maskRepeat: 'no-repeat', WebkitMaskRepeat: 'no-repeat', maskPosition: 'left center', WebkitMaskPosition: 'left center' }}
+    />
   );
 }
 
-/** The product name is the one place that stays in capitals. */
-export function Wordmark({ compact = false }: { compact?: boolean }) {
-  return (
-    <span className="flex items-center gap-2.5">
-      <CratonMark className="size-5" />
-      <span className="text-sm font-semibold tracking-[0.22em]">CRATON</span>
-      <span className={compact ? 'hidden border-l border-line pl-2.5 font-mono text-[11px] tracking-[0.18em] text-muted sm:inline' : 'border-l border-line pl-2.5 font-mono text-[11px] tracking-[0.18em] text-muted'}>EASM</span>
-    </span>
-  );
+/** Craton fingerprint mark. */
+export function CratonMark({ className }: { className?: string }) {
+  return <Masked src="/brand/craton-mark.png" ratio={404 / 402} className={cn('size-5', className)} />;
+}
+
+/** The full Craton lockup: mark, wordmark and tagline. `compact` is the slightly smaller size for the 48px app bar. */
+export function Wordmark({ compact = false, className }: { compact?: boolean; className?: string }) {
+  return <Masked src="/brand/craton-logo.png" ratio={1728 / 402} label="Craton" className={cn(compact ? 'h-9' : 'h-10', className)} />;
 }
