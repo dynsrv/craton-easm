@@ -11,12 +11,12 @@ import type { Lang } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const STR = {
-  en: { framework: 'Framework', brief: 'The Brief', leaders: 'For Leaders', trust: 'Trust', compliance: 'Compliance', signIn: 'Sign in', footer: 'External attack surface management', complianceLink: 'Indonesian compliance guide' },
-  id: { framework: 'Kerangka', brief: 'Laporan', leaders: 'Untuk Pimpinan', trust: 'Keamanan', compliance: 'Kepatuhan', signIn: 'Masuk', footer: 'Manajemen permukaan serangan eksternal', complianceLink: 'Panduan kepatuhan Indonesia' },
+  en: { easm: 'EASM', framework: 'Framework', brief: 'The Brief', leaders: 'For Leaders', trust: 'Trust', compliance: 'Compliance', signIn: 'Sign in', footer: 'External attack surface management', complianceLink: 'Indonesian compliance guide' },
+  id: { easm: 'EASM', framework: 'Kerangka', brief: 'Laporan', leaders: 'Untuk Pimpinan', trust: 'Keamanan', compliance: 'Kepatuhan', signIn: 'Masuk', footer: 'Manajemen permukaan serangan eksternal', complianceLink: 'Panduan kepatuhan Indonesia' },
 } as const;
 
 /** The public header, shared by the landing page and the compliance guide so they read as one site. */
-export function SiteHeader({ lang, setLang, onLanding = false, active, inner = 'max-w-[1280px]' }: { lang: Lang; setLang: (l: Lang) => void; onLanding?: boolean; active?: 'compliance'; inner?: string }) {
+export function SiteHeader({ lang, setLang, onLanding = false, active, inner = 'max-w-[1280px]' }: { lang: Lang; setLang: (l: Lang) => void; onLanding?: boolean; active?: 'compliance' | 'easm'; inner?: string }) {
   const s = STR[lang];
   const base = onLanding ? '' : '/';
   const links: [string, string][] = [
@@ -31,7 +31,10 @@ export function SiteHeader({ lang, setLang, onLanding = false, active, inner = '
         <Link href="/" aria-label="Craton home" className="flex shrink-0 items-center">
           <Wordmark />
         </Link>
-        <nav className="hidden items-center gap-7 md:flex" aria-label="Sections">
+        <nav className="hidden items-center gap-6 md:flex" aria-label="Sections">
+          <Link href="/easm" aria-current={active === 'easm' ? 'page' : undefined} className={cn('text-[13px] transition-colors hover:text-ink', active === 'easm' ? 'font-medium text-ink' : 'text-muted')}>
+            {s.easm}
+          </Link>
           {links.map(([href, label]) => (
             <a key={href} href={href} className="text-[13px] text-muted transition-colors hover:text-ink">
               {label}

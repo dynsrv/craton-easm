@@ -2,7 +2,6 @@
 
 import {
   ArrowRight,
-  ArrowUpRight,
   Ban,
   BellRing,
   Briefcase,
@@ -17,12 +16,12 @@ import {
   FileText,
   History,
   Landmark,
+  Layers,
   ListOrdered,
   Mail,
   Radar,
   RefreshCw,
   Route,
-  RotateCcw,
   ScanEye,
   ScanSearch,
   Search,
@@ -30,7 +29,6 @@ import {
   ServerCog,
   ShieldCheck,
   Telescope,
-  TrendingDown,
   Unplug,
   type LucideIcon,
 } from 'lucide-react';
@@ -41,15 +39,13 @@ import { SEV_VAR } from '@/lib/i18n';
 import type { Lang, Severity } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const NIST_URL = 'https://www.nist.gov/blogs/taking-measure/identify-protect-detect-respond-and-recover-nist-cybersecurity-framework';
-
 interface Item {
   icon: LucideIcon;
   title: string;
   body: string;
 }
 interface Fn {
-  id: 'identify' | 'protect' | 'detect' | 'respond' | 'recover';
+  id: 'discover' | 'classify' | 'assess' | 'prioritise' | 'monitor';
   icon: LucideIcon;
   name: string;
   question: string;
@@ -59,16 +55,18 @@ interface Fn {
   items: Item[];
 }
 
-const FN_ICON = { identify: ScanSearch, protect: ShieldCheck, detect: Radar, respond: Route, recover: RotateCcw } as const;
+const FN_ICON = { discover: ScanSearch, classify: Layers, assess: ShieldCheck, prioritise: Route, monitor: Radar } as const;
 
 const COPY = {
   en: {
     nav: { framework: 'Framework', brief: 'The Brief', leaders: 'For Leaders', trust: 'Trust', compliance: 'Compliance' },
+    easmGuide: 'New to EASM? Read the guide',
+    stageLink: 'How this stage works',
     labels: { problem: 'The Problem', framework: 'The Framework', brief: 'The Brief', leaders: 'For Leadership', trust: 'Trust', start: 'Get Started', log: 'Scan Log' },
     kicker: 'External Attack Surface Management',
     signIn: 'Sign in',
     h1: 'See your company the way an attacker does.',
-    lead: 'Craton starts from one domain name and maps everything your organisation exposes to the internet. Then it works through the five functions of the NIST Cybersecurity Framework, from the outside, and tells you in plain language which three fixes cut the most risk this week.',
+    lead: 'Craton starts from one domain name and maps everything your organisation exposes to the internet. Then it runs the five stages of external attack surface management from the outside, and tells you in plain language which three fixes cut the most risk this week.',
     ctaPrimary: 'Sign in to run a scan',
     ctaSecondary: 'See the framework',
     proof: ['No agents, no integration', 'Passive and non-intrusive', 'Briefs in English and Bahasa Indonesia', 'Results in minutes'],
@@ -78,31 +76,44 @@ const COPY = {
       { icon: ListOrdered, title: 'Alerts without priorities', body: 'Traditional scanners return thousands of findings. Leaders need to know which few changes actually remove a route into the business.' },
       { icon: Landmark, title: 'Accountability is rising', body: 'Boards, auditors and the Personal Data Protection Law (UU PDP) expect you to know your exposure and show it is going down.' },
     ],
-    frameworkTitle: 'Five functions, one outside view',
-    frameworkLead: 'Enter a domain and Craton works through the NIST Cybersecurity Framework without touching your systems. It supports each function from the outside and complements the controls you run inside.',
-    frameworkNote: 'Based on the five core functions described by NIST. Craton is an independent product and is not endorsed or certified by NIST.',
-    frameworkLink: 'Read about the framework',
+    frameworkTitle: 'Five stages, one outside view',
+    frameworkLead: 'External attack surface management (EASM) is the continuous practice of finding, classifying, assessing and prioritising everything you expose to the internet, then watching it for change. Craton runs every stage from the outside, without touching your systems.',
+    frameworkNote: 'The stages follow the common EASM lifecycle. Report findings map to NIST CSF categories and ISO/IEC 27001 controls. Craton is independent and is not endorsed or certified by NIST or ISO.',
+    frameworkLink: 'What is EASM? Read the guide',
     fns: [
       {
-        id: 'identify',
-        name: 'Identify',
+        id: 'discover',
+        name: 'Discover',
         question: 'What do we expose?',
         short: 'Find every exposed asset',
-        head: 'Know what you actually expose.',
-        body: 'Attackers start with a list of your systems. So should you. Craton builds it from public records, with no agent and no access.',
+        head: 'Start where an attacker starts.',
+        body: 'Attackers begin with a list of your systems. Craton builds the same list from public records, with no agent and no access.',
         items: [
-          { icon: Search, title: 'Asset discovery', body: 'Certificate logs, DNS and passive sources reveal every subdomain, including the ones IT forgot.' },
-          { icon: Server, title: 'Host profiling', body: 'Hosting provider, open services, technology and TLS for every live host.' },
-          { icon: ScanEye, title: 'Page classification', body: 'Screenshots and AI label each page: login portal, admin console or a parked site.' },
+          { icon: Search, title: 'Asset discovery', body: 'Certificate logs and DNS reveal every subdomain, including the ones IT forgot.' },
+          { icon: Telescope, title: 'Passive sources', body: 'Existing internet scan data adds what is already known about your hosts. Nothing is sent to your systems.' },
+          { icon: Radar, title: 'Live-host check', body: 'Ordinary web requests, like a visitor’s, tell live hosts from dead names.' },
         ],
       },
       {
-        id: 'protect',
-        name: 'Protect',
+        id: 'classify',
+        name: 'Classify',
+        question: 'What is each thing?',
+        short: 'Turn names into an inventory',
+        head: 'Turn a list of names into an inventory.',
+        body: 'A hostname alone says little. Craton adds hosting, technology and purpose, so every asset has a type and can be given an owner.',
+        items: [
+          { icon: Server, title: 'Host profiling', body: 'Hosting provider, open services, technology and TLS for every live host.' },
+          { icon: ScanEye, title: 'Page classification', body: 'Screenshots and AI label each page: login portal, admin console or a parked site.' },
+          { icon: ServerCog, title: 'Shadow IT made visible', body: 'Hosting providers and cloud buckets across vendors, in one inventory.' },
+        ],
+      },
+      {
+        id: 'assess',
+        name: 'Assess',
         question: 'Where are we weak?',
-        short: 'Close the gaps that invite attack',
+        short: 'Find the gaps that invite attack',
         head: 'See the gaps that invite attack.',
-        body: 'Most incidents use a weakness that was already public. Craton flags the ones to harden first.',
+        body: 'Most incidents use a weakness that was already public. Craton checks each asset for the ones attackers look for first.',
         items: [
           { icon: Unplug, title: 'Subdomain takeover', body: 'DNS records that point to deleted cloud apps anyone could claim.' },
           { icon: Cloud, title: 'Public cloud storage', body: 'Buckets that list their files to the whole internet, checked without reading them.' },
@@ -112,25 +123,12 @@ const COPY = {
         ],
       },
       {
-        id: 'detect',
-        name: 'Detect',
-        question: 'What changed?',
-        short: 'Catch change the day it happens',
-        head: 'Catch change the day it happens.',
-        body: 'Your surface moves every time someone ships a site or a vendor adds a record. Craton keeps watching.',
-        items: [
-          { icon: CalendarClock, title: 'Daily monitoring', body: 'Scheduled rescans compare every result with the one before.' },
-          { icon: History, title: 'Drift timeline', body: 'New hosts, new open services and new findings, in order.' },
-          { icon: BellRing, title: 'Alerts', body: 'High-severity changes go to Slack, Teams or any webhook.' },
-        ],
-      },
-      {
-        id: 'respond',
-        name: 'Respond',
+        id: 'prioritise',
+        name: 'Prioritise',
         question: 'What do we fix first?',
         short: 'Break the attack path first',
         head: 'Fix the one thing that matters first.',
-        body: 'Findings are chained into attack paths, so response effort goes where it breaks the route.',
+        body: 'A long findings list is not a plan. Craton chains findings into attack paths, so effort goes where it breaks the route.',
         items: [
           { icon: Route, title: 'Attack paths', body: 'Realistic breach routes, each with one choke point to cut.' },
           { icon: Crosshair, title: 'Exploitability analysis', body: 'A conceptual walk-through and safe checks to confirm a finding. Nothing is exploited.' },
@@ -138,15 +136,17 @@ const COPY = {
         ],
       },
       {
-        id: 'recover',
-        name: 'Recover',
-        question: 'Is it really fixed?',
-        short: 'Prove the fix worked',
-        head: 'Prove the exposure is gone.',
-        body: 'Craton does not restore systems. It confirms that your fixes held and leaves a record your board and auditors can read.',
+        id: 'monitor',
+        name: 'Monitor',
+        question: 'What changed, and did the fix hold?',
+        short: 'Catch change, prove the fix',
+        head: 'Keep watching, and prove the fix held.',
+        body: 'Your surface moves every time someone ships a site or a vendor adds a record. Craton rescans, compares and keeps the record.',
         items: [
+          { icon: CalendarClock, title: 'Daily monitoring', body: 'Scheduled rescans compare every result with the one before.' },
+          { icon: History, title: 'Drift timeline', body: 'New hosts, new open services and new findings, in order.' },
+          { icon: BellRing, title: 'Alerts', body: 'High-severity changes go to Slack, Teams or any webhook.' },
           { icon: RefreshCw, title: 'Verify by rescanning', body: 'Run the same scan again and watch closed findings disappear.' },
-          { icon: TrendingDown, title: 'Trend since last scan', body: 'Score and finding counts, compared with the previous baseline.' },
           { icon: FileCheck, title: 'Printable evidence', body: 'A dated report for audit, the board and UU PDP accountability.' },
         ],
       },
@@ -192,11 +192,13 @@ const COPY = {
   },
   id: {
     nav: { framework: 'Kerangka', brief: 'Laporan', leaders: 'Untuk Pimpinan', trust: 'Keamanan', compliance: 'Kepatuhan' },
+    easmGuide: 'Baru mengenal EASM? Baca panduannya',
+    stageLink: 'Cara tahap ini bekerja',
     labels: { problem: 'Masalahnya', framework: 'Kerangka Kerja', brief: 'Laporannya', leaders: 'Untuk Pimpinan', trust: 'Keamanan', start: 'Mulai', log: 'Log Pemindaian' },
     kicker: 'Manajemen Permukaan Serangan Eksternal',
     signIn: 'Masuk',
     h1: 'Lihat perusahaan Anda seperti penyerang melihatnya.',
-    lead: 'Craton berangkat dari satu nama domain dan memetakan semua yang terekspos ke internet. Lalu Craton menjalankan lima fungsi NIST Cybersecurity Framework dari luar, dan menjelaskan dengan bahasa sederhana tiga perbaikan yang paling menurunkan risiko minggu ini.',
+    lead: 'Craton berangkat dari satu nama domain dan memetakan semua yang terekspos ke internet. Lalu Craton menjalankan lima tahap manajemen permukaan serangan eksternal dari luar, dan menjelaskan dengan bahasa sederhana tiga perbaikan yang paling menurunkan risiko minggu ini.',
     ctaPrimary: 'Masuk untuk memindai',
     ctaSecondary: 'Lihat kerangka kerja',
     proof: ['Tanpa agen, tanpa integrasi', 'Pasif dan tidak mengganggu', 'Laporan dalam Bahasa Indonesia dan Inggris', 'Hasil dalam hitungan menit'],
@@ -206,31 +208,44 @@ const COPY = {
       { icon: ListOrdered, title: 'Peringatan tanpa prioritas', body: 'Pemindai tradisional menghasilkan ribuan temuan. Pimpinan perlu tahu beberapa perubahan mana yang benar-benar menutup jalan masuk ke bisnis.' },
       { icon: Landmark, title: 'Akuntabilitas meningkat', body: 'Dewan, auditor, dan UU Pelindungan Data Pribadi (UU PDP) menuntut Anda mengetahui eksposur dan menunjukkan bahwa eksposur itu menurun.' },
     ],
-    frameworkTitle: 'Lima fungsi, satu pandangan dari luar',
-    frameworkLead: 'Masukkan domain dan Craton menjalankan NIST Cybersecurity Framework tanpa menyentuh sistem Anda. Craton mendukung setiap fungsi dari luar dan melengkapi kontrol yang Anda jalankan di dalam.',
-    frameworkNote: 'Berdasarkan lima fungsi inti yang dijelaskan NIST. Craton adalah produk independen dan tidak didukung atau disertifikasi oleh NIST.',
-    frameworkLink: 'Baca tentang kerangka kerja',
+    frameworkTitle: 'Lima tahap, satu pandangan dari luar',
+    frameworkLead: 'Manajemen permukaan serangan eksternal (EASM) adalah praktik berkelanjutan untuk menemukan, mengklasifikasi, menilai, dan memprioritaskan semua yang Anda ekspos ke internet, lalu memantau perubahannya. Craton menjalankan setiap tahap dari luar, tanpa menyentuh sistem Anda.',
+    frameworkNote: 'Tahapannya mengikuti siklus EASM yang lazim. Temuan dalam laporan dipetakan ke kategori NIST CSF dan kontrol ISO/IEC 27001. Craton independen dan tidak didukung atau disertifikasi oleh NIST maupun ISO.',
+    frameworkLink: 'Apa itu EASM? Baca panduannya',
     fns: [
       {
-        id: 'identify',
-        name: 'Identify',
+        id: 'discover',
+        name: 'Discover',
         question: 'Apa yang kita ekspos?',
         short: 'Temukan setiap aset terekspos',
-        head: 'Ketahui apa yang sebenarnya terekspos.',
-        body: 'Penyerang memulai dari daftar sistem Anda. Anda juga sebaiknya begitu. Craton menyusunnya dari catatan publik, tanpa agen dan tanpa akses.',
+        head: 'Mulai dari tempat penyerang mulai.',
+        body: 'Penyerang memulai dari daftar sistem Anda. Craton menyusun daftar yang sama dari catatan publik, tanpa agen dan tanpa akses.',
         items: [
-          { icon: Search, title: 'Penemuan aset', body: 'Log sertifikat, DNS, dan sumber pasif mengungkap setiap subdomain, termasuk yang dilupakan tim IT.' },
-          { icon: Server, title: 'Profil host', body: 'Penyedia hosting, layanan terbuka, teknologi, dan TLS untuk setiap host aktif.' },
-          { icon: ScanEye, title: 'Klasifikasi halaman', body: 'Tangkapan layar dan AI melabeli tiap halaman: portal login, konsol admin, atau situs yang terparkir.' },
+          { icon: Search, title: 'Penemuan aset', body: 'Log sertifikat dan DNS mengungkap setiap subdomain, termasuk yang dilupakan tim IT.' },
+          { icon: Telescope, title: 'Sumber pasif', body: 'Data pemindaian internet yang sudah ada menambah apa yang sudah diketahui tentang host Anda. Tidak ada yang dikirim ke sistem Anda.' },
+          { icon: Radar, title: 'Pemeriksaan host aktif', body: 'Permintaan web biasa, seperti pengunjung, membedakan host aktif dari nama yang sudah mati.' },
         ],
       },
       {
-        id: 'protect',
-        name: 'Protect',
+        id: 'classify',
+        name: 'Classify',
+        question: 'Apa masing-masing aset ini?',
+        short: 'Ubah nama menjadi inventaris',
+        head: 'Ubah daftar nama menjadi inventaris.',
+        body: 'Nama host saja tidak banyak bicara. Craton menambahkan hosting, teknologi, dan fungsi, sehingga setiap aset punya jenis dan bisa diberi pemilik.',
+        items: [
+          { icon: Server, title: 'Profil host', body: 'Penyedia hosting, layanan terbuka, teknologi, dan TLS untuk setiap host aktif.' },
+          { icon: ScanEye, title: 'Klasifikasi halaman', body: 'Tangkapan layar dan AI melabeli tiap halaman: portal login, konsol admin, atau situs yang terparkir.' },
+          { icon: ServerCog, title: 'Shadow IT terlihat', body: 'Penyedia hosting dan bucket cloud lintas vendor, dalam satu inventaris.' },
+        ],
+      },
+      {
+        id: 'assess',
+        name: 'Assess',
         question: 'Di mana kita lemah?',
-        short: 'Tutup celah yang mengundang serangan',
+        short: 'Temukan celah yang mengundang serangan',
         head: 'Lihat celah yang mengundang serangan.',
-        body: 'Sebagian besar insiden memakai kelemahan yang sudah publik. Craton menandai yang perlu diperkuat lebih dulu.',
+        body: 'Sebagian besar insiden memakai kelemahan yang sudah publik. Craton memeriksa setiap aset untuk kelemahan yang pertama dicari penyerang.',
         items: [
           { icon: Unplug, title: 'Subdomain takeover', body: 'Record DNS yang menunjuk ke aplikasi cloud yang sudah dihapus dan bisa diklaim siapa saja.' },
           { icon: Cloud, title: 'Penyimpanan cloud publik', body: 'Bucket yang menampilkan daftar filenya ke seluruh internet, diperiksa tanpa membaca isinya.' },
@@ -240,25 +255,12 @@ const COPY = {
         ],
       },
       {
-        id: 'detect',
-        name: 'Detect',
-        question: 'Apa yang berubah?',
-        short: 'Tangkap perubahan di hari yang sama',
-        head: 'Tangkap perubahan di hari yang sama.',
-        body: 'Permukaan serangan Anda bergerak setiap kali ada situs baru atau vendor menambah record. Craton terus memantau.',
-        items: [
-          { icon: CalendarClock, title: 'Pemantauan harian', body: 'Pemindaian ulang terjadwal membandingkan setiap hasil dengan sebelumnya.' },
-          { icon: History, title: 'Linimasa perubahan', body: 'Host baru, layanan terbuka baru, dan temuan baru, berurutan.' },
-          { icon: BellRing, title: 'Peringatan', body: 'Perubahan berseverity tinggi dikirim ke Slack, Teams, atau webhook apa pun.' },
-        ],
-      },
-      {
-        id: 'respond',
-        name: 'Respond',
+        id: 'prioritise',
+        name: 'Prioritise',
         question: 'Apa yang diperbaiki dulu?',
         short: 'Putus jalur serangan lebih dulu',
         head: 'Perbaiki satu hal yang paling penting dulu.',
-        body: 'Temuan dirangkai menjadi jalur serangan, sehingga upaya respons tertuju pada titik yang memutus rute.',
+        body: 'Daftar temuan yang panjang bukan rencana. Craton merangkai temuan menjadi jalur serangan, sehingga upaya tertuju pada titik yang memutus rute.',
         items: [
           { icon: Route, title: 'Jalur serangan', body: 'Rute pembobolan yang realistis, masing-masing dengan satu titik putus.' },
           { icon: Crosshair, title: 'Analisis eksploitabilitas', body: 'Penjelasan konseptual dan pemeriksaan aman untuk mengonfirmasi temuan. Tidak ada yang dieksploitasi.' },
@@ -266,15 +268,17 @@ const COPY = {
         ],
       },
       {
-        id: 'recover',
-        name: 'Recover',
-        question: 'Apakah benar sudah beres?',
-        short: 'Buktikan perbaikan berhasil',
-        head: 'Buktikan eksposurnya sudah hilang.',
-        body: 'Craton tidak memulihkan sistem. Craton memastikan perbaikan Anda bertahan dan meninggalkan catatan yang bisa dibaca dewan dan auditor.',
+        id: 'monitor',
+        name: 'Monitor',
+        question: 'Apa yang berubah, dan apakah perbaikan bertahan?',
+        short: 'Tangkap perubahan, buktikan perbaikan',
+        head: 'Terus pantau, dan buktikan perbaikan bertahan.',
+        body: 'Permukaan serangan Anda bergerak setiap kali ada situs baru atau vendor menambah record. Craton memindai ulang, membandingkan, dan menyimpan catatannya.',
         items: [
+          { icon: CalendarClock, title: 'Pemantauan harian', body: 'Pemindaian ulang terjadwal membandingkan setiap hasil dengan sebelumnya.' },
+          { icon: History, title: 'Linimasa perubahan', body: 'Host baru, layanan terbuka baru, dan temuan baru, berurutan.' },
+          { icon: BellRing, title: 'Peringatan', body: 'Perubahan berseverity tinggi dikirim ke Slack, Teams, atau webhook apa pun.' },
           { icon: RefreshCw, title: 'Verifikasi dengan pindai ulang', body: 'Jalankan pemindaian yang sama lagi dan lihat temuan yang sudah ditutup menghilang.' },
-          { icon: TrendingDown, title: 'Tren sejak pemindaian terakhir', body: 'Skor dan jumlah temuan, dibandingkan dengan baseline sebelumnya.' },
           { icon: FileCheck, title: 'Bukti siap cetak', body: 'Laporan bertanggal untuk audit, dewan, dan akuntabilitas UU PDP.' },
         ],
       },
@@ -456,7 +460,11 @@ export function Landing() {
                 {c.ctaSecondary}
               </a>
             </div>
-            <ul className="mt-6 flex flex-wrap gap-x-7 gap-y-2.5 text-sm text-muted">
+            <Link href="/easm" className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4 hover:no-underline">
+              {c.easmGuide}
+              <ArrowRight className="size-3.5" aria-hidden />
+            </Link>
+            <ul className="mt-5 flex flex-wrap gap-x-7 gap-y-2.5 text-sm text-muted">
               {c.proof.map((p) => (
                 <li key={p} className="flex items-center gap-2">
                   <Check className="size-4 text-ink" strokeWidth={1.5} aria-hidden />
@@ -465,14 +473,17 @@ export function Landing() {
               ))}
             </ul>
           </div>
-          <nav aria-label="NIST functions" className="mx-auto grid w-full max-w-[1280px] border-t border-line lg:grid-cols-5">
+          <nav aria-label="EASM stages" className="mx-auto grid w-full max-w-[1280px] border-t border-line lg:grid-cols-5">
             {c.fns.map((f, i) => {
               const Icon = FN_ICON[f.id];
               return (
                 <a key={f.id} href={`#${f.id}`} className={cn('group flex items-start gap-4 py-5 transition-colors hover:bg-panel max-lg:border-b max-lg:border-line lg:flex-col lg:gap-3 lg:py-6 lg:pr-5', i > 0 && 'lg:border-l lg:border-line lg:pl-6')}>
                   <Icon className="size-6 shrink-0 text-ink" strokeWidth={1.25} aria-hidden />
                   <span>
-                    <span className="block text-base font-semibold">{f.name}</span>
+                    <span className="block text-base font-semibold">
+                      <span className="tabular mr-1.5 text-muted">{String(i + 1).padStart(2, '0')}</span>
+                      {f.name}
+                    </span>
                     <span className="mt-0.5 block text-sm leading-5 text-muted">{f.short}</span>
                   </span>
                 </a>
@@ -512,27 +523,34 @@ export function Landing() {
           </div>
         </Band>
 
-        {/* Framework: the five NIST functions */}
+        {/* Framework: the five EASM lifecycle stages */}
         <Band id="framework" className="py-24 sm:py-32">
           <Label icon={ShieldCheck}>{c.labels.framework}</Label>
           <Head title={c.frameworkTitle} lead={c.frameworkLead} cols="lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1.25fr)]">
-            <a href={NIST_URL} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4 hover:no-underline">
+            <Link href="/easm" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4 hover:no-underline">
               {c.frameworkLink}
-              <ArrowUpRight className="size-3.5" aria-hidden />
-            </a>
+              <ArrowRight className="size-3.5" aria-hidden />
+            </Link>
           </Head>
 
           <div className="mt-16 border-b border-line">
-            {c.fns.map((f) => {
+            {c.fns.map((f, n) => {
               const Icon = FN_ICON[f.id];
               return (
                 <article key={f.id} id={f.id} className="grid scroll-mt-14 gap-x-10 gap-y-6 border-t border-line py-10 lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1.25fr)]">
                   <div>
                     <div className="flex h-8 items-center gap-3">
                       <Icon className="size-7 shrink-0 text-ink" strokeWidth={1.25} aria-hidden />
-                      <h3 className="text-[28px] font-semibold leading-8 tracking-[-0.02em]">{f.name}</h3>
+                      <h3 className="text-[28px] font-semibold leading-8 tracking-[-0.02em]">
+                        <span className="tabular mr-2 text-muted">{String(n + 1).padStart(2, '0')}</span>
+                        {f.name}
+                      </h3>
                     </div>
                     <p className="mt-1.5 text-sm text-muted lg:pl-10">{f.question}</p>
+                    <Link href={`/easm#${f.id}`} className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium underline underline-offset-4 hover:no-underline lg:ml-10">
+                      {c.stageLink}
+                      <ArrowRight className="size-3.5" aria-hidden />
+                    </Link>
                   </div>
                   <div>
                     <p className="text-[22px] font-semibold leading-8 tracking-[-0.015em]">{f.head}</p>
