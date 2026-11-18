@@ -60,8 +60,20 @@ const FN_ICON = { discover: ScanSearch, classify: Layers, assess: ShieldCheck, p
 const COPY = {
   en: {
     nav: { framework: 'Framework', brief: 'The Brief', leaders: 'For Leaders', trust: 'Trust', compliance: 'Compliance' },
-    easmGuide: 'New to EASM? Read the guide',
-    stageLink: 'How this stage works',
+    easmGuide: 'New to EASM? Start here',
+    easm: {
+      label: 'What Is EASM?',
+      title: 'Everything of yours that the internet can see.',
+      lead: 'External attack surface management, or EASM, means looking at your company from the outside, the way an attacker does. It finds every website, server, cloud app and forgotten test system tied to your name, shows which ones put you at risk, and keeps watching as they change.',
+      points: [
+        { icon: Search, title: 'Find', body: 'Attackers do not ask for your asset list. They build their own from public records. EASM builds that list first.' },
+        { icon: Crosshair, title: 'Judge', body: 'Not every exposure matters. EASM separates the few that open a way in from the many that do not.' },
+        { icon: Radar, title: 'Watch', body: 'Your surface changes every week. EASM rescans, flags what is new and proves your fixes worked.' },
+      ],
+      notTitle: 'Not a vulnerability scanner.',
+      notBody: 'A scanner checks the systems you point it at. EASM finds the ones you did not know to point it at, with nothing to install and nothing attacked.',
+      link: 'See the five stages',
+    },
     labels: { problem: 'The Problem', framework: 'The Framework', brief: 'The Brief', leaders: 'For Leadership', trust: 'Trust', start: 'Get Started', log: 'Scan Log' },
     kicker: 'External Attack Surface Management',
     signIn: 'Sign in',
@@ -77,9 +89,8 @@ const COPY = {
       { icon: Landmark, title: 'Accountability is rising', body: 'Boards, auditors and the Personal Data Protection Law (UU PDP) expect you to know your exposure and show it is going down.' },
     ],
     frameworkTitle: 'Five stages, one outside view',
-    frameworkLead: 'External attack surface management (EASM) is the continuous practice of finding, classifying, assessing and prioritising everything you expose to the internet, then watching it for change. Craton runs every stage from the outside, without touching your systems.',
+    frameworkLead: 'Craton runs the full EASM cycle for you, from the outside, without touching your systems. Each stage feeds the next.',
     frameworkNote: 'The stages follow the common EASM lifecycle. Report findings map to NIST CSF categories and ISO/IEC 27001 controls. Craton is independent and is not endorsed or certified by NIST or ISO.',
-    frameworkLink: 'What is EASM? Read the guide',
     fns: [
       {
         id: 'discover',
@@ -192,8 +203,20 @@ const COPY = {
   },
   id: {
     nav: { framework: 'Kerangka', brief: 'Laporan', leaders: 'Untuk Pimpinan', trust: 'Keamanan', compliance: 'Kepatuhan' },
-    easmGuide: 'Baru mengenal EASM? Baca panduannya',
-    stageLink: 'Cara tahap ini bekerja',
+    easmGuide: 'Baru mengenal EASM? Mulai di sini',
+    easm: {
+      label: 'Apa Itu EASM?',
+      title: 'Semua milik Anda yang bisa dilihat internet.',
+      lead: 'Manajemen permukaan serangan eksternal, atau EASM, berarti memandang perusahaan Anda dari luar, seperti penyerang. EASM menemukan setiap situs web, server, aplikasi cloud, dan sistem uji yang terlupakan atas nama Anda, menunjukkan mana yang membahayakan, dan terus memantau saat semuanya berubah.',
+      points: [
+        { icon: Search, title: 'Temukan', body: 'Penyerang tidak meminta daftar aset Anda. Mereka menyusunnya sendiri dari catatan publik. EASM menyusun daftar itu lebih dulu.' },
+        { icon: Crosshair, title: 'Nilai', body: 'Tidak semua eksposur penting. EASM memisahkan sedikit yang membuka jalan masuk dari banyak yang tidak.' },
+        { icon: Radar, title: 'Pantau', body: 'Permukaan serangan Anda berubah setiap minggu. EASM memindai ulang, menandai yang baru, dan membuktikan perbaikan Anda berhasil.' },
+      ],
+      notTitle: 'Bukan sekadar pemindai kerentanan.',
+      notBody: 'Pemindai memeriksa sistem yang Anda arahkan. EASM menemukan sistem yang tidak Anda ketahui untuk diarahkan, tanpa instalasi dan tanpa menyerang apa pun.',
+      link: 'Lihat lima tahapnya',
+    },
     labels: { problem: 'Masalahnya', framework: 'Kerangka Kerja', brief: 'Laporannya', leaders: 'Untuk Pimpinan', trust: 'Keamanan', start: 'Mulai', log: 'Log Pemindaian' },
     kicker: 'Manajemen Permukaan Serangan Eksternal',
     signIn: 'Masuk',
@@ -209,9 +232,8 @@ const COPY = {
       { icon: Landmark, title: 'Akuntabilitas meningkat', body: 'Dewan, auditor, dan UU Pelindungan Data Pribadi (UU PDP) menuntut Anda mengetahui eksposur dan menunjukkan bahwa eksposur itu menurun.' },
     ],
     frameworkTitle: 'Lima tahap, satu pandangan dari luar',
-    frameworkLead: 'Manajemen permukaan serangan eksternal (EASM) adalah praktik berkelanjutan untuk menemukan, mengklasifikasi, menilai, dan memprioritaskan semua yang Anda ekspos ke internet, lalu memantau perubahannya. Craton menjalankan setiap tahap dari luar, tanpa menyentuh sistem Anda.',
+    frameworkLead: 'Craton menjalankan siklus EASM penuh untuk Anda, dari luar, tanpa menyentuh sistem Anda. Setiap tahap mengisi tahap berikutnya.',
     frameworkNote: 'Tahapannya mengikuti siklus EASM yang lazim. Temuan dalam laporan dipetakan ke kategori NIST CSF dan kontrol ISO/IEC 27001. Craton independen dan tidak didukung atau disertifikasi oleh NIST maupun ISO.',
-    frameworkLink: 'Apa itu EASM? Baca panduannya',
     fns: [
       {
         id: 'discover',
@@ -460,10 +482,10 @@ export function Landing() {
                 {c.ctaSecondary}
               </a>
             </div>
-            <Link href="/easm" className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4 hover:no-underline">
+            <a href="#easm" className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4 hover:no-underline">
               {c.easmGuide}
               <ArrowRight className="size-3.5" aria-hidden />
-            </Link>
+            </a>
             <ul className="mt-5 flex flex-wrap gap-x-7 gap-y-2.5 text-sm text-muted">
               {c.proof.map((p) => (
                 <li key={p} className="flex items-center gap-2">
@@ -508,6 +530,33 @@ export function Landing() {
           </div>
         </Band>
 
+        {/* What is EASM */}
+        <Band id="easm" className="py-24 sm:py-32">
+          <Label icon={Telescope}>{c.easm.label}</Label>
+          <Head title={c.easm.title} lead={c.easm.lead} cols="lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1.25fr)]" />
+          <div className="mt-16 grid border-t border-line md:grid-cols-3">
+            {c.easm.points.map((p, i) => (
+              <div key={p.title} className={cn('py-8 md:pr-8', i > 0 && 'border-t border-line md:border-l md:border-t-0 md:pl-8')}>
+                <p className="tabular text-sm text-muted">{String(i + 1).padStart(2, '0')}</p>
+                <h3 className="mt-3 flex items-center gap-3 text-[28px] font-semibold leading-8 tracking-[-0.02em]">
+                  <p.icon className="size-6 shrink-0 text-ink" strokeWidth={1.25} aria-hidden />
+                  {p.title}
+                </h3>
+                <p className="mt-3 text-[15px] leading-7 text-muted">{p.body}</p>
+              </div>
+            ))}
+          </div>
+          <div className="flex flex-col gap-4 border-y border-line bg-panel px-6 py-6 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+            <p className="max-w-[70ch] text-[15px] leading-7 text-muted">
+              <span className="font-semibold text-ink">{c.easm.notTitle}</span> {c.easm.notBody}
+            </p>
+            <a href="#framework" className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium underline underline-offset-4 hover:no-underline">
+              {c.easm.link}
+              <ArrowRight className="size-3.5" aria-hidden />
+            </a>
+          </div>
+        </Band>
+
         {/* Problem */}
         <Band className="py-24 sm:py-32">
           <Label>{c.labels.problem}</Label>
@@ -526,12 +575,7 @@ export function Landing() {
         {/* Framework: the five EASM lifecycle stages */}
         <Band id="framework" className="py-24 sm:py-32">
           <Label icon={ShieldCheck}>{c.labels.framework}</Label>
-          <Head title={c.frameworkTitle} lead={c.frameworkLead} cols="lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1.25fr)]">
-            <Link href="/easm" className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium underline underline-offset-4 hover:no-underline">
-              {c.frameworkLink}
-              <ArrowRight className="size-3.5" aria-hidden />
-            </Link>
-          </Head>
+          <Head title={c.frameworkTitle} lead={c.frameworkLead} cols="lg:grid-cols-[240px_minmax(0,1fr)_minmax(0,1.25fr)]" />
 
           <div className="mt-16 border-b border-line">
             {c.fns.map((f, n) => {
@@ -547,10 +591,6 @@ export function Landing() {
                       </h3>
                     </div>
                     <p className="mt-1.5 text-sm text-muted lg:pl-10">{f.question}</p>
-                    <Link href={`/easm#${f.id}`} className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-medium underline underline-offset-4 hover:no-underline lg:ml-10">
-                      {c.stageLink}
-                      <ArrowRight className="size-3.5" aria-hidden />
-                    </Link>
                   </div>
                   <div>
                     <p className="text-[22px] font-semibold leading-8 tracking-[-0.015em]">{f.head}</p>
