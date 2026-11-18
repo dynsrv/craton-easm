@@ -40,7 +40,8 @@ model Scan {
   driftEvents DriftEvent[]
 
   @@index([domain, createdAt])
-  @@index([ownerId])
+  @@index([ownerId, createdAt])
+  @@index([createdAt])
 }
 
 model Asset {

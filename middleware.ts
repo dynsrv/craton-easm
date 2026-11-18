@@ -25,13 +25,20 @@ export async function middleware(req: NextRequest) {
   }
   if (pathname === '/compliance/app') return NextResponse.redirect(new URL('/compliance', req.url));
 
+  if (pathname === '/welcome') return NextResponse.redirect(new URL('/', req.url));
+
   // The legal pages must be readable by anyone, signed in or not.
   if (pathname === '/legal' || pathname.startsWith('/legal/')) return NextResponse.next();
   if (PUBLIC.some((p) => pathname === p)) return NextResponse.next();
 
   const session = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
-  // The home page is the public landing page until someone signs in.
-  if (!session && pathname === '/') return NextResponse.next();
+  // The home page is the public landing page until someone signs in. Visitors get the prerendered copy
+  // from the edge cache; only signed-in people reach the dynamic dashboard.
+  if (!session && pathname === '/') {
+    const url = req.nextUrl.clone();
+    url.pathname = '/welcome';
+    return NextResponse.rewrite(url);
+  }
   if (!session) {
     if (isApi) return NextResponse.json({ error: 'Sign in required' }, { status: 401 });
     const url = req.nextUrl.clone();

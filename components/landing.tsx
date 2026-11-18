@@ -19,6 +19,7 @@ import {
   Layers,
   ListOrdered,
   Mail,
+  Plus,
   Radar,
   RefreshCw,
   Route,
@@ -35,6 +36,7 @@ import {
 import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '@/components/site-chrome';
 import { useLang } from '@/components/lang';
+import { LANDING_FAQ } from '@/lib/landing-faq';
 import { SEV_VAR } from '@/lib/i18n';
 import type { Lang, Severity } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -73,7 +75,23 @@ const COPY = {
       notTitle: 'Not a vulnerability scanner.',
       notBody: 'A scanner checks the systems you point it at. EASM finds the ones you did not know to point it at, with nothing to install and nothing attacked.',
       link: 'See the five stages',
+      findsTitle: 'What it typically finds',
+      finds: [
+        { icon: Unplug, title: 'A forgotten campaign site', body: 'A microsite from an old promotion, still live, still pointing at a cloud app nobody owns any more.' },
+        { icon: Telescope, title: 'A staging server on the open internet', body: 'A test system built for a project, never switched off, sometimes with an admin console and no login.' },
+        { icon: Code2, title: 'A credential in public code', body: 'A developer pushed a configuration file to a public repository, and the password inside still works.' },
+        { icon: Cloud, title: 'Storage anyone can list', body: 'A cloud bucket set to public by mistake, showing its file names to the whole internet.' },
+      ],
+      fitTitle: 'Where EASM fits',
+      fitLead: 'These approaches complement each other. The differences are typical, and individual products vary.',
+      fitCols: ['Approach', 'Starts from', 'Finds what you did not list', 'How often'],
+      fitRows: [
+        ['Vulnerability scanner', 'The hosts you give it', 'No', 'On a schedule'],
+        ['Penetration test', 'An agreed scope', 'Rarely', 'Once or twice a year'],
+        ['EASM with Craton', 'One domain name', 'Yes', 'Continuously'],
+      ],
     },
+    faq: { label: 'Questions', title: 'Straight answers about EASM.' },
     labels: { problem: 'The Problem', framework: 'The Framework', brief: 'The Brief', leaders: 'For Leadership', trust: 'Trust', start: 'Get Started', log: 'Scan Log' },
     kicker: 'External Attack Surface Management',
     signIn: 'Sign in',
@@ -216,7 +234,23 @@ const COPY = {
       notTitle: 'Bukan sekadar pemindai kerentanan.',
       notBody: 'Pemindai memeriksa sistem yang Anda arahkan. EASM menemukan sistem yang tidak Anda ketahui untuk diarahkan, tanpa instalasi dan tanpa menyerang apa pun.',
       link: 'Lihat lima tahapnya',
+      findsTitle: 'Yang biasanya ditemukan',
+      finds: [
+        { icon: Unplug, title: 'Situs kampanye yang terlupakan', body: 'Microsite dari promosi lama, masih aktif, masih menunjuk ke aplikasi cloud yang sudah tidak dimiliki siapa pun.' },
+        { icon: Telescope, title: 'Server staging di internet terbuka', body: 'Sistem uji untuk sebuah proyek, tidak pernah dimatikan, kadang dengan konsol admin tanpa login.' },
+        { icon: Code2, title: 'Kredensial di kode publik', body: 'Seorang pengembang mengunggah file konfigurasi ke repositori publik, dan kata sandi di dalamnya masih berlaku.' },
+        { icon: Cloud, title: 'Penyimpanan yang bisa didaftar siapa saja', body: 'Bucket cloud yang tidak sengaja dibuat publik, menampilkan nama filenya ke seluruh internet.' },
+      ],
+      fitTitle: 'Posisi EASM',
+      fitLead: 'Pendekatan-pendekatan ini saling melengkapi. Perbedaannya bersifat umum, dan tiap produk bisa berbeda.',
+      fitCols: ['Pendekatan', 'Titik awal', 'Menemukan yang tidak Anda daftarkan', 'Seberapa sering'],
+      fitRows: [
+        ['Pemindai kerentanan', 'Host yang Anda berikan', 'Tidak', 'Terjadwal'],
+        ['Uji penetrasi', 'Cakupan yang disepakati', 'Jarang', 'Sekali atau dua kali setahun'],
+        ['EASM dengan Craton', 'Satu nama domain', 'Ya', 'Berkelanjutan'],
+      ],
     },
+    faq: { label: 'Pertanyaan', title: 'Jawaban lugas tentang EASM.' },
     labels: { problem: 'Masalahnya', framework: 'Kerangka Kerja', brief: 'Laporannya', leaders: 'Untuk Pimpinan', trust: 'Keamanan', start: 'Mulai', log: 'Log Pemindaian' },
     kicker: 'Manajemen Permukaan Serangan Eksternal',
     signIn: 'Masuk',
@@ -502,10 +536,7 @@ export function Landing() {
                 <a key={f.id} href={`#${f.id}`} className={cn('group flex items-start gap-4 py-5 transition-colors hover:bg-panel max-lg:border-b max-lg:border-line lg:flex-col lg:gap-3 lg:py-6 lg:pr-5', i > 0 && 'lg:border-l lg:border-line lg:pl-6')}>
                   <Icon className="size-6 shrink-0 text-ink" strokeWidth={1.25} aria-hidden />
                   <span>
-                    <span className="block text-base font-semibold">
-                      <span className="tabular mr-1.5 text-muted">{String(i + 1).padStart(2, '0')}</span>
-                      {f.name}
-                    </span>
+                    <span className="block text-base font-semibold">{f.name}</span>
                     <span className="mt-0.5 block text-sm leading-5 text-muted">{f.short}</span>
                   </span>
                 </a>
@@ -537,8 +568,7 @@ export function Landing() {
           <div className="mt-16 grid border-t border-line md:grid-cols-3">
             {c.easm.points.map((p, i) => (
               <div key={p.title} className={cn('py-8 md:pr-8', i > 0 && 'border-t border-line md:border-l md:border-t-0 md:pl-8')}>
-                <p className="tabular text-sm text-muted">{String(i + 1).padStart(2, '0')}</p>
-                <h3 className="mt-3 flex items-center gap-3 text-[28px] font-semibold leading-8 tracking-[-0.02em]">
+                <h3 className="flex items-center gap-3 text-[28px] font-semibold leading-8 tracking-[-0.02em]">
                   <p.icon className="size-6 shrink-0 text-ink" strokeWidth={1.25} aria-hidden />
                   {p.title}
                 </h3>
@@ -554,6 +584,46 @@ export function Landing() {
               {c.easm.link}
               <ArrowRight className="size-3.5" aria-hidden />
             </a>
+          </div>
+
+          <h3 className="mt-20 text-[28px] font-semibold leading-8 tracking-[-0.02em]">{c.easm.findsTitle}</h3>
+          <ul className="mt-8 grid gap-px border border-line bg-line sm:grid-cols-2">
+            {c.easm.finds.map((f) => (
+              <li key={f.title} className="flex gap-4 bg-bg p-6">
+                <f.icon className="mt-0.5 size-6 shrink-0 text-ink" strokeWidth={1.25} aria-hidden />
+                <div>
+                  <p className="text-[17px] font-semibold leading-6">{f.title}</p>
+                  <p className="mt-1.5 text-[15px] leading-7 text-muted">{f.body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <h3 className="mt-20 text-[28px] font-semibold leading-8 tracking-[-0.02em]">{c.easm.fitTitle}</h3>
+          <p className="mt-3 max-w-[64ch] text-[15px] leading-7 text-muted">{c.easm.fitLead}</p>
+          <div className="mt-6 overflow-x-auto border border-line">
+            <table className="w-full min-w-[620px] border-collapse text-left text-[15px] leading-6">
+              <thead>
+                <tr className="border-b border-line bg-panel">
+                  {c.easm.fitCols.map((h) => (
+                    <th key={h} scope="col" className="px-5 py-3.5 text-sm font-medium text-muted">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {c.easm.fitRows.map((r, i) => (
+                  <tr key={r[0]} className={cn('border-b border-line last:border-b-0', i === c.easm.fitRows.length - 1 && 'bg-panel')}>
+                    {r.map((cell, j) => (
+                      <td key={j} className={cn('px-5 py-4 align-top', j === 0 ? 'font-semibold text-ink' : i === c.easm.fitRows.length - 1 ? 'text-ink' : 'text-muted')}>
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </Band>
 
@@ -585,10 +655,7 @@ export function Landing() {
                   <div>
                     <div className="flex h-8 items-center gap-3">
                       <Icon className="size-7 shrink-0 text-ink" strokeWidth={1.25} aria-hidden />
-                      <h3 className="text-[28px] font-semibold leading-8 tracking-[-0.02em]">
-                        <span className="tabular mr-2 text-muted">{String(n + 1).padStart(2, '0')}</span>
-                        {f.name}
-                      </h3>
+                      <h3 className="text-[28px] font-semibold leading-8 tracking-[-0.02em]">{f.name}</h3>
                     </div>
                     <p className="mt-1.5 text-sm text-muted lg:pl-10">{f.question}</p>
                   </div>
@@ -668,6 +735,23 @@ export function Landing() {
                   ))}
                 </ul>
               </div>
+            ))}
+          </div>
+        </Band>
+
+        {/* FAQ */}
+        <Band id="faq" className="py-24 sm:py-32">
+          <Label>{c.faq.label}</Label>
+          <h2 className={cn(h2, 'mt-8 max-w-[18ch]')}>{c.faq.title}</h2>
+          <div className="mt-16 max-w-[900px] border-b border-line">
+            {LANDING_FAQ[lang].map((f) => (
+              <details key={f.q} className="group border-t border-line">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-6 text-[19px] font-semibold leading-7 [&::-webkit-details-marker]:hidden">
+                  {f.q}
+                  <Plus className="size-5 shrink-0 text-muted transition-transform group-open:rotate-45" strokeWidth={1.5} aria-hidden />
+                </summary>
+                <p className="max-w-[70ch] pb-6 text-[16px] leading-7 text-muted">{f.a}</p>
+              </details>
             ))}
           </div>
         </Band>

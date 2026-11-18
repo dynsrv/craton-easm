@@ -12,8 +12,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const auth = await requireUser();
   if ('response' in auth) return auth.response;
   // Customers can only open their own scans; to them someone else's scan simply does not exist.
-  const allowed = await prisma.scan.findFirst({ where: { id, ...ownedBy(auth.session) }, select: { id: true } });
-  const scan = allowed ? await loadScanDTO(id) : null;
+  const scan = await loadScanDTO(id, ownedBy(auth.session));
   if (!scan) return NextResponse.json({ error: 'Scan not found' }, { status: 404 });
   return NextResponse.json(scan);
 }

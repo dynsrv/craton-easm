@@ -66,6 +66,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+        {/* The logo is painted through a CSS mask, so the browser would otherwise find it late. */}
+        <link rel="preload" href="/brand/craton-logo.png" as="image" />
       </head>
       <body>{children}</body>
     </html>

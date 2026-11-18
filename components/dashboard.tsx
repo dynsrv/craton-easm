@@ -30,7 +30,7 @@ import type { ScanListItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 
-const POLL_MS = 1500;
+const POLL_MS = 2000;
 
 const TABS = ['overview', 'paths', 'assets', 'exposures', 'compliance', 'drift'] as const;
 type Tab = (typeof TABS)[number];

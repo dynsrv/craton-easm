@@ -302,25 +302,22 @@ export const ASSET_SELECT = {
 } as const;
 
 /** Loads a scan with everything the dashboard shows. */
-export async function loadScanDTO(id: string): Promise<ScanDTO | null> {
-  const scan = await prisma.scan.findUnique({
-    where: { id },
+export async function loadScanDTO(id: string, owner: { ownerId?: string } = {}): Promise<ScanDTO | null> {
+  // `owner` folds the access check into the same query: someone else's scan is simply not found.
+  const scan = await prisma.scan.findFirst({
+    where: { id, ...owner },
     include: { assets: { select: ASSET_SELECT, orderBy: { hostname: 'asc' } }, exposures: true },
   });
   if (!scan) return null;
-  const [drift, monitor, withShot, prev] = await Promise.all([
+  const [drift, monitor, prev] = await Promise.all([
     // drift detected by this scan and every earlier scan of the domain
     prisma.driftEvent.findMany({ where: { domain: scan.domain, scan: { createdAt: { lte: scan.createdAt } } }, orderBy: { createdAt: 'desc' }, take: 100 }),
     prisma.monitor.findUnique({ where: { domain: scan.domain } }),
-    // whether an image is really stored (older scans have theirs pruned)
-    prisma.asset.findMany({ where: { scanId: id, screenshot: { not: null } }, select: { id: true } }),
     scan.baselineScanId
       ? prisma.scan.findUnique({ where: { id: scan.baselineScanId }, select: { score: true, finishedAt: true, createdAt: true } })
       : null,
   ]);
-  const stored = new Set(withShot.map((a) => a.id));
   const dto = toScanDTO({ ...scan, assets: scan.assets as unknown as Asset[] }, drift, monitor?.enabled ?? false);
-  dto.assets = dto.assets.map((a) => ({ ...a, hasScreenshot: stored.has(a.id) }));
   if (prev) dto.baseline = { score: prev.score, date: (prev.finishedAt ?? prev.createdAt).toISOString() };
   return dto;
 }
