@@ -16,3 +16,12 @@ export const BUILD = process.env.NEXT_PUBLIC_APP_BUILD ?? '';
 
 export const LEGAL_SLUGS = ['terms', 'privacy', 'acceptable-use', 'liability', 'complaints'] as const;
 export type LegalSlug = (typeof LEGAL_SLUGS)[number];
+
+/** [English, Bahasa Indonesia]. Kept here, not in legal-content, so the footer does not ship the full legal text to every page. */
+export const LEGAL_TITLES: Record<LegalSlug, [string, string]> = {
+  terms: ['Terms of Service', 'Ketentuan Layanan'],
+  privacy: ['Privacy Policy', 'Kebijakan Privasi'],
+  'acceptable-use': ['Acceptable Use Policy', 'Kebijakan Penggunaan yang Dapat Diterima'],
+  liability: ['Liability', 'Tanggung Jawab'],
+  complaints: ['Complaints', 'Pengaduan'],
+};

@@ -1,13 +1,8 @@
+import { SEV_VAR } from './sev-colors';
 import type { GradeKey } from './score';
 import type { Bilingual, Category, Lang, Severity, VisualClass } from './types';
 
-export const SEV_VAR: Record<Severity, string> = {
-  Critical: 'var(--color-crit)',
-  High: 'var(--color-high)',
-  Medium: 'var(--color-med)',
-  Low: 'var(--color-low)',
-  Info: 'var(--color-info)',
-};
+export { SEV_VAR };
 
 /** Darker severity colours that stay readable on white paper. */
 export const SEV_PRINT: Record<Severity, string> = {

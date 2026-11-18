@@ -37,7 +37,7 @@ import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '@/components/site-chrome';
 import { useLang } from '@/components/lang';
 import { LANDING_FAQ } from '@/lib/landing-faq';
-import { SEV_VAR } from '@/lib/i18n';
+import { SEV_VAR } from '@/lib/sev-colors';
 import type { Lang, Severity } from '@/lib/types';
 import { cn } from '@/lib/utils';
 

@@ -6,8 +6,7 @@ import { useEffect, useState } from 'react';
 import { Wordmark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { BUILD, CONTACT_EMAIL, LEGAL_SLUGS, OPERATOR, PRODUCT, VERSION } from '@/lib/legal';
-import { LEGAL } from '@/lib/legal-content';
+import { BUILD, CONTACT_EMAIL, LEGAL_SLUGS, LEGAL_TITLES, OPERATOR, PRODUCT, VERSION } from '@/lib/legal';
 import type { Lang } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -125,7 +124,7 @@ export function SiteFooter({ lang, className, inner = 'max-w-[1360px]' }: { lang
         <nav aria-label={f.legal} className="flex flex-wrap gap-x-5 gap-y-1">
           {LEGAL_SLUGS.map((slug) => (
             <Link key={slug} href={`/legal/${slug}`} className="hover:text-ink">
-              {LEGAL[slug].title[lang === 'id' ? 1 : 0]}
+              {LEGAL_TITLES[slug][lang === 'id' ? 1 : 0]}
             </Link>
           ))}
         </nav>

@@ -27,6 +27,12 @@ export async function middleware(req: NextRequest) {
 
   if (pathname === '/welcome') return NextResponse.redirect(new URL('/', req.url));
 
+  // The sign-in page is prerendered; people who already have a session are sent on from here.
+  if (pathname === '/login') {
+    if (await verifySession(req.cookies.get(SESSION_COOKIE)?.value)) return NextResponse.redirect(new URL('/', req.url));
+    return NextResponse.next();
+  }
+
   // The legal pages must be readable by anyone, signed in or not.
   if (pathname === '/legal' || pathname.startsWith('/legal/')) return NextResponse.next();
   if (PUBLIC.some((p) => pathname === p)) return NextResponse.next();

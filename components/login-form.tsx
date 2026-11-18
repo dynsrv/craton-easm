@@ -3,7 +3,7 @@
 import { AppFooter } from '@/components/site-chrome';
 import { ArrowLeft, CircleCheck, Loader2, Lock, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Wordmark } from '@/components/brand';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
@@ -27,7 +27,10 @@ function GoogleMark() {
   );
 }
 
-export function LoginForm({ problems, google, notice }: { problems: string[]; google: boolean; notice: string | null }) {
+export function LoginForm({ problems, google }: { problems: string[]; google: boolean }) {
+  // The page is static, so the notice (`/login?error=...`) is read here instead of on the server.
+  const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => setNotice(new URLSearchParams(window.location.search).get('error')), []);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);

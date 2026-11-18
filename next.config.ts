@@ -4,6 +4,8 @@ import type { NextConfig } from 'next';
 const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
 const nextConfig: NextConfig = {
+  // Put the (small) stylesheet in the HTML: one network round trip fewer before the first paint.
+  experimental: { inlineCss: true },
   // Brand images are not fingerprinted, so cache them for a day and refresh in the background.
   async headers() {
     return [{ source: '/brand/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=86400, stale-while-revalidate=604800' }] }];

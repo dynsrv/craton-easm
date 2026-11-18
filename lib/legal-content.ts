@@ -1,4 +1,4 @@
-import { CONTACT_EMAIL, type LegalSlug, OPERATOR, PRODUCT, SITE_HOST, SLA } from './legal';
+import { CONTACT_EMAIL, LEGAL_TITLES, type LegalSlug, OPERATOR, PRODUCT, SITE_HOST, SLA } from './legal';
 
 /** A bilingual string: [English, Bahasa Indonesia]. */
 export type T = readonly [string, string];
@@ -23,7 +23,7 @@ const email = CONTACT_EMAIL;
 
 export const LEGAL: Record<LegalSlug, LegalDoc> = {
   terms: {
-    title: ['Terms of Service', 'Ketentuan Layanan'],
+    title: LEGAL_TITLES['terms'],
     summary: [
       `The rules for using ${PRODUCT}. Short version: assess only domains you are allowed to assess, and treat the results as a guide, not a guarantee.`,
       `Aturan penggunaan ${PRODUCT}. Singkatnya: nilai hanya domain yang boleh Anda nilai, dan anggap hasilnya sebagai panduan, bukan jaminan.`,
@@ -133,7 +133,7 @@ export const LEGAL: Record<LegalSlug, LegalDoc> = {
   },
 
   privacy: {
-    title: ['Privacy Policy', 'Kebijakan Privasi'],
+    title: LEGAL_TITLES['privacy'],
     summary: [
       `What ${PRODUCT} collects, why, who else sees it, and the rights you have over personal data under Indonesian law (UU 27/2022).`,
       `Data apa yang dikumpulkan ${PRODUCT}, untuk apa, siapa lagi yang melihatnya, dan hak Anda atas data pribadi menurut hukum Indonesia (UU 27/2022).`,
@@ -242,7 +242,7 @@ export const LEGAL: Record<LegalSlug, LegalDoc> = {
   },
 
   'acceptable-use': {
-    title: ['Acceptable Use Policy', 'Kebijakan Penggunaan yang Dapat Diterima'],
+    title: LEGAL_TITLES['acceptable-use'],
     summary: [
       `What you may and may not do with ${PRODUCT}. It exists to protect the organisations that are assessed and the people who run the service.`,
       `Apa yang boleh dan tidak boleh Anda lakukan dengan ${PRODUCT}. Kebijakan ini ada untuk melindungi organisasi yang dinilai dan pihak yang menjalankan layanan.`,
@@ -304,7 +304,7 @@ export const LEGAL: Record<LegalSlug, LegalDoc> = {
   },
 
   liability: {
-    title: ['Liability', 'Tanggung Jawab'],
+    title: LEGAL_TITLES['liability'],
     summary: [
       `What ${PRODUCT} can and cannot promise about its results, and how far our responsibility goes.`,
       `Apa yang dapat dan tidak dapat dijanjikan ${PRODUCT} tentang hasilnya, dan sejauh mana tanggung jawab kami.`,
@@ -378,7 +378,7 @@ export const LEGAL: Record<LegalSlug, LegalDoc> = {
   },
 
   complaints: {
-    title: ['Complaints', 'Pengaduan'],
+    title: LEGAL_TITLES['complaints'],
     summary: [
       'How to tell us something went wrong, what we will do, and how fast. This also covers reports from owners of assessed domains and data requests.',
       'Cara memberi tahu kami jika ada yang tidak beres, apa yang akan kami lakukan, dan seberapa cepat. Halaman ini juga mencakup laporan dari pemilik domain yang dinilai dan permintaan data.',
