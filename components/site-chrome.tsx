@@ -15,6 +15,25 @@ const STR = {
   id: { menu: 'Buka menu', close: 'Tutup menu', language: 'Bahasa', easm: 'EASM', framework: 'Kerangka', brief: 'Laporan', leaders: 'Untuk Pimpinan', trust: 'Keamanan', compliance: 'Kepatuhan', signIn: 'Masuk', footer: 'Manajemen permukaan serangan eksternal', complianceLink: 'Panduan kepatuhan Indonesia' },
 } as const;
 
+/**
+ * On the landing page the section links are plain in-page anchors. From any other page they go to
+ * "/#section", and a <Link> makes that a client-side move instead of a full page reload.
+ */
+function NavLink({ href, onLanding, className, onClick, children }: { href: string; onLanding: boolean; className?: string; onClick?: () => void; children: React.ReactNode }) {
+  if (onLanding && href.startsWith('#')) {
+    return (
+      <a href={href} onClick={onClick} className={className}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} onClick={onClick} className={className}>
+      {children}
+    </Link>
+  );
+}
+
 /** The public header, shared by the landing page and the compliance guide so they read as one site. */
 export function SiteHeader({ lang, setLang, onLanding = false, active, inner = 'max-w-[1344px]' }: { lang: Lang; setLang: (l: Lang) => void; onLanding?: boolean; active?: 'compliance'; inner?: string }) {
   const s = STR[lang];
@@ -41,9 +60,9 @@ export function SiteHeader({ lang, setLang, onLanding = false, active, inner = '
         </Link>
         <nav className="hidden items-center gap-6 md:flex" aria-label="Sections">
           {links.map(([href, label]) => (
-            <a key={href} href={href} className="text-[13px] text-muted transition-colors hover:text-ink">
+            <NavLink key={href} href={href} onLanding={onLanding} className="text-[13px] text-muted transition-colors hover:text-ink">
               {label}
-            </a>
+            </NavLink>
           ))}
           <Link href="/compliance" aria-current={active === 'compliance' ? 'page' : undefined} className={cn('text-[13px] transition-colors hover:text-ink', active === 'compliance' ? 'font-medium text-ink' : 'text-muted')}>
             {s.compliance}
@@ -75,15 +94,9 @@ export function SiteHeader({ lang, setLang, onLanding = false, active, inner = '
           <ul className="flex flex-col">
             {[...links, ['/compliance', s.compliance] as [string, string]].map(([href, label]) => (
               <li key={href} className="border-b border-line">
-                {href.startsWith('/compliance') ? (
-                  <Link href={href} onClick={() => setOpen(false)} className="flex h-12 items-center text-[16px] text-ink">
-                    {label}
-                  </Link>
-                ) : (
-                  <a href={href} onClick={() => setOpen(false)} className="flex h-12 items-center text-[16px] text-ink">
-                    {label}
-                  </a>
-                )}
+                <NavLink href={href} onLanding={onLanding} onClick={() => setOpen(false)} className="flex h-12 items-center text-[16px] text-ink">
+                  {label}
+                </NavLink>
               </li>
             ))}
           </ul>
