@@ -2,6 +2,7 @@
 
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Wordmark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
@@ -21,6 +22,15 @@ export function SiteHeader({ lang, setLang, onLanding = false, active, inner = '
   const s = STR[lang];
   const base = onLanding ? '' : '/';
   const [open, setOpen] = useState(false);
+  // Fetch the other public pages as soon as the browser is idle, so the first click does not wait for the network.
+  const router = useRouter();
+  useEffect(() => {
+    const id = setTimeout(() => {
+      router.prefetch('/compliance');
+      router.prefetch('/');
+    }, 400);
+    return () => clearTimeout(id);
+  }, [router]);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);

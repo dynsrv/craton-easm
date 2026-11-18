@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
+import { NavProgress } from '@/components/nav-progress';
 
 // Self-hosted and preloaded with the HTML, with a metric-matched fallback so text does not jump.
 const inter = localFont({
@@ -69,7 +70,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* The logo is painted through a CSS mask, so the browser would otherwise find it late. */}
         <link rel="preload" href="/brand/craton-logo.png" as="image" />
       </head>
-      <body>{children}</body>
+      <body>
+        <NavProgress />
+        {children}
+      </body>
     </html>
   );
 }
