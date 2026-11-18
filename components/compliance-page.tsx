@@ -19,7 +19,7 @@ const SECTOR_ICON: Record<Sector, LucideIcon> = { any: Building2, bank: Landmark
 /** One shell for every section, so the page lines up with the top bar and with itself. */
 const APP_SHELL = 'mx-auto w-full max-w-[1360px] px-4 sm:px-6';
 /** Signed-out visitors get the landing page's width so both pages line up. */
-const PUBLIC_SHELL = 'mx-auto w-full max-w-[1280px] px-5 sm:px-8';
+const PUBLIC_SHELL = 'mx-auto w-full max-w-[1344px] px-5 sm:px-8';
 const ShellCtx = createContext(APP_SHELL);
 
 function Section({ id, className, children, first, ...rest }: { id: string; className?: string; children: React.ReactNode; first?: boolean } & React.AriaAttributes) {
@@ -400,7 +400,7 @@ export function CompliancePage({ email, isAdmin = false }: { email: string | nul
           </ul>
         </Section>
       </main>
-      <SiteFooter lang={lang} inner={email ? undefined : 'max-w-[1280px]'} />
+      <SiteFooter lang={lang} inner={email ? undefined : 'max-w-[1344px]'} />
     </div>
     </ShellCtx.Provider>
   );

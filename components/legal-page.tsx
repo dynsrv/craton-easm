@@ -31,7 +31,7 @@ export function LegalPage({ slug }: { slug: LegalSlug }) {
   return (
     <div className="min-h-dvh bg-bg text-ink antialiased">
       <SiteHeader lang={lang} setLang={setLang} />
-      <div className="mx-auto grid max-w-[1280px] gap-x-12 gap-y-8 px-5 pb-20 pt-24 sm:px-8 sm:pt-28 lg:grid-cols-[220px_minmax(0,1fr)]">
+      <div className="mx-auto grid max-w-[1344px] gap-x-12 gap-y-8 px-5 pb-20 pt-24 sm:px-8 sm:pt-28 lg:grid-cols-[220px_minmax(0,1fr)]">
         <aside className="lg:sticky lg:top-24 lg:self-start">
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.08em] text-muted">{u.legal}</p>
           <nav aria-label={u.legal} className="-mx-5 flex gap-1 overflow-x-auto px-5 pb-1 sm:-mx-8 sm:px-8 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0">
@@ -105,7 +105,7 @@ export function LegalPage({ slug }: { slug: LegalSlug }) {
           </p>
         </main>
       </div>
-      <SiteFooter lang={lang} inner="max-w-[1280px]" />
+      <SiteFooter lang={lang} inner="max-w-[1344px]" />
     </div>
   );
 }

@@ -16,7 +16,7 @@ const STR = {
 } as const;
 
 /** The public header, shared by the landing page and the compliance guide so they read as one site. */
-export function SiteHeader({ lang, setLang, onLanding = false, active, inner = 'max-w-[1280px]' }: { lang: Lang; setLang: (l: Lang) => void; onLanding?: boolean; active?: 'compliance'; inner?: string }) {
+export function SiteHeader({ lang, setLang, onLanding = false, active, inner = 'max-w-[1344px]' }: { lang: Lang; setLang: (l: Lang) => void; onLanding?: boolean; active?: 'compliance'; inner?: string }) {
   const s = STR[lang];
   const base = onLanding ? '' : '/';
   const links: [string, string][] = [
