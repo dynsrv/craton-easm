@@ -1,7 +1,8 @@
 'use client';
 
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Menu, X } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { Wordmark } from '@/components/brand';
 import { LangToggle, useLang } from '@/components/lang';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -11,14 +12,21 @@ import type { Lang } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const STR = {
-  en: { easm: 'EASM', framework: 'Framework', brief: 'The Brief', leaders: 'For Leaders', trust: 'Trust', compliance: 'Compliance', signIn: 'Sign in', footer: 'External attack surface management', complianceLink: 'Indonesian compliance guide' },
-  id: { easm: 'EASM', framework: 'Kerangka', brief: 'Laporan', leaders: 'Untuk Pimpinan', trust: 'Keamanan', compliance: 'Kepatuhan', signIn: 'Masuk', footer: 'Manajemen permukaan serangan eksternal', complianceLink: 'Panduan kepatuhan Indonesia' },
+  en: { menu: 'Open menu', close: 'Close menu', language: 'Language', easm: 'EASM', framework: 'Framework', brief: 'The Brief', leaders: 'For Leaders', trust: 'Trust', compliance: 'Compliance', signIn: 'Sign in', footer: 'External attack surface management', complianceLink: 'Indonesian compliance guide' },
+  id: { menu: 'Buka menu', close: 'Tutup menu', language: 'Bahasa', easm: 'EASM', framework: 'Kerangka', brief: 'Laporan', leaders: 'Untuk Pimpinan', trust: 'Keamanan', compliance: 'Kepatuhan', signIn: 'Masuk', footer: 'Manajemen permukaan serangan eksternal', complianceLink: 'Panduan kepatuhan Indonesia' },
 } as const;
 
 /** The public header, shared by the landing page and the compliance guide so they read as one site. */
 export function SiteHeader({ lang, setLang, onLanding = false, active, inner = 'max-w-[1344px]' }: { lang: Lang; setLang: (l: Lang) => void; onLanding?: boolean; active?: 'compliance'; inner?: string }) {
   const s = STR[lang];
   const base = onLanding ? '' : '/';
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
   const links: [string, string][] = [
     [`${base}#easm`, s.easm],
     [`${base}#framework`, s.framework],
@@ -42,15 +50,50 @@ export function SiteHeader({ lang, setLang, onLanding = false, active, inner = '
             {s.compliance}
           </Link>
         </nav>
-        <div className="ml-auto flex items-center gap-3">
-          <LangToggle lang={lang} setLang={setLang} />
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+          <span className="hidden md:block">
+            <LangToggle lang={lang} setLang={setLang} />
+          </span>
           <ThemeToggle />
-          <Link href="/login" className="inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap bg-ink px-3.5 text-[13px] font-medium text-bg hover:bg-white">
+          <Link href="/login" className="inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap bg-ink px-3 text-[13px] font-medium text-bg hover:bg-white sm:px-3.5">
             {s.signIn}
-            <ArrowUpRight className="size-3.5" aria-hidden />
+            <ArrowUpRight className="hidden size-3.5 sm:block" aria-hidden />
           </Link>
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            aria-label={open ? s.close : s.menu}
+            className="inline-flex size-8 shrink-0 items-center justify-center border border-line text-ink hover:border-muted md:hidden"
+          >
+            {open ? <X className="size-4" aria-hidden /> : <Menu className="size-4" aria-hidden />}
+          </button>
         </div>
       </div>
+      {open && (
+        <nav id="mobile-menu" aria-label="Menu" className="max-h-[calc(100dvh-3.5rem)] overflow-y-auto border-t border-line bg-bg px-5 pb-6 pt-2 md:hidden">
+          <ul className="flex flex-col">
+            {[...links, ['/compliance', s.compliance] as [string, string]].map(([href, label]) => (
+              <li key={href} className="border-b border-line">
+                {href.startsWith('/compliance') ? (
+                  <Link href={href} onClick={() => setOpen(false)} className="flex h-12 items-center text-[16px] text-ink">
+                    {label}
+                  </Link>
+                ) : (
+                  <a href={href} onClick={() => setOpen(false)} className="flex h-12 items-center text-[16px] text-ink">
+                    {label}
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-5 flex items-center justify-between">
+            <span className="text-sm text-muted">{s.language}</span>
+            <LangToggle lang={lang} setLang={setLang} />
+          </div>
+        </nav>
+      )}
     </header>
   );
 }
